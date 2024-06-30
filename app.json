@@ -18,10 +18,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.suraj719.helpEZ"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "100d3ae9-3e14-41c5-a84e-72ff0456261b"
+      }
     }
   }
 }
