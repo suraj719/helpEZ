@@ -1,9 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import app from "../utils/firebase";
 import {
-  Timestamp,
-  addDoc,
   collection,
   getDocs,
   getFirestore,
@@ -12,6 +18,8 @@ import {
 } from "firebase/firestore";
 import RegisterDetails from "./RegisterDetails";
 import { useNavigation } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Register() {
   const navigation = useNavigation();
@@ -19,25 +27,59 @@ export default function Register() {
   const usersCollection = collection(db, "users");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isNewMember, setIsNewMember] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const checkStoredPhoneNumber = async () => {
+      try {
+        const storedPhoneNumber = await AsyncStorage.getItem("phoneNumber");
+        if (storedPhoneNumber) {
+          setPhoneNumber(storedPhoneNumber);
+          signInWithPhoneNumber(storedPhoneNumber);
+        }
+      } catch (error) {
+        console.log("Error retrieving phone number from storage", error);
+      }
+    };
+
+    checkStoredPhoneNumber();
+  }, []);
 
   const signInWithPhoneNumber = async (pn) => {
+    if (!pn) {
+      Toast.show({
+        type: "error",
+        text1: "Please enter your Mobile Number",
+      });
+      return;
+    }
+    setLoading(true);
     try {
       const q = query(usersCollection, where("phoneNumber", "==", pn));
       const querySnapshot = await getDocs(q);
+      setLoading(false);
       if (!querySnapshot.empty) {
-        navigation.navigate("Home");
-        // Alert.alert("User already exists");
+        await AsyncStorage.setItem("phoneNumber", pn);
+        navigation.navigate("Dashboard");
+        setLoading(false);
       } else {
         setIsNewMember(true);
       }
     } catch (error) {
-      console.log("Error while fetching details", error);
+      setLoading(false);
+      console.log("Error fetching details", error);
+      Toast.show({
+        type: "error",
+        text1: "Error fetching details",
+      });
     }
   };
 
   return (
     <View style={styles.container}>
-      {isNewMember ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#3498db" />
+      ) : isNewMember ? (
         <RegisterDetails phoneNumber={phoneNumber} />
       ) : (
         <View style={styles.authContainer}>
@@ -46,15 +88,17 @@ export default function Register() {
             style={styles.input}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
-            placeholder="Phone Number"
+            placeholder="Phone Number *"
             keyboardType="phone-pad"
           />
           <View style={styles.buttonContainer}>
-            <Button
-              title="Proceed"
+            <TouchableOpacity
               onPress={() => signInWithPhoneNumber(phoneNumber)}
-              color="#3498db"
-            />
+              style={styles.button}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.buttonText}>Proceed</Text>
+            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -67,12 +111,10 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    // padding: 16,
     backgroundColor: "#f0f0f0",
   },
   authContainer: {
     width: "80%",
-    // maxWidth: 400,
     justifyContent: "center",
     backgroundColor: "#fff",
     paddingVertical: 50,
@@ -95,5 +137,16 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginBottom: 16,
+  },
+  button: {
+    backgroundColor: "#3498db",
+    padding: 15,
+    alignItems: "center",
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

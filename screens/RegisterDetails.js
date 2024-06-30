@@ -5,23 +5,22 @@ import {
   Alert,
   TextInput,
   StyleSheet,
-  Button,
   ScrollView,
   Platform,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import {
-  addDoc,
-  collection,
-  getFirestore,
-  Timestamp,
-} from "firebase/firestore";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
-import RNPickerSelect from "react-native-picker-select";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/Ionicons";
+import { Picker } from "@react-native-picker/picker";
+import Toast from "react-native-toast-message";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function RegisterDetails({ phoneNumber }) {
+  const navigation = useNavigation();
   const db = getFirestore(app);
   const usersCollection = collection(db, "users");
   const [name, setName] = useState("");
@@ -30,16 +29,21 @@ export default function RegisterDetails({ phoneNumber }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [bloodGroup, setBloodGroup] = useState("");
   const [alternateContact, setAlternateContact] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const createAccount = async () => {
     if (!name || !gender || !dob || !bloodGroup) {
-      Alert.alert("Error", "Please fill in all required fields.");
+      Toast.show({
+        type: "error",
+        text1: "Please fill in all required fields.",
+      });
       return;
     }
 
     const formattedDob = dob.toISOString().split("T")[0]; // Format to 'YYYY-MM-DD'
+    const createdAt = new Date().toLocaleString(); // Format to a readable string
     const userData = {
-      createdAt: Timestamp.now(),
+      createdAt: createdAt,
       phoneNumber: phoneNumber,
       name: name,
       gender: gender,
@@ -47,12 +51,24 @@ export default function RegisterDetails({ phoneNumber }) {
       bloodGroup: bloodGroup,
       alternateContact: alternateContact,
     };
+
+    setLoading(true);
     try {
       await addDoc(usersCollection, userData);
-      Alert.alert("User registered successfully");
+      await AsyncStorage.setItem("phoneNumber", phoneNumber); // Set phone number in AsyncStorage
+      Toast.show({
+        type: "success",
+        text1: "Account created Successfully!",
+      });
+      navigation.navigate("Dashboard");
     } catch (error) {
       console.log("Error while creating account", error);
-      Alert.alert("Error", "There was an error while creating the account");
+      Toast.show({
+        type: "error",
+        text1: "Please try again later!",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,7 +82,7 @@ export default function RegisterDetails({ phoneNumber }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.authContainer}>
-        <Text style={styles.title}>Please provide some more details!!</Text>
+        <Text style={styles.title}>Please provide some more details!</Text>
         <View style={styles.inputContainer}>
           <Icon name="person" size={20} color="#2c3e50" style={styles.icon} />
           <TextInput
@@ -77,6 +93,7 @@ export default function RegisterDetails({ phoneNumber }) {
             placeholderTextColor="#bdc3c7"
           />
         </View>
+
         <View style={styles.inputContainer}>
           <Icon
             name="male-female"
@@ -84,20 +101,17 @@ export default function RegisterDetails({ phoneNumber }) {
             color="#2c3e50"
             style={styles.icon}
           />
-          <RNPickerSelect
-            onValueChange={(value) => setGender(value)}
-            items={[
-              { label: "Male", value: "male" },
-              { label: "Female", value: "female" },
-            ]}
-            placeholder={{ label: "Select Gender *", value: null }}
-            style={pickerSelectStyles}
-            useNativeAndroidPickerStyle={false}
-            // Icon={() => {
-            //   return <Icon name="caret-down" size={20} color="#2c3e50" />;
-            // }}
-          />
+          <Picker
+            selectedValue={gender}
+            style={styles.picker}
+            onValueChange={(itemValue) => setGender(itemValue)}
+          >
+            <Picker.Item label="Select Gender *" value="" color="#939da3" />
+            <Picker.Item label="Male" value="male" />
+            <Picker.Item label="Female" value="female" />
+          </Picker>
         </View>
+
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
           style={styles.dateInput}
@@ -138,8 +152,13 @@ export default function RegisterDetails({ phoneNumber }) {
           <TouchableOpacity
             onPress={() => createAccount()}
             style={styles.button}
+            activeOpacity={0.7}
           >
-            <Text style={styles.buttonText}>Proceed</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>Proceed</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -176,7 +195,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     height: 50,
     elevation: 5,
-    // borderColor: "#bdc3c7",
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 10,
@@ -188,12 +206,16 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "#2c3e50",
   },
+  picker: {
+    flex: 1,
+    marginLeft: 10,
+    color: "#2c3e50",
+  },
   dateInput: {
     flexDirection: "row",
     alignItems: "center",
     height: 50,
     elevation: 5,
-    // borderColor: "#bdc3c7",
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 10,
@@ -222,37 +244,3 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 });
-
-const pickerSelectStyles = StyleSheet.create({
-    inputIOS: {
-      flex: 1,
-      height: 50,
-      borderColor: "#bdc3c7",
-      borderWidth: 1,
-      padding: 10,
-      borderRadius: 5,
-      backgroundColor: "#ffffff",
-      color: "#000000",
-      fontSize: 16,
-    },
-    inputAndroid: {
-    //   flex: 1,
-      height: 50,
-      borderColor: "#bdc3c7",
-      borderWidth: 1,
-      padding: 10,
-      borderRadius: 5,
-      backgroundColor: "#ffffff",
-      color: "#000000",
-      fontSize: 16,
-    },
-    iconContainer: {
-      top: 10,
-      right: 12,
-    },
-    placeholder: {
-      color: '#000000',
-      fontSize: 16,
-    },
-  });
-  
