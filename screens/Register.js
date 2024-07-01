@@ -84,7 +84,10 @@ export default function Register() {
       {loading ? (
         <ActivityIndicator size="large" color="#3498db" />
       ) : isNewMember ? (
-        <RegisterDetails changeNumber={setIsNewMember} phoneNumber={phoneNumber} />
+        <RegisterDetails
+          changeNumber={setIsNewMember}
+          phoneNumber={phoneNumber}
+        />
       ) : (
         <View style={styles.authContainer}>
           <Image source={require("../assets/logo.png")} style={styles.image} />
@@ -100,13 +103,14 @@ export default function Register() {
             keyboardType="phone-pad"
             placeholderTextColor="#888"
           />
-          <View style={styles.buttonContainer}>
+          <View className="mb-4">
             <TouchableOpacity
               onPress={() => signInWithPhoneNumber(phoneNumber)}
-              style={styles.button}
+              // style={styles.button}
+              className="bg-black p-5 rounded-lg"
               activeOpacity={0.7}
             >
-              <Text style={styles.buttonText}>Proceed</Text>
+              <Text className="text-white font-bold text-center">Proceed</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -158,20 +162,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
     marginBottom: 20,
     color: "#333",
-  },
-  buttonContainer: {
-    marginBottom: 16,
-  },
-  button: {
-    // backgroundColor: "#3498db",
-    backgroundColor: "#000",
-    padding: 15,
-    alignItems: "center",
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 });

@@ -19,14 +19,14 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.suraj719.helpEZ"
+      "package": "com.suraj719.HelpEZ"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "100d3ae9-3e14-41c5-a84e-72ff0456261b"
+        "projectId": "cc61ff1b-787d-4de1-a695-198a37f34a8d"
       }
     }
   }
