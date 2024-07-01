@@ -4,9 +4,9 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  Alert,
-  TouchableOpacity,
   ActivityIndicator,
+  TouchableOpacity,
+  Image,
 } from "react-native";
 import app from "../utils/firebase";
 import {
@@ -17,7 +17,7 @@ import {
   where,
 } from "firebase/firestore";
 import RegisterDetails from "./RegisterDetails";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -60,8 +60,12 @@ export default function Register() {
       setLoading(false);
       if (!querySnapshot.empty) {
         await AsyncStorage.setItem("phoneNumber", pn);
-        navigation.navigate("Dashboard");
-        setLoading(false);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: "Dashboard" }],
+          })
+        );
       } else {
         setIsNewMember(true);
       }
@@ -80,16 +84,21 @@ export default function Register() {
       {loading ? (
         <ActivityIndicator size="large" color="#3498db" />
       ) : isNewMember ? (
-        <RegisterDetails phoneNumber={phoneNumber} />
+        <RegisterDetails changeNumber={setIsNewMember} phoneNumber={phoneNumber} />
       ) : (
         <View style={styles.authContainer}>
-          <Text style={styles.title}>Welcome !!</Text>
+          <Image source={require("../assets/logo.png")} style={styles.image} />
+          <Text style={styles.description}>
+            HelpEZ helps manage disasters efficiently by connecting people in
+            need with resources and assistance. Join us in making a difference.
+          </Text>
           <TextInput
             style={styles.input}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             placeholder="Phone Number *"
             keyboardType="phone-pad"
+            placeholderTextColor="#888"
           />
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -111,38 +120,54 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#f9f9f9",
   },
   authContainer: {
-    width: "80%",
+    width: "85%",
     justifyContent: "center",
     backgroundColor: "#fff",
-    paddingVertical: 50,
-    padding: 16,
-    borderRadius: 5,
-    elevation: 2,
+    padding: 20,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 3,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 16,
+  image: {
+    alignSelf: "center",
+    width: 250,
+    height: 200,
+    marginBottom: 20,
+  },
+  description: {
+    fontWeight: "600",
+    fontSize: 16,
     textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
   },
   input: {
-    height: 40,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    marginBottom: 16,
-    padding: 8,
-    borderRadius: 4,
+    height: 50,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 18,
+    backgroundColor: "#e8e8e8",
+    marginBottom: 20,
+    color: "#333",
   },
   buttonContainer: {
     marginBottom: 16,
   },
   button: {
-    backgroundColor: "#3498db",
+    // backgroundColor: "#3498db",
+    backgroundColor: "#000",
     padding: 15,
     alignItems: "center",
-    borderRadius: 5,
+    borderRadius: 10,
   },
   buttonText: {
     color: "#ffffff",

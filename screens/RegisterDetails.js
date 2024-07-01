@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Alert,
   TextInput,
   StyleSheet,
   ScrollView,
@@ -16,10 +15,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
 import Toast from "react-native-toast-message";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function RegisterDetails({ phoneNumber }) {
+export default function RegisterDetails({ phoneNumber, changeNumber }) {
   const navigation = useNavigation();
   const db = getFirestore(app);
   const usersCollection = collection(db, "users");
@@ -60,7 +59,12 @@ export default function RegisterDetails({ phoneNumber }) {
         type: "success",
         text1: "Account created Successfully!",
       });
-      navigation.navigate("Dashboard");
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Dashboard" }],
+        })
+      );
     } catch (error) {
       console.log("Error while creating account", error);
       Toast.show({
@@ -148,6 +152,13 @@ export default function RegisterDetails({ phoneNumber }) {
             keyboardType="phone-pad"
           />
         </View>
+        <TouchableOpacity
+          onPress={() => changeNumber(false)}
+          style={styles.changePhoneButton}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.changePhoneButtonText}>Change Phone Number</Text>
+        </TouchableOpacity>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={() => createAccount()}
@@ -172,6 +183,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#ecf0f1",
+  },
+  changePhoneButton: {
+    alignSelf: "center",
+    marginBottom: 5,
+  },
+  changePhoneButtonText: {
+    color: "#3498db",
+    fontSize: 14,
   },
   authContainer: {
     justifyContent: "center",
@@ -230,7 +249,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   button: {
-    backgroundColor: "#3498db",
+    // backgroundColor: "#3498db",
+    backgroundColor: "#000",
     padding: 15,
     alignItems: "center",
     borderRadius: 5,

@@ -6,11 +6,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native";
 import Dashboard from "./screens/Dashboard";
+import { StatusBar } from "expo-status-bar";
 
 const Stack = createStackNavigator();
 const App = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar style="dark" />
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
