@@ -10,7 +10,7 @@ const emergencyContacts = [
 ];
 
 const sendEmergencySMS = async () => {
-  const template_id = '668445dfd6fc05695616b492'; // Replace with your template ID
+  const template_id = '66844ed5d6fc056b3520d952'; // Replace with your template ID
   const short_url = '1'; // 1 for On, 0 for Off
   const realTimeResponse = '1'; // Optional, set to '1' if needed
   const recipients = emergencyContacts.map(contact => ({
