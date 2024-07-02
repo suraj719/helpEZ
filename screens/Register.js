@@ -82,7 +82,7 @@ export default function Register() {
   return (
     <View style={styles.container}>
       {loading ? (
-        <ActivityIndicator size="large" color="#3498db" />
+        <ActivityIndicator size="large" color="#000" />
       ) : isNewMember ? (
         <RegisterDetails
           changeNumber={setIsNewMember}

@@ -1,187 +1,150 @@
-// import React, { useEffect, useState } from "react";
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   ScrollView,
-//   ActivityIndicator,
-// } from "react-native";
-// import * as Location from "expo-location";
-// import axios from "axios";
-// import MistralClient from "@mistralai/mistralai";
-
-// const API_KEY_OPENWEATHER = "77003d306b25e391aca3f6d95268b3ed";
-// const API_KEY_MISTRAL = "A76fl5FgS8vEmyujewq3TGPUdLJ7QtWF";
-
-// const WeatherApp = () => {
-//   const client = new MistralClient(API_KEY_MISTRAL);
-//   const [errorMsg, setErrorMsg] = useState(null);
-//   const [suggestions, setSuggestions] = useState(null);
-//   const [loading, setLoading] = useState(true);
-
-//   useEffect(() => {
-//     fetchWeather();
-//   }, []);
-//   const fetchWeather = async (lat, lon) => {
-//     try {
-//       const prompt = "helloo";
-//       console.log(prompt);
-//       const aiResponse = await client.chat({
-//         model: "mistral-small-latest",
-//         messages: [{ role: "user", content: prompt }],
-//       });
-//       console.log(aiResponse);
-//     } catch (error) {
-//       setErrorMsg("Error fetching data");
-//       console.log(error);
-//     }
-//     setLoading(false);
-//   };
-
-//   if (loading) {
-//     return (
-//       <View style={styles.centered}>
-//         <ActivityIndicator size="large" color="#0000ff" />
-//       </View>
-//     );
-//   }
-
-//   if (errorMsg) {
-//     return (
-//       <View style={styles.centered}>
-//         <Text>{errorMsg}</Text>
-//       </View>
-//     );
-//   }
-
-//   return (
-//     <ScrollView style={styles.container}>
-//       <Text>heloo</Text>
-//     </ScrollView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#f5f5f5",
-//   },
-//   centered: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//   },
-//   weatherContainer: {
-//     padding: 20,
-//     backgroundColor: "#fff",
-//     margin: 10,
-//     borderRadius: 10,
-//     elevation: 5,
-//   },
-//   suggestionsContainer: {
-//     padding: 20,
-//     backgroundColor: "#fff",
-//     margin: 10,
-//     borderRadius: 10,
-//     elevation: 5,
-//   },
-//   title: {
-//     fontSize: 24,
-//     fontWeight: "bold",
-//     marginBottom: 10,
-//   },
-//   weatherText: {
-//     fontSize: 18,
-//     marginBottom: 5,
-//   },
-//   suggestionsText: {
-//     fontSize: 16,
-//     marginTop: 10,
-//   },
-// });
-
-// export default WeatherApp;
-
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import * as Location from "expo-location";
 import axios from "axios";
 import MistralClient from "@mistralai/mistralai";
+import { Ionicons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
+import { useNavigation } from "@react-navigation/native";
+import Forecast from "./Forecast";
 
+const API_KEY_OPENWEATHER = "77003d306b25e391aca3f6d95268b3ed";
 const API_KEY_MISTRAL = "A76fl5FgS8vEmyujewq3TGPUdLJ7QtWF";
 
-const WeatherApp = () => {
-  const client = new MistralClient(API_KEY_MISTRAL);
+const Weather = () => {
+  const navigation = useNavigation();
+  const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [weather, setWeather] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [showForecast, setShowForecast] = useState(false);
   useEffect(() => {
-    fetchWeather();
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        Toast.show({
+          type: "error",
+          text1: "Turn on the location and give access to location",
+        });
+        setLoading(false);
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+
+      if (location) {
+        const { latitude, longitude } = location.coords;
+        fetchWeather(latitude, longitude);
+      }
+    })();
   }, []);
 
-  const fetchWeather = async () => {
+  const fetchWeather = async (lat, lon) => {
     try {
-      const prompt = "helloo";
-      console.log(prompt);
+      const weatherResponse = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY_OPENWEATHER}`
+      );
+      setWeather(weatherResponse.data);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+      const client = new MistralClient(API_KEY_MISTRAL);
+      const { name, main, weather: weatherDetails } = weatherResponse.data;
+      const prompt = `Provide detailed insights and suggestions for the current weather in ${name}:
+      - Temperature: ${Math.round(main.temp - 273.15)}°C
+      - Humidity: ${main.humidity}%
+      - Condition: ${weatherDetails[0].description}
+      - Wind Speed: ${weatherResponse.data.wind.speed} m/s`;
 
       const aiResponse = await client.chat({
-        model: "mistral-small-latest",
+        model: "mistral-tiny",
         messages: [{ role: "user", content: prompt }],
-        signal: controller.signal,
       });
-      clearTimeout(timeoutId);
-
-      console.log(aiResponse);
+      setSuggestions(aiResponse.choices[0].message.content);
     } catch (error) {
-      if (error.name === "AbortError") {
-        setErrorMsg("Request timed out");
-      } else {
-        setErrorMsg("Error fetching data");
-      }
-      console.log(error);
+      setErrorMsg("Error fetching data");
     }
     setLoading(false);
   };
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#000" />
       </View>
     );
   }
 
   if (errorMsg) {
     return (
-      <View style={styles.centered}>
+      <View className="flex-1 justify-center items-center">
         <Text>{errorMsg}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView>
-      <Text>heloo</Text>
+    <ScrollView horizontal={false} className="flex-1 bg-gray-100">
+      {showForecast ? (
+        <>
+          <Forecast location={location.coords} setShowForecast={setShowForecast} />
+        </>
+      ) : (
+        <>
+          <View className="p-5 bg-white m-3 rounded-lg shadow-lg">
+            <Text className="text-2xl font-bold mb-3">
+              Current Weather in {weather.name}
+            </Text>
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="thermometer" size={24} color="black" />
+              <Text className="text-lg ml-2">
+                Temperature: {Math.round(weather.main.temp - 273.15)}°C
+              </Text>
+            </View>
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="water" size={24} color="black" />
+              <Text className="text-lg ml-2">
+                Humidity: {weather.main.humidity}%
+              </Text>
+            </View>
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="partly-sunny" size={24} color="black" />
+              <Text className="text-lg ml-2">
+                Condition: {weather.weather[0].description}
+              </Text>
+            </View>
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="speedometer" size={24} color="black" />
+              <Text className="text-lg ml-2">
+                Wind Speed: {weather.wind.speed} m/s
+              </Text>
+            </View>
+          </View>
+          <View className="m-3 items-center">
+            <TouchableOpacity
+              onPress={() => setShowForecast(true)}
+              className="bg-black w-4/5 p-4 rounded-lg items-center shadow-lg"
+              activeOpacity={0.7}
+            >
+              <Text className="text-white text-base font-bold">
+                View Forecasting
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View className="p-5 bg-white m-3 rounded-lg shadow-lg">
+            <Text className="text-lg mt-2">{suggestions}</Text>
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
-
-export default WeatherApp;
+export default Weather;

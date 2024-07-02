@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import React from "react";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,45 +21,17 @@ export default function Logout() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Are you sure you want to logout?</Text>
+    <View className="flex-1 justify-center items-center bg-gray-50 p-5">
+      <Text className="text-lg font-medium text-center mb-5 text-gray-800">
+        Are you sure you want to logout?
+      </Text>
       <TouchableOpacity
         onPress={handleLogout}
-        style={styles.button}
+        className="bg-black w-4/5 p-4 rounded-lg items-center shadow-lg"
         activeOpacity={0.7}
       >
-        <Text style={styles.buttonText}>Logout</Text>
+        <Text className="text-white text-base font-bold">Logout</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    padding: 20,
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: "500",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#333",
-  },
-  button: {
-    backgroundColor: "#000",
-    width: "80%",
-    padding: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    elevation: 5,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});

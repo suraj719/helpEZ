@@ -166,7 +166,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
             activeOpacity={0.7}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#ffffff" />
+              <ActivityIndicator size="small" color="#000" />
             ) : (
               <Text style={styles.buttonText}>Proceed</Text>
             )}
