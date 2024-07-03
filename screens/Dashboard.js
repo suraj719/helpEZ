@@ -1,7 +1,7 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import React from "react";
 import { SafeAreaView, StyleSheet } from "react-native";
-import FamilySpace from "./FamilySpace";
+import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
@@ -26,7 +26,7 @@ const Dashboard = () => {
         }}
       >
         <Drawer.Screen name="Home" component={Home} />
-        <Drawer.Screen name="Family" component={FamilySpace} />
+        <Drawer.Screen name="Family" component={Nearby} />
         <Drawer.Screen name="Weather" component={Weather} />
         <Drawer.Screen name="Logout" component={Logout} />
       </Drawer.Navigator>
