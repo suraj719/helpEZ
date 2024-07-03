@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -12,6 +12,8 @@ export default function Nearby() {
   const [showNearbyPlaces, setShowNearbyPlaces] = useState(false);
   const [randomMarkers, setRandomMarkers] = useState([]);
   const [showRandomMarkers, setShowRandomMarkers] = useState(false);
+
+  const mapRef = useRef(null);
 
   useEffect(() => {
     async function getLocationAsync() {
@@ -48,46 +50,51 @@ export default function Nearby() {
       const { latitude, longitude } = location.coords;
 
       setCurrentLocation({ latitude, longitude });
-      setRegion({
+      const newRegion = {
         latitude,
         longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      });
+      };
+      setRegion(newRegion);
+
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(newRegion, 1000);
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to get current location');
     }
   };
 
-  const fetchNearbyPlaces = async () => {
+  const fetchNearbyPlaces = async (type) => {
     if (!currentLocation) {
       Alert.alert('Location not available', 'Please try again later');
-      return;
-    }
-
-    if (showNearbyPlaces) {
-      setShowNearbyPlaces(false);
-      setNearbyPlaces([]);
-      return;
+      return [];
     }
 
     try {
       const { latitude, longitude } = currentLocation;
       const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1500&type=hospital&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1500&type=${type}&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
       );
 
-      setNearbyPlaces(response.data.results);
-      setShowNearbyPlaces(true);
+      return response.data.results.map(place => ({
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+        title: place.name,
+        description: place.vicinity,
+      }));
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch nearby places');
+      return [];
     }
   };
 
-  const toggleRandomMarkers = () => {
+  const toggleRandomMarkers = async () => {
     if (showRandomMarkers) {
       setShowRandomMarkers(false);
       setRandomMarkers([]);
+      setNearbyPlaces([]);
     } else {
       const randomLocations = [
         { latitude: 17.385044, longitude: 78.486671, title: 'Random Location 1' },
@@ -95,8 +102,27 @@ export default function Nearby() {
         { latitude: 17.385044, longitude: 78.491671, title: 'Random Location 3' },
         { latitude: 17.380044, longitude: 78.481671, title: 'Random Location 4' },
       ];
+
+      const shelters = await fetchNearbyPlaces('shelter');
+      const stays = await fetchNearbyPlaces('lodging');
+
       setRandomMarkers(randomLocations);
+      setNearbyPlaces([...shelters, ...stays]);
       setShowRandomMarkers(true);
+      setShowNearbyPlaces(true);
+    }
+  };
+
+  const toggleNearbyHospitals = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+    } else {
+      const hospitals = await fetchNearbyPlaces('hospital');
+      const pharmacies = await fetchNearbyPlaces('pharmacy');
+
+      setNearbyPlaces([...hospitals, ...pharmacies]);
+      setShowNearbyPlaces(true);
     }
   };
 
@@ -104,6 +130,7 @@ export default function Nearby() {
     <View style={styles.container}>
       {region && (
         <MapView
+          ref={mapRef}
           style={styles.map}
           initialRegion={region}
           onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
@@ -121,11 +148,11 @@ export default function Nearby() {
             <Marker
               key={index}
               coordinate={{
-                latitude: place.geometry.location.lat,
-                longitude: place.geometry.location.lng,
+                latitude: place.latitude,
+                longitude: place.longitude,
               }}
-              title={place.name}
-              description={place.vicinity}
+              title={place.title}
+              description={place.description}
               pinColor="red"
             />
           ))}
@@ -149,7 +176,7 @@ export default function Nearby() {
         </TouchableOpacity>
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.circleButton} onPress={fetchNearbyPlaces}>
+        <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyHospitals}>
           <Ionicons name="medkit" size={24} color="white" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.circleButton} onPress={toggleRandomMarkers}>
