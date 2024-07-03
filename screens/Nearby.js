@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 
-export default function FamilySpace() {
+export default function Nearby() {
   const [region, setRegion] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
