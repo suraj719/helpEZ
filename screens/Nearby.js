@@ -119,10 +119,42 @@ export default function Nearby() {
       setNearbyPlaces([]);
     } else {
       const hospitals = await fetchNearbyPlaces('hospital');
+
+      setNearbyPlaces(hospitals);
+      setShowNearbyPlaces(true);
+    }
+  };
+
+  const toggleNearbyMedicals = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+    } else {
       const pharmacies = await fetchNearbyPlaces('pharmacy');
 
-      setNearbyPlaces([...hospitals, ...pharmacies]);
+      setNearbyPlaces(pharmacies);
       setShowNearbyPlaces(true);
+    }
+  };
+
+  const toggleNearbyFood = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+      setShowRandomMarkers(false);
+    } else {
+      const hotels = await fetchNearbyPlaces('restaurant');
+      const randomLocations = [
+        { latitude: 17.385044, longitude: 78.486671, title: 'Food Location 1' },
+        { latitude: 17.391044, longitude: 78.486671, title: 'Food Location 2' },
+        { latitude: 17.385044, longitude: 78.491671, title: 'Food Location 3' },
+        { latitude: 17.380044, longitude: 78.481671, title: 'Food Location 4' },
+      ];
+
+      setNearbyPlaces(hotels);
+      setRandomMarkers(randomLocations);
+      setShowNearbyPlaces(true);
+      setShowRandomMarkers(true);
     }
   };
 
@@ -178,6 +210,12 @@ export default function Nearby() {
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyHospitals}>
           <Ionicons name="medkit" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyMedicals}>
+          <Ionicons name="medical" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyFood}>
+          <Ionicons name="restaurant" size={24} color="white" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.circleButton} onPress={toggleRandomMarkers}>
           <Ionicons name="pin" size={24} color="white" />
