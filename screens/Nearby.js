@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -158,6 +158,25 @@ export default function Nearby() {
     }
   };
 
+  const toggleNearbyPoliceStations = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+      setShowRandomMarkers(false);
+    } else {
+      const policeStations = await fetchNearbyPlaces('police');
+      const randomLocations = [
+        { latitude: 17.385044, longitude: 78.486671, title: 'Police 1' },
+        { latitude: 17.380044, longitude: 78.481671, title: 'Police 2' },
+      ];
+
+      setNearbyPlaces(policeStations);
+      setRandomMarkers(randomLocations);
+      setShowNearbyPlaces(true);
+      setShowRandomMarkers(true);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {region && (
@@ -207,20 +226,28 @@ export default function Nearby() {
           <Ionicons name="locate" size={24} color="white" />
         </TouchableOpacity>
       </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyHospitals}>
+      <ScrollView
+        style={styles.buttonContainer}
+        contentContainerStyle={{ alignItems: 'center' }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyHospitals}>
           <Ionicons name="medkit" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyMedicals}>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyMedicals}>
           <Ionicons name="medical" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.circleButton} onPress={toggleNearbyFood}>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyFood}>
           <Ionicons name="restaurant" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.circleButton} onPress={toggleRandomMarkers}>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyPoliceStations}>
+          <Ionicons name="shield" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
           <Ionicons name="pin" size={24} color="white" />
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -240,15 +267,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     right: 20,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  circleButton: {
     backgroundColor: '#007AFF',
     borderRadius: 25,
     width: 50,
@@ -260,6 +278,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 2,
     elevation: 5,
+  },
+
+  buttonContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    flexDirection: 'row',
+    maxHeight: 100, // Increase the maxHeight to accommodate larger buttons
+  },
+  rectangleButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingHorizontal: 22, // Increase paddingHorizontal for wider buttons
+    paddingVertical: 18, // Increase paddingVertical for taller buttons
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
     marginHorizontal: 5,
   },
+  
 });
