@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, FlatList, Text, Image, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-// import { getFirestore, collection, onSnapshot } from "firebase/firestore";
-// import  app  from "../utils/firebase";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Updates() {
   const [events, setEvents] = useState([
@@ -21,7 +20,6 @@ export default function Updates() {
         longitude: -86.1581,
       },
       severity: "High",
-      supplies: "Shelter, Medical Aid, Clean Water",
       contact: "Midwest Disaster Response: 800-123-4567",
     },
     {
@@ -39,7 +37,6 @@ export default function Updates() {
         longitude: -84.27,
       },
       severity: "Moderate",
-      supplies: "Food, Water, Sanitation Kits",
       contact: "Kentucky Emergency Management: 859-123-4567",
     },
     {
@@ -57,10 +54,10 @@ export default function Updates() {
         longitude: -98.4936,
       },
       severity: "High",
-      supplies: "Emergency Shelter, Food, Medical Supplies",
       contact: "Texas Emergency Operations Center: 512-123-4567",
     },
   ]);
+
   const navigation = useNavigation();
   // const db = getFirestore(app);
 
@@ -79,30 +76,26 @@ export default function Updates() {
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={() => navigation.navigate("EventDetails", { event: item })}
-      className="bg-white m-2 rounded-lg shadow-md"
+      className="bg-white m-2 rounded-lg shadow-md overflow-hidden"
     >
-      <Image
-        source={{ uri: item.images[0] }}
-        className="w-full h-40 rounded-md"
-      />
-      <View className="p-2">
-        <Text className="text-lg font-bold mt-2">{item.title}</Text>
-        <Text className="text-gray-600 my-1">{item.description}</Text>
-        <Text className="text-gray-500 text-sm my-1">{item.date}</Text>
-        <Text className="text-red-400 font-bold">
-          Severity: {item.severity}
-        </Text>
+      <Image source={{ uri: item.images[0] }} className="w-full h-40" />
+      <View className="p-4">
+        <Text className="text-lg font-bold text-gray-800">{item.title}</Text>
+        <Text className="text-md text-gray-600 my-1">{item.description}</Text>
+        <Text className="text-sm text-gray-500">{item.date}</Text>
+        <Text className="text-sm text-gray-500">Severity: {item.severity}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View className={"flex-1 bg-gray-100 p-4"}>
+    <SafeAreaView className="flex-1 -mt-5 bg-gray-100">
       <FlatList
         data={events}
         renderItem={renderEventItem}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 8 }}
       />
-    </View>
+    </SafeAreaView>
   );
 }

@@ -52,9 +52,6 @@ export default function EventDetails({ route }) {
             Severity: {event.severity}
           </Text>
           <Text className="text-sm mb-2 text-gray-500">
-            Necessary Supplies: {event.supplies}
-          </Text>
-          <Text className="text-sm mb-2 text-gray-500">
             Contact: {event.contact}
           </Text>
         </View>
