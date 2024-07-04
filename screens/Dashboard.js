@@ -5,6 +5,7 @@ import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
+import Updates from "./Updates";
 
 const Drawer = createDrawerNavigator();
 const Dashboard = () => {
@@ -28,6 +29,7 @@ const Dashboard = () => {
         <Drawer.Screen name="Home" component={Home} />
         <Drawer.Screen name="Nearby" component={Nearby} />
         <Drawer.Screen name="Weather" component={Weather} />
+        <Drawer.Screen name="Updates" component={Updates} />
         <Drawer.Screen name="Logout" component={Logout} />
       </Drawer.Navigator>
     </SafeAreaView>
