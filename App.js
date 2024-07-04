@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native";
 import Dashboard from "./screens/Dashboard";
 import { StatusBar } from "expo-status-bar";
 import Register from "./screens/Register";
+import EventDetails from "./screens/EventDetails";
 
 // Import Firebase configuration
 import { app, analytics } from "./utils/firebase";
@@ -26,6 +27,7 @@ const App = () => {
         >
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Dashboard" component={Dashboard} />
+          <Stack.Screen name="EventDetails" component={EventDetails} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast visibilityTime={2000} swipeable={true} position="bottom" />
