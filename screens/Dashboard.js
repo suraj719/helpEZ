@@ -1,12 +1,15 @@
-import { createDrawerNavigator } from "@react-navigation/drawer";
+// Dashboard.js
 import React from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import { SafeAreaView, StyleSheet } from "react-native";
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
+import RegisterScreen from "./RegisterScreen"; // Correct path to the RegisterScreen component
 
 const Drawer = createDrawerNavigator();
+
 const Dashboard = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -29,6 +32,8 @@ const Dashboard = () => {
         <Drawer.Screen name="Nearby" component={Nearby} />
         <Drawer.Screen name="Weather" component={Weather} />
         <Drawer.Screen name="Logout" component={Logout} />
+        <Drawer.Screen name="RegisterScreen" component={RegisterScreen} />
+        {/* Ensure RegisterScreen is added correctly */}
       </Drawer.Navigator>
     </SafeAreaView>
   );
