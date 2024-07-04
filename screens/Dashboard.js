@@ -7,6 +7,8 @@ import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
 import RegisterScreen from "./RegisterScreen"; // Correct path to the RegisterScreen component
+import Updates from "./Updates";
+import ReportIncident from "./ReportIncident";
 
 const Drawer = createDrawerNavigator();
 
@@ -31,6 +33,8 @@ const Dashboard = () => {
         <Drawer.Screen name="Home" component={Home} />
         <Drawer.Screen name="Nearby" component={Nearby} />
         <Drawer.Screen name="Weather" component={Weather} />
+        <Drawer.Screen name="Updates" component={Updates} />
+        <Drawer.Screen name="Report incident" component={ReportIncident} />
         <Drawer.Screen name="Logout" component={Logout} />
         <Drawer.Screen name="RegisterScreen" component={RegisterScreen} />
         {/* Ensure RegisterScreen is added correctly */}
