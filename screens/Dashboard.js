@@ -26,7 +26,7 @@ const Dashboard = () => {
         }}
       >
         <Drawer.Screen name="Home" component={Home} />
-        <Drawer.Screen name="Family" component={Nearby} />
+        <Drawer.Screen name="Nearby" component={Nearby} />
         <Drawer.Screen name="Weather" component={Weather} />
         <Drawer.Screen name="Logout" component={Logout} />
       </Drawer.Navigator>

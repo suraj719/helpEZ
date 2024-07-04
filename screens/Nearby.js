@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,11 @@ export default function Nearby() {
   const [region, setRegion] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
+  const [showNearbyPlaces, setShowNearbyPlaces] = useState(false);
+  const [randomMarkers, setRandomMarkers] = useState([]);
+  const [showRandomMarkers, setShowRandomMarkers] = useState(false);
+
+  const mapRef = useRef(null);
 
   useEffect(() => {
     async function getLocationAsync() {
@@ -45,32 +50,130 @@ export default function Nearby() {
       const { latitude, longitude } = location.coords;
 
       setCurrentLocation({ latitude, longitude });
-      setRegion({
+      const newRegion = {
         latitude,
         longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
-      });
+      };
+      setRegion(newRegion);
+
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(newRegion, 1000);
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to get current location');
     }
   };
 
-  const fetchNearbyPlaces = async () => {
+  const fetchNearbyPlaces = async (type) => {
     if (!currentLocation) {
       Alert.alert('Location not available', 'Please try again later');
-      return;
+      return [];
     }
 
     try {
       const { latitude, longitude } = currentLocation;
       const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1500&type=hospital&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=1500&type=${type}&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
       );
 
-      setNearbyPlaces(response.data.results);
+      return response.data.results.map(place => ({
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+        title: place.name,
+        description: place.vicinity,
+      }));
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch nearby places');
+      return [];
+    }
+  };
+
+  const toggleRandomMarkers = async () => {
+    if (showRandomMarkers) {
+      setShowRandomMarkers(false);
+      setRandomMarkers([]);
+      setNearbyPlaces([]);
+    } else {
+      const randomLocations = [
+        { latitude: 17.385044, longitude: 78.486671, title: 'Random Location 1' },
+        { latitude: 17.391044, longitude: 78.486671, title: 'Random Location 2' },
+        { latitude: 17.385044, longitude: 78.491671, title: 'Random Location 3' },
+        { latitude: 17.380044, longitude: 78.481671, title: 'Random Location 4' },
+      ];
+
+      const shelters = await fetchNearbyPlaces('shelter');
+      const stays = await fetchNearbyPlaces('lodging');
+
+      setRandomMarkers(randomLocations);
+      setNearbyPlaces([...shelters, ...stays]);
+      setShowRandomMarkers(true);
+      setShowNearbyPlaces(true);
+    }
+  };
+
+  const toggleNearbyHospitals = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+    } else {
+      const hospitals = await fetchNearbyPlaces('hospital');
+
+      setNearbyPlaces(hospitals);
+      setShowNearbyPlaces(true);
+    }
+  };
+
+  const toggleNearbyMedicals = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+    } else {
+      const pharmacies = await fetchNearbyPlaces('pharmacy');
+
+      setNearbyPlaces(pharmacies);
+      setShowNearbyPlaces(true);
+    }
+  };
+
+  const toggleNearbyFood = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+      setShowRandomMarkers(false);
+    } else {
+      const hotels = await fetchNearbyPlaces('restaurant');
+      const randomLocations = [
+        { latitude: 17.385044, longitude: 78.486671, title: 'Food Location 1' },
+        { latitude: 17.391044, longitude: 78.486671, title: 'Food Location 2' },
+        { latitude: 17.385044, longitude: 78.491671, title: 'Food Location 3' },
+        { latitude: 17.380044, longitude: 78.481671, title: 'Food Location 4' },
+      ];
+
+      setNearbyPlaces(hotels);
+      setRandomMarkers(randomLocations);
+      setShowNearbyPlaces(true);
+      setShowRandomMarkers(true);
+    }
+  };
+
+  const toggleNearbyPoliceStations = async () => {
+    if (showNearbyPlaces) {
+      setShowNearbyPlaces(false);
+      setNearbyPlaces([]);
+      setShowRandomMarkers(false);
+    } else {
+      const policeStations = await fetchNearbyPlaces('police');
+      const randomLocations = [
+        { latitude: 17.385044, longitude: 78.486671, title: 'Police 1' },
+        { latitude: 17.380044, longitude: 78.481671, title: 'Police 2' },
+      ];
+
+      setNearbyPlaces(policeStations);
+      setRandomMarkers(randomLocations);
+      setShowNearbyPlaces(true);
+      setShowRandomMarkers(true);
     }
   };
 
@@ -78,6 +181,7 @@ export default function Nearby() {
     <View style={styles.container}>
       {region && (
         <MapView
+          ref={mapRef}
           style={styles.map}
           initialRegion={region}
           onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
@@ -91,16 +195,28 @@ export default function Nearby() {
             />
           )}
 
-          {nearbyPlaces.map((place, index) => (
+          {showNearbyPlaces && nearbyPlaces.map((place, index) => (
             <Marker
               key={index}
               coordinate={{
-                latitude: place.geometry.location.lat,
-                longitude: place.geometry.location.lng,
+                latitude: place.latitude,
+                longitude: place.longitude,
               }}
-              title={place.name}
-              description={place.vicinity}
+              title={place.title}
+              description={place.description}
               pinColor="red"
+            />
+          ))}
+
+          {showRandomMarkers && randomMarkers.map((marker, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              title={marker.title}
+              pinColor="green"
             />
           ))}
         </MapView>
@@ -110,11 +226,28 @@ export default function Nearby() {
           <Ionicons name="locate" size={24} color="white" />
         </TouchableOpacity>
       </View>
-      <View style={styles.fetchNearbyPlacesButtonContainer}>
-        <TouchableOpacity style={styles.circleButton} onPress={fetchNearbyPlaces}>
+      <ScrollView
+        style={styles.buttonContainer}
+        contentContainerStyle={{ alignItems: 'center' }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyHospitals}>
           <Ionicons name="medkit" size={24} color="white" />
         </TouchableOpacity>
-      </View>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyMedicals}>
+          <Ionicons name="medical" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyFood}>
+          <Ionicons name="restaurant" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyPoliceStations}>
+          <Ionicons name="shield" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
+          <Ionicons name="pin" size={24} color="white" />
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 }
@@ -134,13 +267,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     right: 20,
-  },
-  fetchNearbyPlacesButtonContainer: {
-    position: 'absolute',
-    top: 20,
-    right: 345,
-  },
-  circleButton: {
     backgroundColor: '#007AFF',
     borderRadius: 25,
     width: 50,
@@ -153,4 +279,27 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5,
   },
+
+  buttonContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    flexDirection: 'row',
+    maxHeight: 100, // Increase the maxHeight to accommodate larger buttons
+  },
+  rectangleButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 12,
+    paddingHorizontal: 22, // Increase paddingHorizontal for wider buttons
+    paddingVertical: 18, // Increase paddingVertical for taller buttons
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+    marginHorizontal: 5,
+  },
+  
 });
