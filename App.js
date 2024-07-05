@@ -4,10 +4,12 @@ import "react-native-gesture-handler";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Dashboard from "./screens/Dashboard";
 import { StatusBar } from "expo-status-bar";
-import EventDetails from "./screens/EventDetails";
+import IncidentDetails from "./screens/IncidentDetails";
+import ReportIncident from "./screens/ReportIncident";
+import RequestResources from "./screens/RequestResources";
 
 const Stack = createStackNavigator();
 const App = () => {
@@ -22,7 +24,9 @@ const App = () => {
         >
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="Dashboard" component={Dashboard} />
-          <Stack.Screen name="EventDetails" component={EventDetails} />
+          <Stack.Screen name="ReportIncident" component={ReportIncident} />
+          <Stack.Screen name="IncidentDetails" component={IncidentDetails} />
+          <Stack.Screen name="RequestResources" component={RequestResources} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast visibilityTime={2000} swipeable={true} position="bottom" />

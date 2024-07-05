@@ -3,11 +3,11 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   ScrollView,
   Platform,
   TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
@@ -39,8 +39,8 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       return;
     }
 
-    const formattedDob = dob.toISOString().split("T")[0]; // Format to 'YYYY-MM-DD'
-    const createdAt = new Date().toLocaleString(); // Format to a readable string
+    const formattedDob = dob.toISOString().split("T")[0];
+    const createdAt = new Date().toLocaleString();
     const userData = {
       createdAt: createdAt,
       phoneNumber: phoneNumber,
@@ -54,7 +54,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
     setLoading(true);
     try {
       await addDoc(usersCollection, userData);
-      await AsyncStorage.setItem("phoneNumber", phoneNumber); // Set phone number in AsyncStorage
+      await AsyncStorage.setItem("phoneNumber", phoneNumber);
       Toast.show({
         type: "success",
         text1: "Account created Successfully!",
@@ -84,13 +84,22 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.authContainer}>
-        <Text style={styles.title}>Please provide some more details!</Text>
-        <View style={styles.inputContainer}>
-          <Icon name="person" size={20} color="#2c3e50" style={styles.icon} />
+    <ScrollView
+      contentContainerStyle={{
+        flexGrow: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        // backgroundColor: "#ecf0f1",
+      }}
+    >
+      <View className="justify-center bg-white py-8 px-5 rounded-lg shadow-lg w-[100%] max-w-[400px]">
+        <Text className="text-xl mb-5 text-center text-[#2c3e50] font-bold">
+          Please provide some more details!
+        </Text>
+        <View className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white">
+          <Icon name="person" size={20} color="#2c3e50" className="mr-2.5" />
           <TextInput
-            style={styles.input}
+            className="flex-1 ml-2 text-[#2c3e50]"
             value={name}
             onChangeText={setName}
             placeholder="Full Name *"
@@ -118,10 +127,13 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
 
         <TouchableOpacity
           onPress={() => setShowDatePicker(true)}
-          style={styles.dateInput}
+          activeOpacity={0.8}
+          className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white"
         >
-          <Icon name="calendar" size={20} color="#2c3e50" style={styles.icon} />
-          <Text style={styles.dateText}>{dob.toISOString().split("T")[0]}</Text>
+          <Icon name="calendar" size={20} color="#2c3e50" className="mr-2.5" />
+          <Text className="ml-2 text-[#2c3e50]">
+            {dob.toISOString().split("T")[0]}
+          </Text>
         </TouchableOpacity>
         {showDatePicker && (
           <DateTimePicker
@@ -131,20 +143,20 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
             onChange={onChangeDate}
           />
         )}
-        <View style={styles.inputContainer}>
-          <Icon name="water" size={20} color="#2c3e50" style={styles.icon} />
+        <View className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white">
+          <Icon name="water" size={20} color="#2c3e50" className="mr-2.5" />
           <TextInput
-            style={styles.input}
+            className="flex-1 ml-2 text-[#2c3e50]"
             value={bloodGroup}
             onChangeText={setBloodGroup}
             placeholder="Blood Group *"
             placeholderTextColor="#bdc3c7"
           />
         </View>
-        <View style={styles.inputContainer}>
-          <Icon name="call" size={20} color="#2c3e50" style={styles.icon} />
+        <View className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white">
+          <Icon name="call" size={20} color="#2c3e50" className="mr-2.5" />
           <TextInput
-            style={styles.input}
+            className="flex-1 ml-2 text-[#2c3e50]"
             value={alternateContact}
             onChangeText={setAlternateContact}
             placeholder="Alternate Contact Number"
@@ -154,21 +166,21 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
         </View>
         <TouchableOpacity
           onPress={() => changeNumber(false)}
-          style={styles.changePhoneButton}
+          className="self-center mb-1.5"
           activeOpacity={0.7}
         >
-          <Text style={styles.changePhoneButtonText}>Change Phone Number</Text>
+          <Text className="text-[#3498db] text-sm">Change Phone Number</Text>
         </TouchableOpacity>
-        <View style={styles.buttonContainer}>
+        <View className="mt-4">
           <TouchableOpacity
             onPress={() => createAccount()}
-            style={styles.button}
+            className="bg-black py-3 px-5 items-center rounded"
             activeOpacity={0.7}
           >
             {loading ? (
-              <ActivityIndicator size="small" color="#000" />
+              <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Proceed</Text>
+              <Text className="text-white text-lg font-bold">Proceed</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -178,89 +190,19 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#ecf0f1",
-  },
-  changePhoneButton: {
-    alignSelf: "center",
-    marginBottom: 5,
-  },
-  changePhoneButtonText: {
-    color: "#3498db",
-    fontSize: 14,
-  },
-  authContainer: {
-    justifyContent: "center",
-    backgroundColor: "#ffffff",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    elevation: 5,
-    width: "90%",
-    maxWidth: 400,
-  },
-  title: {
-    fontSize: 22,
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#2c3e50",
-    fontWeight: "bold",
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     height: 50,
-    elevation: 5,
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 10,
     borderRadius: 5,
     backgroundColor: "#ffffff",
-  },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    color: "#2c3e50",
   },
   picker: {
     flex: 1,
     marginLeft: 10,
     color: "#2c3e50",
-  },
-  dateInput: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 50,
-    elevation: 5,
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    backgroundColor: "#ffffff",
-  },
-  dateText: {
-    marginLeft: 10,
-    color: "#2c3e50",
-  },
-  buttonContainer: {
-    marginTop: 16,
-  },
-  button: {
-    // backgroundColor: "#3498db",
-    backgroundColor: "#000",
-    padding: 15,
-    alignItems: "center",
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  icon: {
-    marginRight: 10,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,15 +6,17 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import app from "../utils/firebase";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   getDownloadURL,
   getStorage,
@@ -22,42 +24,62 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
+import Toast from "react-native-toast-message";
 
 export default function ReportIncident() {
   const storage = getStorage(app);
   const db = getFirestore(app);
+  const navigation = useNavigation();
   const [location, setLocation] = useState("");
   const [title, setTitle] = useState("");
-  const [severity, setSeverity] = useState("Select severity level");
+  const [severity, setSeverity] = useState("Low");
   const [description, setDescription] = useState("");
   const [contact, setContact] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
   const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  //   const [location, setLocation] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [region, setRegion] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Permission to access location was denied");
-        return;
-      }
-
-      let userLocation = await Location.getCurrentPositionAsync({});
-      setLocation({
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
-      });
-      setRegion({
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
+      await fetchUserLocation();
     })();
   }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setTitle("");
+      setSeverity("Low");
+      setDescription("");
+      setContact("");
+      setSelectedImages([]);
+      setDate(new Date());
+      fetchUserLocation();
+    }, [])
+  );
+  const fetchUserLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      // console.log("Permission to access location was denied");
+      Toast.show({
+        type: "error",
+        text1: "Location access was denied!!",
+      });
+      return;
+    }
+
+    let userLocation = await Location.getCurrentPositionAsync({});
+    setLocation({
+      latitude: userLocation.coords.latitude,
+      longitude: userLocation.coords.longitude,
+    });
+    setRegion({
+      latitude: userLocation.coords.latitude,
+      longitude: userLocation.coords.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    });
+  };
 
   const pickImage = async () => {
     try {
@@ -99,13 +121,11 @@ export default function ReportIncident() {
               (snapshot) => {
                 const progress =
                   (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                console.log(`Upload is ${progress}% done`);
               },
               reject,
               () => {
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                   imageUrls.push(downloadURL);
-                  console.log("File available at", downloadURL);
                   resolve();
                 });
               }
@@ -123,15 +143,14 @@ export default function ReportIncident() {
   };
 
   const submitReport = async () => {
-    // console.log({
-    //   location,
-    //   title,
-    //   severity,
-    //   description,
-    //   contact,
-    //   selectedImages,
-    //   date,
-    // });
+    if (!title || !description) {
+      Toast.show({
+        type: "error",
+        text1: "Please fill in all required fields.",
+      });
+      return;
+    }
+    setLoading(true);
     const imageUrls = await uploadImagesToStorage();
     const formattedDate = date.toISOString().split("T")[0];
     // Prepare data object to save in Firestore
@@ -145,39 +164,58 @@ export default function ReportIncident() {
       date: formattedDate,
     };
     try {
-      const docRef = await addDoc(collection(db, "reports"), reportData);
-      console.log("Document written with ID: ", docRef.id);
+      const docRef = await addDoc(collection(db, "incidents"), reportData);
+      navigation.navigate("Incidents");
+      Toast.show({
+        type: "success",
+        text1: "Incident successfully created",
+      });
     } catch (error) {
       console.error("Error submitting report:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error submitting incident",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(false);
-    setDate(currentDate);
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    setDate(date);
+    hideDatePicker();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100 p-4">
+      <TouchableOpacity className="mb-4" onPress={() => navigation.goBack()}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Ionicons name="chevron-back" size={24} color="black" />
+        </View>
+      </TouchableOpacity>
       <ScrollView>
-        <Text className="text-xl font-bold mb-4">Report an Incident</Text>
-
+        {/* <Text className="text-xl font-bold mb-4">Report an Incident</Text> */}
         <Text className="mb-2">Title</Text>
         <TextInput
           className="bg-white p-2 rounded mb-4"
           value={title}
           onChangeText={setTitle}
-          placeholder="Enter a title"
+          placeholder="Enter a title*"
         />
-
         <Text className="mb-2">Severity</Text>
         <View className="bg-white rounded mb-4">
           <Picker
             selectedValue={severity}
             onValueChange={(itemValue) => setSeverity(itemValue)}
           >
-            <Picker.Item label="Select severity level" value="" />
             <Picker.Item label="Low" value="Low" />
             <Picker.Item label="Moderate" value="Moderate" />
             <Picker.Item label="High" value="High" />
@@ -189,7 +227,7 @@ export default function ReportIncident() {
           className="bg-white p-2 rounded mb-4 h-20"
           value={description}
           onChangeText={setDescription}
-          placeholder="Enter description"
+          placeholder="Enter description*"
           multiline
         />
 
@@ -203,19 +241,18 @@ export default function ReportIncident() {
 
         <Text className="mb-2">Date</Text>
         <TouchableOpacity
+          activeOpacity={0.7}
           className="bg-white p-2 rounded mb-4"
-          onPress={() => setShowDatePicker(true)}
+          onPress={showDatePicker}
         >
-          <Text>{date.toLocaleDateString()}</Text>
+          <Text>{date.toISOString().split("T")[0]}</Text>
         </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={onDateChange}
-          />
-        )}
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        />
 
         <TouchableOpacity
           activeOpacity={0.7}
@@ -267,7 +304,11 @@ export default function ReportIncident() {
           className="bg-gray-900 p-4 rounded mt-4 items-center"
           onPress={submitReport}
         >
-          <Text className="text-white font-bold text-lg">Submit Report</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-lg">Submit Report</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
