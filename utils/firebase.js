@@ -1,12 +1,19 @@
 import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 const firebaseConfig = {
-  apiKey: "AIzaSyB8AeV3cpg866uTcWJsKlMDMXmgj7XqHOE",
-  authDomain: "rnapp-31ba4.firebaseapp.com",
-  projectId: "rnapp-31ba4",
-  storageBucket: "rnapp-31ba4.appspot.com",
-  messagingSenderId: "533636340743",
-  appId: "1:533636340743:web:a0e38fd2f7c78ebdb59ea2",
+  apiKey: "AIzaSyBmm1S4Pbpppai7rWuCpF5h0T0rv1phJXg",
+  authDomain: "helpez.firebaseapp.com",
+  projectId: "helpez",
+  storageBucket: "helpez.appspot.com",
+  messagingSenderId: "43832184547",
+  appId: "1:43832184547:web:82090a664e7d4e47acffd6"
 };
 
 const app = initializeApp(firebaseConfig);
-export default app;
+const firestore = getFirestore(app);
+const auth =initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+export { app,firestore, auth };

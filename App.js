@@ -8,10 +8,11 @@ import { SafeAreaView } from "react-native";
 import Dashboard from "./screens/Dashboard";
 import { StatusBar } from "expo-status-bar";
 import EventDetails from "./screens/EventDetails";
-
+import { UserProvider } from './UserContext';
 const Stack = createStackNavigator();
 const App = () => {
   return (
+    <UserProvider>
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <NavigationContainer>
@@ -27,6 +28,7 @@ const App = () => {
       </NavigationContainer>
       <Toast visibilityTime={2000} swipeable={true} position="bottom" />
     </SafeAreaView>
+    </UserProvider>
   );
 };
 

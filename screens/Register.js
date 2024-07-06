@@ -15,11 +15,14 @@ import {
   getFirestore,
   query,
   where,
+  addDoc,
 } from "firebase/firestore";
 import RegisterDetails from "./RegisterDetails";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from 'expo-location';
+
 
 export default function Register() {
   const navigation = useNavigation();

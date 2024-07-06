@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { addDoc, collection, getFirestore } from "firebase/firestore";
+import { addDoc, collection, getFirestore, updateDoc, doc } from "firebase/firestore";
 import app from "../utils/firebase";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -17,6 +17,7 @@ import { Picker } from "@react-native-picker/picker";
 import Toast from "react-native-toast-message";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from 'expo-location';
 
 export default function RegisterDetails({ phoneNumber, changeNumber }) {
   const navigation = useNavigation();
@@ -53,7 +54,26 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
 
     setLoading(true);
     try {
-      await addDoc(usersCollection, userData);
+      // Add user to Firestore
+      const userDocRef = await addDoc(usersCollection, userData);
+
+      // Fetch current location
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        throw new Error('Location permission not granted');
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      // Update user document with location data
+      await updateDoc(doc(db, 'users', userDocRef.id), {
+        location: {
+          latitude: latitude,
+          longitude: longitude
+        }
+      });
+
       await AsyncStorage.setItem("phoneNumber", phoneNumber); // Set phone number in AsyncStorage
       Toast.show({
         type: "success",
