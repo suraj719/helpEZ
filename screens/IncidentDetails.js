@@ -12,9 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 
-export default function EventDetails({ route }) {
+export default function IncidentDetails({ route }) {
   const navigation = useNavigation();
-  const { event } = route.params;
+  const { incident } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -27,56 +27,56 @@ export default function EventDetails({ route }) {
     setSelectedImage(null);
     setModalVisible(false);
   };
-
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <TouchableOpacity
-        className="mx-4 my-2"
+        className="m-3 mt-4"
         onPress={() => navigation.goBack()}
       >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="chevron-back" size={24} color="black" />
-          <Text>Back</Text>
         </View>
       </TouchableOpacity>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <View className="bg-white p-4 rounded-lg shadow-md mb-4">
           <Text className="text-2xl font-bold mb-2 text-gray-800">
-            {event.title}
+            {incident.title}
           </Text>
           <Text className="text-base mb-2 text-gray-600">
-            {event.description}
+            {incident.description}
           </Text>
-          <Text className="text-sm mb-2 text-gray-500">Date: {event.date}</Text>
+          <Text className="text-sm mb-2 text-gray-500">Date: {incident.date}</Text>
           <Text className="text-sm mb-2 text-gray-500">
-            Severity: {event.severity}
+            Severity: {incident.severity}
           </Text>
-          <Text className="text-sm mb-2 text-gray-500">
-            Contact: {event.contact}
-          </Text>
+          {incident?.contact && (
+            <Text className="text-sm mb-2 text-gray-500">
+              Contact: {incident.contact}
+            </Text>
+          )}
         </View>
         <View className="rounded-lg p-2 mb-4">
           <MapView
             className="w-full h-60"
             initialRegion={{
-              latitude: event.location.latitude,
-              longitude: event.location.longitude,
+              latitude: incident.location.latitude,
+              longitude: incident.location.longitude,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
           >
             <Marker
               coordinate={{
-                latitude: event.location.latitude,
-                longitude: event.location.longitude,
+                latitude: incident.location.latitude,
+                longitude: incident.location.longitude,
               }}
-              title={event.title}
-              description={event.description}
+              title={incident.title}
+              description={incident.description}
             />
           </MapView>
         </View>
         <View className="flex flex-wrap flex-row">
-          {event.images.map((image, index) => (
+          {incident.images.map((image, index) => (
             <TouchableOpacity
               activeOpacity={0.7}
               key={index}
