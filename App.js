@@ -11,6 +11,8 @@ import IncidentDetails from "./screens/IncidentDetails";
 import ReportIncident from "./screens/ReportIncident";
 import RequestResources from "./screens/RequestResources";
 import { UserProvider } from './UserContext';
+import Family from "./screens/Family";
+import ChatScreen from "./screens/ChatScreen";
 
 const Stack = createStackNavigator();
 const App = () => {
@@ -29,6 +31,8 @@ const App = () => {
           <Stack.Screen name="ReportIncident" component={ReportIncident} />
           <Stack.Screen name="IncidentDetails" component={IncidentDetails} />
           <Stack.Screen name="RequestResources" component={RequestResources} />
+          <Stack.Screen name="Family" component={Family} />
+          <Stack.Screen name="ChatScreen" component={ChatScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast visibilityTime={2000} swipeable={true} position="bottom" />

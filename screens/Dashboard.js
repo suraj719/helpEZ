@@ -73,6 +73,15 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
+          name="Family"
+          component={Family}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="nature-people" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
           name="Incidents"
           component={Incidents}
           options={{

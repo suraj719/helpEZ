@@ -10,20 +10,51 @@ import {
   Dimensions,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, setDoc, doc } from "firebase/firestore";
 import { firestore } from "../utils/firebase";
-import { useUser } from "../UserContext";
 import { AntDesign } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as geolib from 'geolib';
+import ChatScreen from "./ChatScreen";
+
+// Assume you have imported React Navigation dependencies here
+import { useNavigation } from '@react-navigation/native';
 
 const Family = () => {
-  const { user } = useUser();
+  const navigation = useNavigation();
+
+  const [userPhoneNumber, setUserPhoneNumber] = useState("");
+  const [familyPhoneNumber, setFamilyPhoneNumber] = useState("");
   const [familyMembers, setFamilyMembers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [currentLocation, setCurrentLocation] = useState(null);
+
+  useEffect(() => {
+    const fetchPhoneNumbers = async () => {
+      try {
+        const storedUserPhoneNumber = await AsyncStorage.getItem("phoneNumber");
+        if (storedUserPhoneNumber) {
+          setUserPhoneNumber(storedUserPhoneNumber);
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "User's phone number not found in AsyncStorage",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user's phone number from AsyncStorage:", error);
+        Toast.show({
+          type: "error",
+          text1: "Error fetching user's phone number",
+        });
+      }
+    };
+
+    fetchPhoneNumbers();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -48,16 +79,29 @@ const Family = () => {
 
   useEffect(() => {
     const fetchFamilyMembers = async () => {
-      const querySnapshot = await getDocs(collection(firestore, "users"));
-      const members = querySnapshot.docs.map((doc) => doc.data()).filter(member => member.location);
-      setFamilyMembers(members);
+      if (!userPhoneNumber) return;
+  
+      try {
+        const q = query(collection(firestore, "familyMembers"), where("phoneNumber", "==", userPhoneNumber));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          const familyMemberDoc = querySnapshot.docs[0];
+          const familyMemberData = familyMemberDoc.data();
+          const members = familyMemberData.members || [];
+          setFamilyMembers(members);
+        } else {
+          setFamilyMembers([]);
+        }
+      } catch (error) {
+        console.error("Error fetching family members:", error);
+      }
     };
-
     fetchFamilyMembers();
-  }, []);
+  }, [userPhoneNumber]);
 
   const handleAddMember = async () => {
-    if (!name || !phoneNumber) {
+    if (!name || !familyPhoneNumber) {
       Toast.show({
         type: "error",
         text1: "Please fill all the fields",
@@ -68,8 +112,7 @@ const Family = () => {
     try {
       const q = query(
         collection(firestore, "users"),
-        where("name", "==", name),
-        where("phoneNumber", "==", phoneNumber)
+        where("phoneNumber", "==", familyPhoneNumber)
       );
       const querySnapshot = await getDocs(q);
 
@@ -91,13 +134,33 @@ const Family = () => {
       }
 
       const newMember = {
-        name: userDoc.name,
+        name: name,
         phoneNumber: userDoc.phoneNumber,
         location: {
           latitude: userDoc.location.latitude,
           longitude: userDoc.location.longitude,
         },
       };
+
+      const familyQuery = query(collection(firestore, "familyMembers"), where("phoneNumber", "==", userPhoneNumber));
+      const familySnapshot = await getDocs(familyQuery);
+
+      if (!familySnapshot.empty) {
+        const familyDoc = familySnapshot.docs[0];
+        const familyData = familyDoc.data();
+
+        await setDoc(doc(firestore, "familyMembers", familyDoc.id), {
+          ...familyData,
+          members: [...familyData.members, newMember],
+        }, { merge: true });
+      } else {
+        const newFamilyDocRef = doc(collection(firestore, "familyMembers"));
+        await setDoc(newFamilyDocRef, {
+          name: name,
+          phoneNumber: userPhoneNumber,
+          members: [newMember],
+        });
+      }
 
       setFamilyMembers([...familyMembers, newMember]);
       Toast.show({
@@ -106,7 +169,7 @@ const Family = () => {
       });
       setModalVisible(false);
       setName("");
-      setPhoneNumber("");
+      setFamilyPhoneNumber("");
     } catch (error) {
       console.error("Error adding family member: ", error);
       Toast.show({
@@ -114,6 +177,58 @@ const Family = () => {
         text1: "Error adding family member",
       });
     }
+  };
+
+  const deleteFamilyMember = async (phoneNumber) => {
+    try {
+      const familyQuery = query(collection(firestore, "familyMembers"), where("phoneNumber", "==", userPhoneNumber));
+      const familySnapshot = await getDocs(familyQuery);
+
+      if (!familySnapshot.empty) {
+        const familyDoc = familySnapshot.docs[0];
+        const familyData = familyDoc.data();
+
+        const updatedMembers = familyData.members.filter(member => member.phoneNumber !== phoneNumber);
+
+        await setDoc(doc(firestore, "familyMembers", familyDoc.id), {
+          ...familyData,
+          members: updatedMembers,
+        }, { merge: true });
+
+        setFamilyMembers(updatedMembers);
+        Toast.show({
+          type: "success",
+          text1: "Family member deleted successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting family member: ", error);
+      Toast.show({
+        type: "error",
+        text1: "Error deleting family member",
+      });
+    }
+  };
+
+  const calculateDistance = (current, destination) => {
+    const distance = geolib.getDistance(
+      { latitude: current.latitude, longitude: current.longitude },
+      { latitude: destination.latitude, longitude: destination.longitude }
+    );
+
+    if (distance < 1000) {
+      return { value: distance, unit: 'm' };
+    } else {
+      return { value: (distance / 1000).toFixed(2), unit: 'km' };
+    }
+  };
+
+  const navigateToChat = (member) => {
+    navigation.navigate('ChatScreen', {
+      memberName: member.name,
+      memberPhoneNumber: member.phoneNumber,
+      memberLocation: member.location,
+    });
   };
 
   return (
@@ -131,7 +246,11 @@ const Family = () => {
                 longitude: member.location.longitude,
               }}
               title={member.name}
-              description={member.phoneNumber}
+              description={`Distance: ${calculateDistance(
+                currentLocation,
+                member.location
+              ).value} ${calculateDistance(currentLocation, member.location).unit}`}
+              onPress={() => navigateToChat(member)}
             />
           ))}
           <Marker
@@ -141,15 +260,22 @@ const Family = () => {
           />
         </MapView>
       )}
+      <Text style={styles.title}>Family Members</Text>
       <FlatList
         data={familyMembers}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={() => navigateToChat(item)}>
             <Text style={styles.name}>{item.name}</Text>
             <Text>{item.phoneNumber}</Text>
-            <Text>{`Lat: ${item.location.latitude}, Lon: ${item.location.longitude}`}</Text>
-          </View>
+            <Text>{`Distance: ${calculateDistance(
+              currentLocation,
+              item.location
+            ).value} ${calculateDistance(currentLocation, item.location).unit}`}</Text>
+            <TouchableOpacity onPress={() => deleteFamilyMember(item.phoneNumber)}>
+              <Text style={styles.deleteButton}>Delete</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
         )}
       />
       <TouchableOpacity
@@ -159,7 +285,7 @@ const Family = () => {
         <AntDesign name="plus" size={24} color="white" />
       </TouchableOpacity>
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
@@ -177,16 +303,16 @@ const Family = () => {
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
+            value={familyPhoneNumber}
+            onChangeText={setFamilyPhoneNumber}
             keyboardType="phone-pad"
           />
           <TouchableOpacity style={styles.button} onPress={handleAddMember}>
             <Text style={styles.buttonText}>Add Member</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: "red", marginTop: 10 }]}
-            onPress={() => setModalVisible(!modalVisible)}
+            style={[styles.button, styles.cancelButton]}
+            onPress={() => setModalVisible(false)}
           >
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
@@ -199,30 +325,46 @@ const Family = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f0f0f0",
   },
   map: {
-    width: "100%",
+    width: Dimensions.get("window").width,
     height: Dimensions.get("window").height / 2,
   },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginVertical: 10,
+  },
   card: {
-    padding: 15,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    backgroundColor: "white",
+    padding: 20,
+    marginVertical: 10,
+    borderRadius: 10,
+    width: Dimensions.get("window").width - 40,
   },
   name: {
+    fontSize: 18,
     fontWeight: "bold",
+    marginBottom: 5,
+  },
+  deleteButton: {
+    color: "red",
+    marginTop: 10,
   },
   fab: {
     position: "absolute",
-    bottom: 30,
-    right: 30,
-    backgroundColor: "#000",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "blue",
+    borderRadius: 50,
+    width: 50,
+    height: 50,
     alignItems: "center",
+    justifyContent: "center",
+    elevation: 8,
   },
   modalView: {
     margin: 20,
@@ -240,30 +382,33 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalText: {
+    fontSize: 20,
     marginBottom: 15,
     textAlign: "center",
-    fontSize: 18,
-    fontWeight: "bold",
   },
   input: {
-    height: 50,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 18,
-    backgroundColor: "#e8e8e8",
-    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
     width: "100%",
+    paddingHorizontal: 10,
+    marginBottom: 15,
   },
   button: {
-    backgroundColor: "#000",
-    padding: 15,
+    backgroundColor: "blue",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 10,
-    width: "100%",
-    alignItems: "center",
+    elevation: 2,
+    marginBottom: 10,
   },
   buttonText: {
-    color: "#fff",
-    fontSize: 18,
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  cancelButton: {
+    backgroundColor: "red",
   },
 });
 
