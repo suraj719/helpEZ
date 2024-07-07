@@ -13,6 +13,7 @@ import RequestResources from "./screens/RequestResources";
 import { UserProvider } from './UserContext';
 import Family from "./screens/Family";
 import ChatScreen from "./screens/ChatScreen";
+import VolunteerSignup from "./screens/VolunteerSignup";
 
 const Stack = createStackNavigator();
 const App = () => {
@@ -33,6 +34,7 @@ const App = () => {
           <Stack.Screen name="RequestResources" component={RequestResources} />
           <Stack.Screen name="Family" component={Family} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="VolunteerSignup" component={VolunteerSignup} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast visibilityTime={2000} swipeable={true} position="bottom" />

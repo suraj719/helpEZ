@@ -13,6 +13,7 @@ import Incidents from "./Incidents";
 import RequestResources from "./RequestResources";
 import Requests from "./Requests";
 import Family from "./Family";
+import VolunteerSignup from "./VolunteerSignup";
 
 const Drawer = createDrawerNavigator();
 
@@ -100,6 +101,16 @@ const Dashboard = () => {
             ),
           }}
         />
+        <Drawer.Screen 
+          name="VolunteerSignup" 
+          component={VolunteerSignup} 
+          // options={{
+          //   drawerIcon: ({ color }) => (
+          //     <Icon name="" size={22} color={color} />
+          //     ),
+          //     }}
+          />
+
         <Drawer.Screen
           name="Logout"
           component={Logout}
