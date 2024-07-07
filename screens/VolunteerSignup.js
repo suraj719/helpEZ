@@ -1,14 +1,15 @@
-import { Picker } from "@react-native-picker/picker";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
 import axios from 'axios';
-import { db } from '../utils/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { firestore } from '../utils/firebase';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
 const VolunteerSignup = () => {
-  const [name, setName] = useState("");
+  const [incidents, setIncidents] = useState([]);
+  const [selectedIncident, setSelectedIncident] = useState("");
   const [age, setAge] = useState("");
   const [location, setLocation] = useState("");
   const [skills, setSkills] = useState("");
@@ -20,6 +21,41 @@ const VolunteerSignup = () => {
   const technicalSkills = ["JavaScript", "React", "Node.js", "Python", "Java"];
   const nonTechnicalSkills = ["Communication", "Teamwork", "Project Management", "Leadership", "Problem Solving"];
 
+  // Fetch incidents from Firestore
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, 'incidents'));
+        const incidentsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setIncidents(incidentsList);
+      } catch (error) {
+        console.error("Error fetching incidents:", error);
+      }
+    };
+
+    fetchIncidents();
+  }, []);
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    console.log("Form submitted:", { selectedIncident, age, location, skills, skillsDetails, otherSkills });
+
+    try {
+      await addDoc(collection(firestore, "volunteers"), {
+        selectedIncident,
+        age,
+        location,
+        skills,
+        skillsDetails: [...selectedSkills, otherSkills].join(", ")
+      });
+      Alert.alert('Success', 'Form submitted successfully');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      Alert.alert('Error', 'Failed to submit form');
+    }
+  };
+
+  // Function to handle location fetching
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
@@ -62,26 +98,11 @@ const VolunteerSignup = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    console.log("Form submitted:", { name, age, location, skills, skillsDetails, otherSkills });
-
-    try {
-      await addDoc(collection(db, "volunteers"), {
-        name,
-        age,
-        location,
-        skills,
-        skillsDetails: [...selectedSkills, otherSkills].join(", ")
-      });
-      Alert.alert('Success', 'Form submitted successfully');
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      Alert.alert('Error', 'Failed to submit form');
-    }
-  };
-
+  // Function to handle tag press and toggle selection/removal
   const handleTagPress = (tag) => {
-    if (!selectedSkills.includes(tag)) {
+    if (selectedSkills.includes(tag)) {
+      handleTagRemove(tag);
+    } else {
       setSelectedSkills([...selectedSkills, tag]);
     }
   };
@@ -95,12 +116,18 @@ const VolunteerSignup = () => {
       <View style={styles.formContainer}>
         <Text style={styles.title}>Volunteer Signup Page</Text>
 
-        <TextInput
+        {/* Dropdown for selecting incident */}
+        <Picker
+          selectedValue={selectedIncident}
           style={styles.input}
-          placeholder="Incident"
-          value={name}
-          onChangeText={(text) => setName(text)}
-        />
+          onValueChange={(itemValue) => setSelectedIncident(itemValue)}
+        >
+          <Picker.Item label="Select Incident" value="" />
+          {incidents.map((incident) => (
+            <Picker.Item key={incident.id} label={incident.title} value={incident.title} />
+          ))}
+        </Picker>
+
         <TextInput
           style={styles.input}
           placeholder="Age"
@@ -233,9 +260,9 @@ const styles = StyleSheet.create({
   tag: {
     padding: 10,
     borderWidth: 1,
-    borderColor: "#007bff",
+    borderColor: "#000",
     borderRadius: 6,
-    backgroundColor: "#e7f1ff",
+    backgroundColor: "#a2a2a3",
     marginRight: 10,
     marginBottom: 10,
   },
@@ -244,10 +271,10 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
   },
   selectedTag: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#3f3f40",
   },
   tagText: {
-    color: "#007bff",
+    color: "#fff",
   },
   selectedTagText: {
     color: "#fff",
@@ -259,7 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#000",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 6,
@@ -274,18 +301,18 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
     marginBottom: 10,
   },
   locationInput: {
     flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
     height: 40,
     paddingHorizontal: 16,
   },
   locationIcon: {
-    padding: 10,
+    marginLeft: 10,
   },
 });
 

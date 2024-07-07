@@ -5,12 +5,12 @@ import {
 import React from "react";
 import { SafeAreaView, StyleSheet, View, Text, Image } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { FontAwesome5 } from '@expo/vector-icons'
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
 import Incidents from "./Incidents";
-import RequestResources from "./RequestResources";
 import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
@@ -104,11 +104,11 @@ const Dashboard = () => {
         <Drawer.Screen 
           name="VolunteerSignup" 
           component={VolunteerSignup} 
-          // options={{
-          //   drawerIcon: ({ color }) => (
-          //     <Icon name="" size={22} color={color} />
-          //     ),
-          //     }}
+          options={{
+            drawerIcon: ({ color }) => (
+              <FontAwesome5 name="hands-helping" size={22} color={color} />
+              ),
+              }}
           />
 
         <Drawer.Screen
