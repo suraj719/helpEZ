@@ -10,7 +10,7 @@ const MedicineInfoScreen = () => {
   const fetchMedicineInfo = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`https://api.fda.gov/drug/label.json?search=${searchQuery}`); // OpenFDA API endpoint
+      const response = await axios.get(`https://api.fda.gov/drug/label.json?search=${searchQuery}`);
       if (response.data.results.length > 0) {
         setMedicineInfo(response.data.results[0]);
       } else {
@@ -25,7 +25,7 @@ const MedicineInfoScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder="Enter medicine name"
@@ -34,21 +34,39 @@ const MedicineInfoScreen = () => {
       />
       <Button title="Search" onPress={fetchMedicineInfo} disabled={!searchQuery} />
 
-      {loading ? (
-        <ActivityIndicator style={styles.loader} size="large" color="#0000ff" />
-      ) : medicineInfo ? (
-        <View style={styles.medicineInfoContainer}>
-          <Text style={styles.medicineName}>{medicineInfo.openfda.brand_name}</Text>
-          <Text style={styles.medicineDetails}>
-            {medicineInfo.indications_and_usage ? medicineInfo.indications_and_usage : 'No information available'}
-          </Text>
-          {/* Display other relevant medicine information */}
-        </View>
-      ) : (
-        <Text style={styles.noResults}>No medicine information available</Text>
-      )}
-    </ScrollView>
+      <ScrollView style={styles.scrollView}>
+        {loading ? (
+          <ActivityIndicator style={styles.loader} size="large" color="#0000ff" />
+        ) : medicineInfo ? (
+          <View style={styles.medicineInfoContainer}>
+            <Text style={styles.medicineName}>{getMedicineName()}</Text>
+            <Text style={styles.sectionTitle}>Indications and Usage:</Text>
+            <Text style={styles.medicineDetails}>{getIndications()}</Text>
+            <Text style={styles.sectionTitle}>Warnings:</Text>
+            <Text style={styles.medicineDetails}>{getWarnings()}</Text>
+            {/* Add more sections as needed */}
+          </View>
+        ) : (
+          <Text style={styles.noResults}>No medicine information available</Text>
+        )}
+      </ScrollView>
+    </View>
   );
+
+  function getMedicineName() {
+    return medicineInfo.openfda && medicineInfo.openfda.brand_name ? medicineInfo.openfda.brand_name : 'Medicine Name Not Available';
+  }
+
+  function getIndications() {
+    return medicineInfo.indications_and_usage ? medicineInfo.indications_and_usage : 'No information available';
+  }
+
+  function getWarnings() {
+    if (medicineInfo.warnings && medicineInfo.warnings.length > 0) {
+      return medicineInfo.warnings.join('\n');
+    }
+    return 'No warnings available';
+  }
 };
 
 const styles = StyleSheet.create({
@@ -64,6 +82,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
   },
+  scrollView: {
+    flex: 1,
+    marginTop: 10,
+  },
   loader: {
     marginTop: 20,
   },
@@ -74,6 +96,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 5,
   },
   medicineDetails: {
     fontSize: 16,
