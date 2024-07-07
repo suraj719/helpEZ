@@ -1,28 +1,26 @@
 import React from 'react';
+import { useState } from 'react';
 import { GiftedChat } from 'react-native-gifted-chat';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-const ChatScreen = ({ route }) => {
+const ChatScreen = ({ route = { params: { memberName: 'Guest', memberPhoneNumber: '' } } }) => {
   const { memberName, memberPhoneNumber } = route.params;
   const navigation = useNavigation();
 
-  // Mock data for initial messages
-  const [messages, setMessages] = React.useState([
+  const [messages, setMessages] = useState([
     {
       _id: 1,
       text: `Hi ${memberName}, how are you?`,
       createdAt: new Date(),
       user: {
         _id: 2,
-        name: 'React Native',
-        avatar: 'https://placeimg.com/140/140/any',
+        name: `${memberName}`,
       },
     },
   ]);
 
-  // Handler for sending messages
   const onSend = (newMessages = []) => {
     setMessages(GiftedChat.append(messages, newMessages));
   };
@@ -44,7 +42,7 @@ const ChatScreen = ({ route }) => {
       <GiftedChat
         messages={messages}
         onSend={newMessages => onSend(newMessages)}
-        user={{ _id: 1 }} // Replace with your user ID logic
+        user={{ _id: 1 }}
       />
     </View>
   );
