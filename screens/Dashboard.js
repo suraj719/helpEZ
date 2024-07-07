@@ -5,15 +5,16 @@ import {
 import React from "react";
 import { SafeAreaView, StyleSheet, View, Text, Image } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { FontAwesome5 } from '@expo/vector-icons'
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
 import Incidents from "./Incidents";
+import RequestResources from "./RequestResources";
 import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
+import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
 
 const Drawer = createDrawerNavigator();
 
@@ -46,6 +47,7 @@ const Dashboard = () => {
           drawerInactiveBackgroundColor: "#e6e6e6",
         }}
       >
+        {/* Existing screens */}
         <Drawer.Screen
           name="Home"
           component={Home}
@@ -91,7 +93,6 @@ const Dashboard = () => {
             ),
           }}
         />
-      
         <Drawer.Screen
           name="Requests"
           component={Requests}
@@ -104,12 +105,18 @@ const Dashboard = () => {
         <Drawer.Screen 
           name="VolunteerSignup" 
           component={VolunteerSignup} 
+        />
+
+        {/* New screen for Medicine Information */}
+        <Drawer.Screen
+          name="MedicineInfo"
+          component={MedicineInfoScreen}
           options={{
             drawerIcon: ({ color }) => (
-              <FontAwesome5 name="hands-helping" size={22} color={color} />
-              ),
-              }}
-          />
+              <Icon name="pill" size={22} color={color} /> // Adjust icon as needed
+            ),
+          }}
+        />
 
         <Drawer.Screen
           name="Logout"
