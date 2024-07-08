@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  ImageBackground, // Import ImageBackground component
 } from "react-native";
 import app from "../utils/firebase";
 import {
@@ -95,55 +96,66 @@ export default function Register() {
   };
 
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <ActivityIndicator size="large" color="#000" />
-      ) : isNewMember ? (
-        <RegisterDetails
-          changeNumber={setIsNewMember}
-          phoneNumber={phoneNumber}
-        />
-      ) : (
-        <View style={styles.authContainer}>
-          <Image source={require("../assets/logo.png")} style={styles.image} />
-          <Text style={styles.description}>
-            HelpEZ helps manage disasters efficiently by connecting people in
-            need with resources and assistance. Join us in making a difference.
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your Name *"
-            placeholderTextColor="#888"
+    <ImageBackground
+      source={require("../assets/images/Designer (1).png")} // Replace with your background image path
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        {loading ? (
+          <ActivityIndicator size="large" color="#000" />
+        ) : isNewMember ? (
+          <RegisterDetails
+            changeNumber={setIsNewMember}
+            phoneNumber={phoneNumber}
           />
-          <TextInput
-            style={styles.input}
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholder="Phone Number *"
-            keyboardType="phone-pad"
-            placeholderTextColor="#888"
-          />
-          <TouchableOpacity
-            onPress={() => signInWithPhoneNumber()}
-            style={styles.button}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.buttonText}>Proceed</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
+        ) : (
+          <View style={styles.authContainer}>
+            <Image source={require("../assets/logo.png")} style={styles.image} />
+            <Text style={styles.description}>
+              HelpEZ helps manage disasters efficiently by connecting people in
+              need with resources and assistance. Join us in making a difference.
+            </Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your Name *"
+              placeholderTextColor="#888"
+            />
+            <TextInput
+              style={styles.input}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Phone Number *"
+              keyboardType="phone-pad"
+              placeholderTextColor="#888"
+            />
+            <TouchableOpacity
+              onPress={() => signInWithPhoneNumber()}
+              style={styles.button}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.buttonText}>Proceed</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
   container: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Optional: Add a semi-transparent overlay
   },
   authContainer: {
     width: "85%",
