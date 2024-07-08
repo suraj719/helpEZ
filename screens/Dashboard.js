@@ -1,10 +1,10 @@
+import React from "react";
+import { SafeAreaView, StyleSheet, View, Text, Image } from "react-native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {
   createDrawerNavigator,
   DrawerItemList,
 } from "@react-navigation/drawer";
-import React from "react";
-import { SafeAreaView, StyleSheet, View, Text, Image } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
@@ -20,9 +20,9 @@ const Drawer = createDrawerNavigator();
 
 const CustomDrawerContent = (props) => (
   <View style={styles.drawerContent}>
-    <View className="bg-gray-300" style={styles.drawerHeader}>
+    <View style={styles.drawerHeader}>
       <Image source={require("../assets/logo.png")} style={styles.logo} />
-      <Text className="text-2xl font-bold">HelpEZ</Text>
+      <Text style={styles.appName}>HelpEZ</Text>
     </View>
     <DrawerItemList {...props} />
   </View>
@@ -104,7 +104,12 @@ const Dashboard = () => {
         />
         <Drawer.Screen 
           name="VolunteerSignup" 
-          component={VolunteerSignup} 
+          component={VolunteerSignup}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="account-plus-outline" size={22} color={color} />
+            ),
+          }}
         />
 
         {/* New screen for Medicine Information */}
@@ -113,7 +118,7 @@ const Dashboard = () => {
           component={MedicineInfoScreen}
           options={{
             drawerIcon: ({ color }) => (
-              <Icon name="pill" size={22} color={color} /> // Adjust icon as needed
+              <Icon name="pill" size={22} color={color} />
             ),
           }}
         />
@@ -144,10 +149,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     paddingLeft: 35,
+    backgroundColor: "#f0f0f0",
   },
   logo: {
     width: 60,
     height: 60,
+    marginRight: 15,
+  },
+  appName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#000",
   },
 });
 
