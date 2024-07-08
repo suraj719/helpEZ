@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
-import axios from 'axios';
+import { View, Text, StyleSheet, ImageBackground, TextInput, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, getDocs, getFirestore } from "firebase/firestore";
@@ -8,64 +7,12 @@ import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
-const emergencyContacts = [
-  {
-    name: 'Contact 1',
-    phoneNumber: '917013399629'
-  }
-];
-
-const sendEmergencySMS = async () => {
-  const template_id = '66844ed5d6fc056b3520d952'; // Replace with your template ID
-  const short_url = '1'; // 1 for On, 0 for Off
-  const realTimeResponse = '1'; // Optional, set to '1' if needed
-  const recipients = emergencyContacts.map(contact => ({
-    mobiles: "917013399629",
-    VAR1: 'VALUE 1', // Replace with your actual variables
-    VAR2: 'VALUE 2' // Replace with your actual variables
-  }));
-
-  try {
-    const response = await axios.post('http://192.168.0.112:3000/send-sms', {
-      template_id,
-      short_url,
-      realTimeResponse,
-      recipients
-    });
-
-    if (response.status === 200) {
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Emergency SMS sent successfully.',
-        visibilityTime: 4000,
-        autoHide: true,
-      });
-    } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to send Emergency SMS.',
-        visibilityTime: 4000,
-        autoHide: true,
-      });
-    }
-  } catch (error) {
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: 'Failed to send Emergency SMS.',
-      visibilityTime: 4000,
-      autoHide: true,
-    });
-  }
-};
-
 export default function Home() {
   const navigation = useNavigation();
   const [newNotifications, setNewNotifications] = useState(false);
   const db = getFirestore(app);
 
+  // Function to fetch incidents from Firestore and compare with stored incidents
   useFocusEffect(
     React.useCallback(() => {
       const fetchIncidents = async () => {
@@ -99,38 +46,291 @@ export default function Home() {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.notificationButton}
-        onPress={() => {
-          setNewNotifications(false);
-          navigation.navigate('Notifications');
+    <ImageBackground
+      source={require("../assets/images/back.png")}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          marginTop: 40,
+          alignItems: "center",
+          paddingHorizontal: 40,
         }}
       >
         <Ionicons 
-          name={newNotifications ? "notifications" : "notifications-outline"} 
-          size={24} 
-          color="black" 
+          name="menu" 
+          size={30} 
+          color="#a2a2db" 
+          style={{ width: 20 }} 
         />
-      </TouchableOpacity>
-      <Text style={styles.homeText}>Home</Text>
-      <Button title="Emergency SOS" onPress={sendEmergencySMS} color="#FF0000" />
-    </View>
+        <TouchableOpacity
+          style={styles.notificationButton}
+          onPress={() => {
+            setNewNotifications(false);
+            navigation.navigate('Notifications');
+          }}
+        >
+          <Ionicons 
+            name={newNotifications ? "notifications" : "notifications-outline"} 
+            size={24} 
+            color="black" 
+          />
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ paddingHorizontal: 40, marginTop: 25 }}>
+        <Text
+          style={{
+            fontSize: 40,
+            color: "#522289",
+            fontFamily: "RobotoBold",
+          }}
+        >
+          Hello
+        </Text>
+
+        <Text
+          style={{
+            fontSize: 15,
+            paddingVertical: 10,
+            paddingRight: 80,
+            lineHeight: 22,
+            fontFamily: "RobotoRegular",
+            color: "#a2a2db",
+          }}
+        >
+          Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+        </Text>
+
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: "#FFF",
+            borderRadius: 40,
+            alignItems: "center",
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            marginTop: 30,
+          }}
+        >
+          <Image
+            source={require("../assets/images/search.png")}
+            style={{ height: 14, width: 14 }}
+          />
+          <TextInput
+            placeholder="Lorem ipsum"
+            style={{ paddingHorizontal: 20, fontSize: 15, color: "#ccccef" }}
+          />
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginRight: -40, marginTop: 30 }}
+        >
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Detail")}
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              height: 66,
+              width: 66,
+              borderRadius: 50,
+              backgroundColor: "#5facdb",
+            }}
+          >
+            <Image
+              source={require("../assets/images/p.png")}
+              style={{ height: 24, width: 24 }}
+            />
+          </TouchableOpacity>
+
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              height: 66,
+              width: 66,
+              borderRadius: 50,
+              backgroundColor: "#ff5c83",
+              marginHorizontal: 22,
+            }}
+          >
+            <Ionicons name="office-building" color="white" size={32} />
+          </View>
+
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              height: 66,
+              width: 66,
+              borderRadius: 50,
+              backgroundColor: "#ffa06c",
+            }}
+          >
+            <Ionicons name="bus" color="white" size={32} />
+          </View>
+
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              height: 66,
+              width: 66,
+              borderRadius: 50,
+              backgroundColor: "#bb32fe",
+              marginLeft: 22,
+            }}
+          >
+            <Ionicons name="dots-horizontal" color="white" size={32} />
+          </View>
+        </ScrollView>
+
+        <Text
+          style={{
+            color: "#FFF",
+            fontFamily: "RobotoRegular",
+            marginTop: 50,
+            fontSize: 17,
+          }}
+        >
+          Recommended
+        </Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -40, marginTop: 30 }}
+        >
+          <View
+            style={{
+              backgroundColor: "#FEFEFE",
+              height: 200,
+              width: 190,
+              borderRadius: 15,
+              padding: 5,
+            }}
+          >
+            <Image
+              source={require("../assets/images/1.jpg")}
+              style={{ width: 180, borderRadius: 10, height: 130 }}
+            />
+            <View
+              style={{
+                flexDirection: "row",
+                width: 150,
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 5,
+                  paddingVertical: 5,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "RobotoRegular",
+                    fontSize: 11,
+                    color: "#a2a2db",
+                  }}
+                >
+                  Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
+                </Text>
+              </View>
+              <Ionicons name="map-marker" size={25} color="#ff5c83" />
+            </View>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: "#FEFEFE",
+              height: 200,
+              width: 190,
+              borderRadius: 15,
+              padding: 5,
+              marginHorizontal: 20,
+            }}
+          >
+            <Image
+              source={require("../assets/images/2.jpg")}
+              style={{ width: 180, borderRadius: 10, height: 130 }}
+            />
+            <View
+              style={{
+                flexDirection: "row",
+                width: 150,
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 5,
+                  paddingVertical: 5,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "RobotoRegular",
+                    fontSize: 11,
+                    color: "#a2a2db",
+                  }}
+                >
+                  Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
+                </Text>
+              </View>
+              <Ionicons name="map-marker" size={25} color="#5facdb" />
+            </View>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: "#FEFEFE",
+              height: 200,
+              width: 190,
+              borderRadius: 15,
+              padding: 5,
+            }}
+          >
+            <Image
+              source={require("../assets/images/3.jpg")}
+              style={{ width: 180, borderRadius: 10, height: 130 }}
+            />
+            <View
+              style={{
+                flexDirection: "row",
+                width: 150,
+                alignItems: "center",
+              }}
+            >
+              <View
+                style={{
+                  paddingHorizontal: 5,
+                  paddingVertical: 5,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "RobotoRegular",
+                    fontSize: 11,
+                    color: "#a2a2db",
+                  }}
+                >
+                  Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
+                </Text>
+              </View>
+              <Ionicons name="map-marker" size={25} color="#bb32fe" />
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  homeText: {
-    color: 'red',
-    fontSize: 24,
-    marginBottom: 20,
-  },
   notificationButton: {
     position: 'absolute',
     top: 10,
