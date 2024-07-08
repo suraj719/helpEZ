@@ -6,6 +6,7 @@ import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import Incidents from './Incidents';
 
 export default function Home() {
   const navigation = useNavigation();
@@ -127,10 +128,10 @@ export default function Home() {
         >
           <Image
             source={require("../assets/images/search.png")}
-            style={{ height: 14, width: 14 }}
+            style={{ height: 20, width: 16 }}
           />
           <TextInput
-            placeholder="Lorem ipsum"
+            placeholder="search"
             style={{ paddingHorizontal: 20, fontSize: 15, color: "#ccccef" }}
           />
         </View>
@@ -141,7 +142,7 @@ export default function Home() {
           style={{ marginRight: -40, marginTop: 30 }}
         >
           <TouchableOpacity
-            onPress={() => navigation.navigate("Detail")}
+            onPress={() => navigation.navigate("Incidents")}
             style={{
               alignItems: "center",
               justifyContent: "center",
@@ -168,7 +169,7 @@ export default function Home() {
               marginHorizontal: 22,
             }}
           >
-             <Ionicons name="bus" color="white" size={32} />
+             <Ionicons name="train" color="white" size={32} />
           </View>
 
           <View
@@ -218,8 +219,6 @@ export default function Home() {
 >
   Recommended
 </Text>
-
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
