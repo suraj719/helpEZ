@@ -55,18 +55,6 @@ const VolunteerSignup = () => {
 
     fetchIncidents();
   }, []);
-  const assignRole = (incident, skills) => {
-    // Example role assignment logic
-    if (incident.includes('Fire') && skills.includes('Leadership')) {
-      return 'Fire Response Leader';
-    } else if (incident.includes('Flood') && skills.includes('Teamwork')) {
-      return 'Flood Relief Coordinator';
-    } else if (incident.includes('Earthquake') && skills.includes('Project Management')) {
-      return 'Earthquake Relief Manager';
-    } else {
-      return 'General Volunteer';
-    }
-  };
 
   const handleSubmit = async () => {
     try {
@@ -74,7 +62,6 @@ const VolunteerSignup = () => {
         Alert.alert('Validation Error', 'Please fill in all required fields');
         return;
       }
-      const role = assignRole(selectedIncident, selectedSkills);
 
       // Add volunteer details to Firestore
       const volunteerDocRef = await addDoc(collection(firestore, "volunteers"), {
@@ -84,8 +71,7 @@ const VolunteerSignup = () => {
         skills,
         skillsDetails: [...selectedSkills, otherSkills].join(", "),
         name,
-        phoneNumber,
-        role
+        phoneNumber
       });
 
       // Update 'users' collection to set isVolunteer to true for this user
@@ -95,8 +81,7 @@ const VolunteerSignup = () => {
       if (userDocId) {
         const userRef = doc(firestore, 'users', userDocId);
         await updateDoc(userRef, {
-          isVolunteer: true,
-          role: role
+          isVolunteer: true
         });
 
         Alert.alert('Success', 'Form submitted successfully');
