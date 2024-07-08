@@ -10,6 +10,23 @@ import Toast from 'react-native-toast-message';
 export default function Home() {
   const navigation = useNavigation();
   const [newNotifications, setNewNotifications] = useState(false);
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    // Fetch user name from AsyncStorage
+    const fetchUserName = async () => {
+      try {
+        const name = await AsyncStorage.getItem('name');
+        if (name !== null) {
+          setUserName(name);
+        }
+      } catch (error) {
+        console.error('Error fetching user name:', error);
+      }
+    };
+    fetchUserName();
+  }, []);
+
   const db = getFirestore(app);
 
   // Function to fetch incidents from Firestore and compare with stored incidents
@@ -58,12 +75,6 @@ export default function Home() {
           paddingHorizontal: 40,
         }}
       >
-        <Ionicons 
-          name="menu" 
-          size={30} 
-          color="#a2a2db" 
-          style={{ width: 20 }} 
-        />
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => {
@@ -87,10 +98,10 @@ export default function Home() {
             fontFamily: "RobotoBold",
           }}
         >
-          Hello
+          Hello, {userName ? userName : 'User'}
         </Text>
 
-        <Text
+        {/* <Text
           style={{
             fontSize: 15,
             paddingVertical: 10,
@@ -100,8 +111,8 @@ export default function Home() {
             color: "#a2a2db",
           }}
         >
-          Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-        </Text>
+          
+        </Text> */}
 
         <View
           style={{
