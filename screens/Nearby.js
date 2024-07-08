@@ -101,23 +101,23 @@ export default function Nearby() {
       setShowRandomMarkers(false);
       setRandomMarkers([]);
       setNearbyPlaces([]);
+      setShowNearbyPlaces(false); // Ensure nearby places are hidden when random markers are toggled off
     } else {
-      const randomLocations = [
-        { latitude: 17.385044, longitude: 78.486671, title: 'Random Location 1' },
-        { latitude: 17.391044, longitude: 78.486671, title: 'Random Location 2' },
-        { latitude: 17.385044, longitude: 78.491671, title: 'Random Location 3' },
-        { latitude: 17.380044, longitude: 78.481671, title: 'Random Location 4' },
-      ];
-
-      const shelters = await fetchNearbyPlaces('shelter');
-      const stays = await fetchNearbyPlaces('lodging');
-
-      setRandomMarkers(randomLocations);
-      setNearbyPlaces([...shelters, ...stays]);
-      setShowRandomMarkers(true);
-      setShowNearbyPlaces(true);
+      try {
+        const shelters = await fetchNearbyPlaces('shelter');
+        const stays = await fetchNearbyPlaces('lodging');
+  
+        setRandomMarkers([]); // Clear any existing random markers
+        setNearbyPlaces([...shelters, ...stays]); // Set nearby places to shelters and stays
+        setShowRandomMarkers(true); // Show random markers (if you have specific random markers to show, handle them here)
+        setShowNearbyPlaces(true); // Show nearby places on the map
+      } catch (error) {
+        console.error('Error fetching shelters and stays:', error);
+        Alert.alert('Error', 'Failed to fetch shelters and stays');
+      }
     }
   };
+  
 
   const toggleNearbyHospitals = async () => {
     if (showNearbyPlaces) {
@@ -191,7 +191,8 @@ export default function Nearby() {
         longitude: doc.data().location.longitude,
         title: doc.data().name,
       }));
-
+      // console.log(volunteerLocations)
+  
       setVolunteerMarkers(volunteerLocations);
       setShowVolunteerMarkers(true);
     } catch (error) {
@@ -199,7 +200,7 @@ export default function Nearby() {
       Alert.alert('Error', 'Failed to fetch volunteer locations');
     }
   };
-
+  
   const toggleVolunteerMarkers = async () => {
     if (showVolunteerMarkers) {
       setShowVolunteerMarkers(false);
@@ -208,6 +209,7 @@ export default function Nearby() {
       await fetchVolunteerLocations();
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -252,15 +254,14 @@ export default function Nearby() {
             />
           ))}
 
-          {showVolunteerMarkers && nearbyPlaces.map((volunteer, index) => (
+{showVolunteerMarkers && volunteerMarkers.map((marker, index) => (
             <Marker
               key={index}
               coordinate={{
-                latitude: volunteer.latitude,
-                longitude: volunteer.longitude,
+                latitude: marker.latitude,
+                longitude: marker.longitude,
               }}
-              title={volunteer.title}
-              description="Volunteer Location"
+              title={marker.title}
               pinColor="orange"
             />
           ))}
