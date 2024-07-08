@@ -20,7 +20,6 @@ const VolunteerSignup = () => {
   const [otherSkills, setOtherSkills] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
-  const [allAsyncStorageItems, setAllAsyncStorageItems] = useState([]);
 
   const technicalSkills = ["JavaScript", "React", "Node.js", "Python", "Java"];
   const nonTechnicalSkills = ["Communication", "Teamwork", "Project Management", "Leadership", "Problem Solving"];
@@ -59,6 +58,11 @@ const VolunteerSignup = () => {
 
   const handleSubmit = async () => {
     try {
+      if (!selectedIncident || !age || !location || !skills || selectedSkills.length === 0) {
+        Alert.alert('Validation Error', 'Please fill in all required fields');
+        return;
+      }
+
       await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
         age,
@@ -122,10 +126,10 @@ const VolunteerSignup = () => {
       setSelectedSkills([...selectedSkills, tag]);
     }
   };
+
   const handleTagRemove = (tag) => {
     setSelectedSkills(selectedSkills.filter((skill) => skill !== tag));
   };
-
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -200,7 +204,7 @@ const VolunteerSignup = () => {
           </View>
         )}
 
-<View style={styles.selectedSkillsContainer}>
+        <View style={styles.selectedSkillsContainer}>
           {selectedSkills.map((tag) => (
             <View key={tag} style={styles.selectedTagContainer}>
               <TouchableOpacity style={styles.selectedTag} onPress={() => handleTagRemove(tag)}>
@@ -294,7 +298,6 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     color: "#000",
   },
-
   tagText: {
     color: "#fff",
   },
@@ -320,7 +323,6 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 14,
   },
-  
   button: {
     backgroundColor: "#fff",
     paddingVertical: 12,
