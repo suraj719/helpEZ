@@ -58,8 +58,6 @@ const VolunteerSignup = () => {
   }, []);
 
   const handleSubmit = async () => {
-    console.log("Form submitted:", { selectedIncident, age, location, skills, skillsDetails, otherSkills });
-
     try {
       await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
@@ -124,10 +122,10 @@ const VolunteerSignup = () => {
       setSelectedSkills([...selectedSkills, tag]);
     }
   };
-
   const handleTagRemove = (tag) => {
-    setSelectedSkills(selectedSkills.filter(skill => skill !== tag));
+    setSelectedSkills(selectedSkills.filter((skill) => skill !== tag));
   };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -202,11 +200,13 @@ const VolunteerSignup = () => {
           </View>
         )}
 
-        <View style={styles.selectedSkillsContainer}>
+<View style={styles.selectedSkillsContainer}>
           {selectedSkills.map((tag) => (
-            <TouchableOpacity key={tag} style={styles.selectedTag} onPress={() => handleTagRemove(tag)}>
-              <Text style={styles.selectedTagText}>{tag}</Text>
-            </TouchableOpacity>
+            <View key={tag} style={styles.selectedTagContainer}>
+              <TouchableOpacity style={styles.selectedTag} onPress={() => handleTagRemove(tag)}>
+                <Text style={styles.selectedTagText}>{tag}</Text>
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
 
@@ -294,20 +294,33 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     color: "#000",
   },
-  selectedTag: {
-    backgroundColor: "#fff",
-  },
+
   tagText: {
     color: "#fff",
-  },
-  selectedTagText: {
-    color: "#000",
   },
   selectedSkillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginBottom: 10,
+    marginTop: 10,
   },
+  selectedTagContainer: {
+    marginRight: 10,
+    marginBottom: 10,
+  },
+  selectedTag: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: "#DCDCDC",
+    borderWidth: 1,
+    borderColor: "#000",
+  },
+  selectedTagText: {
+    color: "#000",
+    fontSize: 14,
+  },
+  
   button: {
     backgroundColor: "#fff",
     paddingVertical: 12,
