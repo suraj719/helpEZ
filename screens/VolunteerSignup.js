@@ -234,8 +234,8 @@ const styles = StyleSheet.create({
   formContainer: {
     width: "90%",
     backgroundColor: "#333", // Darkened background color for better contrast
-    padding: 20,
-    borderRadius: 10,
+    padding: 30,
+    borderRadius: 20,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
