@@ -68,7 +68,9 @@ const VolunteerSignup = () => {
         age,
         location,
         skills,
-        skillsDetails: [...selectedSkills, otherSkills].join(", ")
+        skillsDetails: [...selectedSkills, otherSkills].join(", "),
+        name,
+        phoneNumber
       });
       Alert.alert('Success', 'Form submitted successfully');
     } catch (error) {
