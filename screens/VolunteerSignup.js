@@ -18,8 +18,8 @@ const VolunteerSignup = () => {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [otherSkills, setOtherSkills] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState(""); // State for user's phone number
-  const [name, setName] = useState(""); // State for user's name
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [name, setName] = useState("");
   const [allAsyncStorageItems, setAllAsyncStorageItems] = useState([]);
 
   const technicalSkills = ["JavaScript", "React", "Node.js", "Python", "Java"];
@@ -43,7 +43,6 @@ const VolunteerSignup = () => {
     fetchUserDetails();
   }, []);
 
-  // Fetch incidents from Firestore
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
@@ -58,7 +57,6 @@ const VolunteerSignup = () => {
     fetchIncidents();
   }, []);
 
-  // Handle form submission
   const handleSubmit = async () => {
     console.log("Form submitted:", { selectedIncident, age, location, skills, skillsDetails, otherSkills });
 
@@ -77,7 +75,6 @@ const VolunteerSignup = () => {
     }
   };
 
-  // Function to handle location fetching
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
@@ -91,7 +88,7 @@ const VolunteerSignup = () => {
       setCurrentLocation({ latitude, longitude });
 
       const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
       );
 
       if (response.data.results.length > 0) {
@@ -120,7 +117,6 @@ const VolunteerSignup = () => {
     }
   };
 
-  // Function to handle tag press and toggle selection/removal
   const handleTagPress = (tag) => {
     if (selectedSkills.includes(tag)) {
       handleTagRemove(tag);
@@ -138,11 +134,9 @@ const VolunteerSignup = () => {
       <View style={styles.formContainer}>
         <Text style={styles.title}>Volunteer Signup Page</Text>
 
-        {/* Display user's phone number and name */}
         <Text style={styles.userInfo}>Name: {name}</Text>
         <Text style={styles.userInfo}>Phone Number: {phoneNumber}</Text>
 
-        {/* Dropdown for selecting incident */}
         <Picker
           selectedValue={selectedIncident}
           style={styles.input}
@@ -227,90 +221,95 @@ const VolunteerSignup = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    paddingVertical: 20,
   },
   formContainer: {
-    maxWidth: 400,
-    backgroundColor: "#fff",
-    padding: 32,
-    fontSize: 14,
-    fontFamily: "System",
-    color: "#212121",
-    display: "flex",
-    flexDirection: "column",
-    gap: 20,
+    width: "90%",
+    backgroundColor: "#333", // Darkened background color for better contrast
+    padding: 20,
     borderRadius: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
     shadowOffset: {
       width: 0,
       height: 2,
     },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
     elevation: 5,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
+    color: "#fff",
     marginBottom: 20,
+    textAlign: "center",
   },
   userInfo: {
     fontSize: 16,
+    color: "#fff",
     marginBottom: 10,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#fff",
     borderRadius: 6,
     height: 40,
     paddingHorizontal: 16,
+    marginBottom: 10,
+    color: "#000",
+    backgroundColor: "#fff",
   },
   label: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "#fff",
     marginTop: 10,
   },
   picker: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#fff",
     borderRadius: 6,
     marginBottom: 10,
+    color: "#000",
+    backgroundColor: "#fff",
   },
   tagContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
     marginBottom: 10,
   },
   tag: {
     padding: 10,
     borderWidth: 1,
-    borderColor: "#000",
+    borderColor: "#fff",
     borderRadius: 6,
-    backgroundColor: "#a2a2a3",
+    backgroundColor: "#000",
     marginRight: 10,
     marginBottom: 10,
   },
   tagInput: {
-    backgroundColor: "transparent",
-    borderColor: "#ccc",
+    backgroundColor: "#fff",
+    borderColor: "#fff",
+    color: "#000",
   },
   selectedTag: {
-    backgroundColor: "#3f3f40",
+    backgroundColor: "#fff",
   },
   tagText: {
     color: "#fff",
   },
   selectedTagText: {
-    color: "#fff",
+    color: "#000",
   },
   selectedSkillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
     marginBottom: 10,
   },
   button: {
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 6,
@@ -318,7 +317,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonText: {
-    color: "#fff",
+    color: "#000",
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -330,10 +329,12 @@ const styles = StyleSheet.create({
   locationText: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#fff",
     borderRadius: 6,
     height: 40,
     paddingHorizontal: 16,
+    color: "#000",
+    backgroundColor: "#fff",
   },
   locationIcon: {
     marginLeft: 10,
