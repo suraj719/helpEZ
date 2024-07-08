@@ -5,7 +5,7 @@ import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { firestore } from '../utils/firebase';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const VolunteerSignup = () => {
@@ -63,7 +63,8 @@ const VolunteerSignup = () => {
         return;
       }
 
-      await addDoc(collection(firestore, "volunteers"), {
+      // Add volunteer details to Firestore
+      const volunteerDocRef = await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
         age,
         location,
@@ -72,7 +73,21 @@ const VolunteerSignup = () => {
         name,
         phoneNumber
       });
-      Alert.alert('Success', 'Form submitted successfully');
+
+      // Update 'users' collection to set isVolunteer to true for this user
+      const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
+      const userDocId = userQuerySnapshot.docs.find(doc => doc.data().name === name)?.id;
+
+      if (userDocId) {
+        const userRef = doc(firestore, 'users', userDocId);
+        await updateDoc(userRef, {
+          isVolunteer: true
+        });
+
+        Alert.alert('Success', 'Form submitted successfully');
+      } else {
+        Alert.alert('Error', 'User document not found');
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       Alert.alert('Error', 'Failed to submit form');
