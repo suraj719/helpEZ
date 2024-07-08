@@ -56,7 +56,7 @@ const MedicineInfoScreen = () => {
 
       <ScrollView style={styles.scrollView}>
         {loading ? (
-          <ActivityIndicator style={styles.loader} size="large" color="#0000ff" />
+          <ActivityIndicator style={styles.loader} size="large" color="#000" />
         ) : medicineInfo ? (
           <View style={styles.medicineInfoContainer}>
             <Text style={styles.medicineName}>{getMedicineName()}</Text>
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 10,
     marginBottom: 10,
-    color: '#000', // Text color
+    color: '#000',
     fontSize: 16,
     borderRadius: 5,
   },
@@ -104,25 +104,25 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#000', // Text color
+    color: '#000',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
     marginBottom: 5,
-    color: '#000', // Text color
+    color: '#000',
   },
   medicineDetails: {
     fontSize: 16,
     marginBottom: 10,
-    color: '#000', // Text color
+    color: '#000',
   },
   noResults: {
     fontSize: 16,
     marginTop: 20,
     textAlign: 'center',
-    color: '#000', // Text color
+    color: '#000',
   },
 });
 
