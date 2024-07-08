@@ -23,7 +23,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.suraj719.HelpEZ",
-      "permissions": ["ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,6 +34,9 @@
       "eas": {
         "projectId": "cc61ff1b-787d-4de1-a695-198a37f34a8d"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

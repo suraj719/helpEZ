@@ -6,6 +6,7 @@ import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { UserProvider } from './UserContext';
+import { useFonts, Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
 
 // Import your screens
 import Register from "./screens/Register";
@@ -22,6 +23,15 @@ import Notifications from "./screens/Notifications";
 const Stack = createStackNavigator();
 
 const App = () => {
+  const [fontsLoaded] = useFonts({
+    RobotoRegular: Roboto_400Regular,
+    RobotoBold: Roboto_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return null; // Or a loading indicator if desired
+  }
+
   return (
     <UserProvider>
       <SafeAreaView style={{ flex: 1 }}>

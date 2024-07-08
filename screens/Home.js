@@ -261,7 +261,7 @@ export default function Home() {
                   Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
                 </Text>
               </View>
-              <Ionicons name="map-marker" size={25} color="#ff5c83" />
+              <Ionicons name="location-outline" size={25} color="#ff5c83" />
             </View>
           </View>
 
@@ -302,7 +302,7 @@ export default function Home() {
                   Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
                 </Text>
               </View>
-              <Ionicons name="map-marker" size={25} color="#5facdb" />
+              <Ionicons name="location-outline" size={25} color="#5facdb" />
             </View>
           </View>
 
@@ -342,7 +342,7 @@ export default function Home() {
                   Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
                 </Text>
               </View>
-              <Ionicons name="map-marker" size={25} color="#bb32fe" />
+              <Ionicons name="location-outline" size={25} color="#bb32fe" />
             </View>
           </View>
         </ScrollView>
