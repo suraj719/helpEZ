@@ -15,54 +15,56 @@ import {
   getFirestore,
   query,
   where,
-  addDoc,
 } from "firebase/firestore";
 import RegisterDetails from "./RegisterDetails";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from 'expo-location';
-
 
 export default function Register() {
   const navigation = useNavigation();
   const db = getFirestore(app);
   const usersCollection = collection(db, "users");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [name, setName] = useState(""); // State for user's name
   const [isNewMember, setIsNewMember] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const checkStoredPhoneNumber = async () => {
+    const checkStoredUserData = async () => {
       try {
         const storedPhoneNumber = await AsyncStorage.getItem("phoneNumber");
+        const storedName = await AsyncStorage.getItem("name");
         if (storedPhoneNumber) {
           setPhoneNumber(storedPhoneNumber);
-          signInWithPhoneNumber(storedPhoneNumber);
+        }
+        if (storedName) {
+          setName(storedName);
         }
       } catch (error) {
-        console.log("Error retrieving phone number from storage", error);
+        console.log("Error retrieving data from storage", error);
       }
     };
 
-    checkStoredPhoneNumber();
+    checkStoredUserData();
   }, []);
 
-  const signInWithPhoneNumber = async (pn) => {
-    if (!pn) {
+  const signInWithPhoneNumber = async () => {
+    if (!phoneNumber || !name) {
       Toast.show({
         type: "error",
-        text1: "Please enter your Mobile Number",
+        text1: "Please enter both Name and Mobile Number",
       });
       return;
     }
     setLoading(true);
     try {
-      const q = query(usersCollection, where("phoneNumber", "==", pn));
+      const q = query(usersCollection, where("phoneNumber", "==", phoneNumber));
       const querySnapshot = await getDocs(q);
       setLoading(false);
       if (!querySnapshot.empty) {
-        await AsyncStorage.setItem("phoneNumber", pn);
+        await AsyncStorage.setItem("phoneNumber", phoneNumber);
+        await AsyncStorage.setItem("name", name); // Store name here
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -79,6 +81,16 @@ export default function Register() {
         type: "error",
         text1: "Error fetching details",
       });
+    }
+  };
+
+  const storeNameInStorage = async (name) => {
+    try {
+      await AsyncStorage.setItem("name", name);
+      setName(name);
+      console.log(`Name "${name}" stored successfully in AsyncStorage`);
+    } catch (error) {
+      console.error("Error storing name in AsyncStorage:", error);
     }
   };
 
@@ -100,22 +112,26 @@ export default function Register() {
           </Text>
           <TextInput
             style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Your Name *"
+            placeholderTextColor="#888"
+          />
+          <TextInput
+            style={styles.input}
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             placeholder="Phone Number *"
             keyboardType="phone-pad"
             placeholderTextColor="#888"
           />
-          <View className="mb-4">
-            <TouchableOpacity
-              onPress={() => signInWithPhoneNumber(phoneNumber)}
-              // style={styles.button}
-              className="bg-black p-5 rounded-lg"
-              activeOpacity={0.7}
-            >
-              <Text className="text-white font-bold text-center">Proceed</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => signInWithPhoneNumber()}
+            style={styles.button}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Proceed</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -165,5 +181,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#e8e8e8",
     marginBottom: 20,
     color: "#333",
+  },
+  button: {
+    backgroundColor: "#000",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

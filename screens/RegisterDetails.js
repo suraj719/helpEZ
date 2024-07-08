@@ -39,7 +39,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       });
       return;
     }
-
+  
     const formattedDob = dob.toISOString().split("T")[0];
     const createdAt = new Date().toLocaleString();
     const userData = {
@@ -51,21 +51,21 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       bloodGroup: bloodGroup,
       alternateContact: alternateContact,
     };
-
+  
     setLoading(true);
     try {
       // Add user to Firestore
       const userDocRef = await addDoc(usersCollection, userData);
-
+  
       // Fetch current location
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         throw new Error('Location permission not granted');
       }
-
+  
       let location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-
+  
       // Update user document with location data
       await updateDoc(doc(db, 'users', userDocRef.id), {
         location: {
@@ -73,8 +73,11 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
           longitude: longitude
         }
       });
-
-      await AsyncStorage.setItem("phoneNumber", phoneNumber); // Set phone number in AsyncStorage
+  
+      // Store phone number in AsyncStorage
+      await AsyncStorage.setItem("phoneNumber", phoneNumber);
+  
+  
       Toast.show({
         type: "success",
         text1: "Account created Successfully!",
@@ -95,6 +98,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       setLoading(false);
     }
   };
+  
 
   const onChangeDate = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === "ios");

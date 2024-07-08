@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { firestore } from '../utils/firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const VolunteerSignup = () => {
   const [incidents, setIncidents] = useState([]);
@@ -17,9 +18,30 @@ const VolunteerSignup = () => {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [otherSkills, setOtherSkills] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState(""); // State for user's phone number
+  const [name, setName] = useState(""); // State for user's name
+  const [allAsyncStorageItems, setAllAsyncStorageItems] = useState([]);
 
   const technicalSkills = ["JavaScript", "React", "Node.js", "Python", "Java"];
   const nonTechnicalSkills = ["Communication", "Teamwork", "Project Management", "Leadership", "Problem Solving"];
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const storedPhoneNumber = await AsyncStorage.getItem("phoneNumber");
+        const storedName = await AsyncStorage.getItem("name");
+        if (storedPhoneNumber) {
+          setPhoneNumber(storedPhoneNumber);
+        }
+        if (storedName) {
+          setName(storedName);
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+    fetchUserDetails();
+  }, []);
 
   // Fetch incidents from Firestore
   useEffect(() => {
@@ -69,7 +91,7 @@ const VolunteerSignup = () => {
       setCurrentLocation({ latitude, longitude });
 
       const response = await axios.get(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`
       );
 
       if (response.data.results.length > 0) {
@@ -116,6 +138,10 @@ const VolunteerSignup = () => {
       <View style={styles.formContainer}>
         <Text style={styles.title}>Volunteer Signup Page</Text>
 
+        {/* Display user's phone number and name */}
+        <Text style={styles.userInfo}>Name: {name}</Text>
+        <Text style={styles.userInfo}>Phone Number: {phoneNumber}</Text>
+
         {/* Dropdown for selecting incident */}
         <Picker
           selectedValue={selectedIncident}
@@ -136,13 +162,7 @@ const VolunteerSignup = () => {
           keyboardType="numeric"
         />
         <View style={styles.locationContainer}>
-          <TextInput
-            style={styles.locationInput}
-            placeholder="Location"
-            value={location}
-            onChangeText={(text) => setLocation(text)}
-            editable={false}
-          />
+          <Text style={styles.locationText}>{location}</Text>
           <TouchableOpacity onPress={handleLocationFetch} style={styles.locationIcon}>
             <MaterialIcons name="my-location" size={24} color="#007bff" />
           </TouchableOpacity>
@@ -233,6 +253,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
+  userInfo: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -303,7 +327,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  locationInput: {
+  locationText: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#ccc",
