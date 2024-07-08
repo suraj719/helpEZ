@@ -4,6 +4,9 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { firestore } from '../utils/firebase'; // Adjust the import path as per your project structure
+
 
 export default function Nearby() {
   const [region, setRegion] = useState(null);
@@ -12,8 +15,11 @@ export default function Nearby() {
   const [showNearbyPlaces, setShowNearbyPlaces] = useState(false);
   const [randomMarkers, setRandomMarkers] = useState([]);
   const [showRandomMarkers, setShowRandomMarkers] = useState(false);
+  const [volunteerMarkers, setVolunteerMarkers] = useState([]);
+  const [showVolunteerMarkers, setShowVolunteerMarkers] = useState(false); // State for showing volunteer markers
 
   const mapRef = useRef(null);
+  const usersCollection = collection(firestore, 'users');
 
   useEffect(() => {
     async function getLocationAsync() {
@@ -177,6 +183,32 @@ export default function Nearby() {
     }
   };
 
+  const fetchVolunteerLocations = async () => {
+    try {
+      const volunteerSnapshot = await getDocs(query(usersCollection, where("isVolunteer", "==", true)));
+      const volunteerLocations = volunteerSnapshot.docs.map(doc => ({
+        latitude: doc.data().location.latitude,
+        longitude: doc.data().location.longitude,
+        title: doc.data().name,
+      }));
+
+      setVolunteerMarkers(volunteerLocations);
+      setShowVolunteerMarkers(true);
+    } catch (error) {
+      console.error('Error fetching volunteer locations:', error);
+      Alert.alert('Error', 'Failed to fetch volunteer locations');
+    }
+  };
+
+  const toggleVolunteerMarkers = async () => {
+    if (showVolunteerMarkers) {
+      setShowVolunteerMarkers(false);
+      setVolunteerMarkers([]);
+    } else {
+      await fetchVolunteerLocations();
+    }
+  };
+
   return (
     <View style={styles.container}>
       {region && (
@@ -219,6 +251,19 @@ export default function Nearby() {
               pinColor="green"
             />
           ))}
+
+          {showVolunteerMarkers && nearbyPlaces.map((volunteer, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: volunteer.latitude,
+                longitude: volunteer.longitude,
+              }}
+              title={volunteer.title}
+              description="Volunteer Location"
+              pinColor="orange"
+            />
+          ))}
         </MapView>
       )}
       <View style={[styles.getCurrentLocationButtonContainer, styles.bottomRight]}>
@@ -246,6 +291,9 @@ export default function Nearby() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
           <Ionicons name="pin" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleVolunteerMarkers}>
+          <Ionicons name="person-circle-outline" size={24} color="white" />
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -279,19 +327,18 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5,
   },
-
   buttonContainer: {
     position: 'absolute',
     top: 20,
     right: 20,
     flexDirection: 'row',
-    maxHeight: 100, // Increase the maxHeight to accommodate larger buttons
+    maxHeight: 100,
   },
   rectangleButton: {
     backgroundColor: '#007AFF',
     borderRadius: 12,
-    paddingHorizontal: 22, // Increase paddingHorizontal for wider buttons
-    paddingVertical: 18, // Increase paddingVertical for taller buttons
+    paddingHorizontal: 22,
+    paddingVertical: 18,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -301,5 +348,4 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginHorizontal: 5,
   },
-  
 });
