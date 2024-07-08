@@ -64,7 +64,7 @@ export default function Home() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/back.png")}
+      source={require("../assets/images/temp.png")}
       style={{ width: "100%", height: "100%" }}
     >
       <View
@@ -94,7 +94,7 @@ export default function Home() {
         <Text
           style={{
             fontSize: 40,
-            color: "#522289",
+            color: "black",
             fontFamily: "RobotoBold",
           }}
         >
@@ -168,7 +168,7 @@ export default function Home() {
               marginHorizontal: 22,
             }}
           >
-            <Ionicons name="office-building" color="white" size={32} />
+             <Ionicons name="bus" color="white" size={32} />
           </View>
 
           <View
@@ -195,20 +195,30 @@ export default function Home() {
               marginLeft: 22,
             }}
           >
-            <Ionicons name="dots-horizontal" color="white" size={32} />
+             <Ionicons name="bus" color="white" size={32} />
           </View>
         </ScrollView>
 
         <Text
-          style={{
-            color: "#FFF",
-            fontFamily: "RobotoRegular",
-            marginTop: 50,
-            fontSize: 17,
-          }}
-        >
-          Recommended
-        </Text>
+  style={{
+    color: "black",
+    fontFamily: "RobotoRegular",
+    marginTop: 50,
+    fontSize: 20, // Increased font size for emphasis
+    fontWeight: "bold", // Added bold font weight for emphasis
+    textTransform: "uppercase", // Uppercase text for a more prominent look
+    letterSpacing: 1, // Added letter spacing for better readability
+    textAlign: "center", // Center align the text for better visual balance
+    shadowColor: "#000", // Added shadow for depth (iOS)
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset (iOS)
+    shadowOpacity: 0.8, // Shadow opacity (iOS)
+    shadowRadius: 2, // Shadow radius (iOS)
+    elevation: 5, // Elevation for Android
+  }}
+>
+  Recommended
+</Text>
+
 
         <ScrollView
           horizontal
