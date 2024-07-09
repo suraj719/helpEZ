@@ -15,6 +15,8 @@ import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
+import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
+
 
 const Drawer = createDrawerNavigator();
 
@@ -112,7 +114,17 @@ const Dashboard = () => {
           }}
         />
 
-        {/* New screen for Medicine Information */}
+        {/* New screen for Resources Tracking */}
+        <Drawer.Screen
+          name="ResourcesTracking"
+          component={ResourcesTrackingScreen}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="earth" size={22} color={color} />
+            ),
+          }}
+        />
+
         <Drawer.Screen
           name="MedicineInfo"
           component={MedicineInfoScreen}
@@ -160,6 +172,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#000",
+  },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
