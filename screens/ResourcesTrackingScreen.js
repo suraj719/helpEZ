@@ -10,14 +10,14 @@ const ResourcesTrackingScreen = () => {
   const resourcesData = [
     {
       title: "Resource 1",
-      fromLocation: "Location A",
-      toLocation: "Location B",
+      fromLocation: "Kamareddy",
+      toLocation: "Hyderabad",
       truckStartedTime: "2024-07-10 10:00 AM",
     },
     {
       title: "Resource 2",
-      fromLocation: "Location C",
-      toLocation: "Location D",
+      fromLocation: "Coimbatore",
+      toLocation: "Hyderabad",
       truckStartedTime: "2024-07-11 11:00 AM",
     },
     // Add more resource data as needed
