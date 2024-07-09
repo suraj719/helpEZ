@@ -1,8 +1,11 @@
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native"; // Import useNavigation hook
 import ResourceCard from "./ResourceCard"; // Import ResourceCard component
 
 const ResourcesTrackingScreen = () => {
+  const navigation = useNavigation(); // Hook into navigation object
+
   // Sample data for demonstration
   const resourcesData = [
     {
@@ -20,16 +23,25 @@ const ResourcesTrackingScreen = () => {
     // Add more resource data as needed
   ];
 
+  const handleResourceCardPress = (resource) => {
+    navigation.navigate('ResourceRouteScreen', {
+      curLoc: { latitude: 18.3197, longitude: 78.3506 },
+destinationCords: { latitude: 17.3850, longitude: 78.4867 }
+ // Example coordinates, replace with actual data
+    });
+  };
+
   return (
     <ScrollView style={styles.container}>
       {resourcesData.map((resource, index) => (
-        <ResourceCard
-          key={index}
-          title={resource.title}
-          fromLocation={resource.fromLocation}
-          toLocation={resource.toLocation}
-          truckStartedTime={resource.truckStartedTime}
-        />
+        <TouchableOpacity key={index} onPress={() => handleResourceCardPress(resource)}>
+          <ResourceCard
+            title={resource.title}
+            fromLocation={resource.fromLocation}
+            toLocation={resource.toLocation}
+            truckStartedTime={resource.truckStartedTime}
+          />
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
