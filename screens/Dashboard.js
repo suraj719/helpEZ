@@ -21,7 +21,7 @@ import RequestResources from "./RequestResources";
 import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
-import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
+import MedicineInfoScreen from "./MedicineInfoScreen";
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
 
 
