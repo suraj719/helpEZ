@@ -6,6 +6,7 @@ import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
+import Incidents from './Incidents';
 
 export default function Home() {
   const navigation = useNavigation();
@@ -64,7 +65,7 @@ export default function Home() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/back.png")}
+      source={require("../assets/images/temp.png")}
       style={{ width: "100%", height: "100%" }}
     >
       <View
@@ -94,7 +95,7 @@ export default function Home() {
         <Text
           style={{
             fontSize: 40,
-            color: "#522289",
+            color: "black",
             fontFamily: "RobotoBold",
           }}
         >
@@ -127,10 +128,10 @@ export default function Home() {
         >
           <Image
             source={require("../assets/images/search.png")}
-            style={{ height: 14, width: 14 }}
+            style={{ height: 20, width: 16 }}
           />
           <TextInput
-            placeholder="Lorem ipsum"
+            placeholder="search"
             style={{ paddingHorizontal: 20, fontSize: 15, color: "#ccccef" }}
           />
         </View>
@@ -141,7 +142,7 @@ export default function Home() {
           style={{ marginRight: -40, marginTop: 30 }}
         >
           <TouchableOpacity
-            onPress={() => navigation.navigate("Detail")}
+            onPress={() => navigation.navigate("Incidents")}
             style={{
               alignItems: "center",
               justifyContent: "center",
@@ -168,7 +169,7 @@ export default function Home() {
               marginHorizontal: 22,
             }}
           >
-            <Ionicons name="office-building" color="white" size={32} />
+             <Ionicons name="train" color="white" size={32} />
           </View>
 
           <View
@@ -195,21 +196,29 @@ export default function Home() {
               marginLeft: 22,
             }}
           >
-            <Ionicons name="dots-horizontal" color="white" size={32} />
+             <Ionicons name="bus" color="white" size={32} />
           </View>
         </ScrollView>
 
         <Text
-          style={{
-            color: "#FFF",
-            fontFamily: "RobotoRegular",
-            marginTop: 50,
-            fontSize: 17,
-          }}
-        >
-          Recommended
-        </Text>
-
+  style={{
+    color: "black",
+    fontFamily: "RobotoRegular",
+    marginTop: 50,
+    fontSize: 20, // Increased font size for emphasis
+    fontWeight: "bold", // Added bold font weight for emphasis
+    textTransform: "uppercase", // Uppercase text for a more prominent look
+    letterSpacing: 1, // Added letter spacing for better readability
+    textAlign: "center", // Center align the text for better visual balance
+    shadowColor: "#000", // Added shadow for depth (iOS)
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset (iOS)
+    shadowOpacity: 0.8, // Shadow opacity (iOS)
+    shadowRadius: 2, // Shadow radius (iOS)
+    elevation: 5, // Elevation for Android
+  }}
+>
+  Recommended
+</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -251,7 +260,7 @@ export default function Home() {
                   Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
                 </Text>
               </View>
-              <Ionicons name="map-marker" size={25} color="#ff5c83" />
+              <Ionicons name="location-outline" size={25} color="#ff5c83" />
             </View>
           </View>
 
@@ -292,7 +301,7 @@ export default function Home() {
                   Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
                 </Text>
               </View>
-              <Ionicons name="map-marker" size={25} color="#5facdb" />
+              <Ionicons name="location-outline" size={25} color="#5facdb" />
             </View>
           </View>
 
@@ -332,7 +341,7 @@ export default function Home() {
                   Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
                 </Text>
               </View>
-              <Ionicons name="map-marker" size={25} color="#bb32fe" />
+              <Ionicons name="location-outline" size={25} color="#bb32fe" />
             </View>
           </View>
         </ScrollView>

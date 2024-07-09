@@ -55,6 +55,7 @@ const VolunteerSignup = () => {
 
     fetchIncidents();
   }, []);
+
   const assignRole = (incident, skills) => {
     // Example role assignment logic
     if (incident.includes('Fire') && skills.includes('Leadership')) {
@@ -74,10 +75,10 @@ const VolunteerSignup = () => {
         Alert.alert('Validation Error', 'Please fill in all required fields');
         return;
       }
+
       const role = assignRole(selectedIncident, selectedSkills);
 
-      // Add volunteer details to Firestore
-      const volunteerDocRef = await addDoc(collection(firestore, "volunteers"), {
+      const docRef = await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
         age,
         location,
@@ -88,21 +89,7 @@ const VolunteerSignup = () => {
         role
       });
 
-      // Update 'users' collection to set isVolunteer to true for this user
-      const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
-      const userDocId = userQuerySnapshot.docs.find(doc => doc.data().name === name)?.id;
-
-      if (userDocId) {
-        const userRef = doc(firestore, 'users', userDocId);
-        await updateDoc(userRef, {
-          isVolunteer: true,
-          role: role
-        });
-
-        Alert.alert('Success', 'Form submitted successfully');
-      } else {
-        Alert.alert('Error', 'User document not found');
-      }
+      Alert.alert('Success', 'Form submitted successfully with role: ' + role);
     } catch (error) {
       console.error('Error submitting form:', error);
       Alert.alert('Error', 'Failed to submit form');

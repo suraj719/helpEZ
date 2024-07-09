@@ -29,6 +29,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [bloodGroup, setBloodGroup] = useState("");
   const [alternateContact, setAlternateContact] = useState("");
+  const [isVolunteer, setIsVolunteer] = useState(false); // Added state for isVolunteer
   const [loading, setLoading] = useState(false);
 
   const createAccount = async () => {
@@ -50,6 +51,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       dob: formattedDob,
       bloodGroup: bloodGroup,
       alternateContact: alternateContact,
+      isVolunteer: isVolunteer, // Include isVolunteer in user data
     };
   
     setLoading(true);
@@ -76,7 +78,6 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
   
       // Store phone number in AsyncStorage
       await AsyncStorage.setItem("phoneNumber", phoneNumber);
-  
   
       Toast.show({
         type: "success",

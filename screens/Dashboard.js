@@ -21,7 +21,9 @@ import RequestResources from "./RequestResources";
 import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
-import MedicineInfoScreen from "./MedicineInfoScreen";
+import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
+import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
+
 
 const Drawer = createDrawerNavigator();
 
@@ -142,6 +144,16 @@ const Dashboard = () => {
             ),
           }}
         />
+        <Drawer.Screen
+          name="ResourcesTracking"
+          component={ResourcesTrackingScreen}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="earth" size={22} color={color} />
+            ),
+          }}
+        />
+
         <Drawer.Screen
           name="MedicineInfo"
           component={MedicineInfoScreen}

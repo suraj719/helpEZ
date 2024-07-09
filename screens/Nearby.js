@@ -4,6 +4,9 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { firestore } from '../utils/firebase'; // Adjust the import path as per your project structure
+
 
 export default function Nearby() {
   const [region, setRegion] = useState(null);
@@ -12,8 +15,11 @@ export default function Nearby() {
   const [showNearbyPlaces, setShowNearbyPlaces] = useState(false);
   const [randomMarkers, setRandomMarkers] = useState([]);
   const [showRandomMarkers, setShowRandomMarkers] = useState(false);
+  const [volunteerMarkers, setVolunteerMarkers] = useState([]);
+  const [showVolunteerMarkers, setShowVolunteerMarkers] = useState(false); // State for showing volunteer markers
 
   const mapRef = useRef(null);
+  const usersCollection = collection(firestore, 'users');
 
   useEffect(() => {
     async function getLocationAsync() {
@@ -95,23 +101,23 @@ export default function Nearby() {
       setShowRandomMarkers(false);
       setRandomMarkers([]);
       setNearbyPlaces([]);
+      setShowNearbyPlaces(false); // Ensure nearby places are hidden when random markers are toggled off
     } else {
-      const randomLocations = [
-        { latitude: 17.385044, longitude: 78.486671, title: 'Random Location 1' },
-        { latitude: 17.391044, longitude: 78.486671, title: 'Random Location 2' },
-        { latitude: 17.385044, longitude: 78.491671, title: 'Random Location 3' },
-        { latitude: 17.380044, longitude: 78.481671, title: 'Random Location 4' },
-      ];
-
-      const shelters = await fetchNearbyPlaces('shelter');
-      const stays = await fetchNearbyPlaces('lodging');
-
-      setRandomMarkers(randomLocations);
-      setNearbyPlaces([...shelters, ...stays]);
-      setShowRandomMarkers(true);
-      setShowNearbyPlaces(true);
+      try {
+        const shelters = await fetchNearbyPlaces('shelter');
+        const stays = await fetchNearbyPlaces('lodging');
+  
+        setRandomMarkers([]); // Clear any existing random markers
+        setNearbyPlaces([...shelters, ...stays]); // Set nearby places to shelters and stays
+        setShowRandomMarkers(true); // Show random markers (if you have specific random markers to show, handle them here)
+        setShowNearbyPlaces(true); // Show nearby places on the map
+      } catch (error) {
+        console.error('Error fetching shelters and stays:', error);
+        Alert.alert('Error', 'Failed to fetch shelters and stays');
+      }
     }
   };
+  
 
   const toggleNearbyHospitals = async () => {
     if (showNearbyPlaces) {
@@ -177,6 +183,34 @@ export default function Nearby() {
     }
   };
 
+  const fetchVolunteerLocations = async () => {
+    try {
+      const volunteerSnapshot = await getDocs(query(usersCollection, where("isVolunteer", "==", true)));
+      const volunteerLocations = volunteerSnapshot.docs.map(doc => ({
+        latitude: doc.data().location.latitude,
+        longitude: doc.data().location.longitude,
+        title: doc.data().name,
+      }));
+      // console.log(volunteerLocations)
+  
+      setVolunteerMarkers(volunteerLocations);
+      setShowVolunteerMarkers(true);
+    } catch (error) {
+      console.error('Error fetching volunteer locations:', error);
+      Alert.alert('Error', 'Failed to fetch volunteer locations');
+    }
+  };
+  
+  const toggleVolunteerMarkers = async () => {
+    if (showVolunteerMarkers) {
+      setShowVolunteerMarkers(false);
+      setVolunteerMarkers([]);
+    } else {
+      await fetchVolunteerLocations();
+    }
+  };
+  
+
   return (
     <View style={styles.container}>
       {region && (
@@ -219,6 +253,18 @@ export default function Nearby() {
               pinColor="green"
             />
           ))}
+
+{showVolunteerMarkers && volunteerMarkers.map((marker, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              title={marker.title}
+              pinColor="orange"
+            />
+          ))}
         </MapView>
       )}
       <View style={[styles.getCurrentLocationButtonContainer, styles.bottomRight]}>
@@ -246,6 +292,9 @@ export default function Nearby() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
           <Ionicons name="pin" size={24} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.rectangleButton} onPress={toggleVolunteerMarkers}>
+          <Ionicons name="person-circle-outline" size={24} color="white" />
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -279,19 +328,18 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5,
   },
-
   buttonContainer: {
     position: 'absolute',
     top: 20,
     right: 20,
     flexDirection: 'row',
-    maxHeight: 100, // Increase the maxHeight to accommodate larger buttons
+    maxHeight: 100,
   },
   rectangleButton: {
     backgroundColor: '#007AFF',
     borderRadius: 12,
-    paddingHorizontal: 22, // Increase paddingHorizontal for wider buttons
-    paddingVertical: 18, // Increase paddingVertical for taller buttons
+    paddingHorizontal: 22,
+    paddingVertical: 18,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -301,5 +349,4 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginHorizontal: 5,
   },
-  
 });
