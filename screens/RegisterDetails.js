@@ -52,6 +52,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       bloodGroup: bloodGroup,
       alternateContact: alternateContact,
       isVolunteer: isVolunteer, // Include isVolunteer in user data
+      role: "",
     };
   
     setLoading(true);

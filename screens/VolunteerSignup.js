@@ -74,10 +74,15 @@ const VolunteerSignup = () => {
         Alert.alert('Validation Error', 'Please fill in all required fields');
         return;
       }
+  
+      // Assign role based on selected incident and skills
       const role = assignRole(selectedIncident, selectedSkills);
-
+  
+      // Log the role to verify before proceeding
+      console.log('Assigned Role:', role);
+  
       // Add volunteer details to Firestore
-      const volunteerDocRef = await addDoc(collection(firestore, "volunteers"), {
+      await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
         age,
         location,
@@ -87,27 +92,40 @@ const VolunteerSignup = () => {
         phoneNumber,
         role
       });
-
+  
+      Alert.alert('Success', 'Volunteer details submitted successfully');
+  
       // Update 'users' collection to set isVolunteer to true for this user
       const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
-      const userDocId = userQuerySnapshot.docs.find(doc => doc.data().name === name)?.id;
-
+  
+      userQuerySnapshot.forEach(doc => {
+        console.log('User Document Data:', doc.data());
+      });
+  
+      const userDocId = userQuerySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber)?.id;
+  
+      console.log('User Document ID:', userDocId);
+  
       if (userDocId) {
         const userRef = doc(firestore, 'users', userDocId);
         await updateDoc(userRef, {
           isVolunteer: true,
-          role: role
+          role: role  // Ensure role is included here
         });
-
-        Alert.alert('Success', 'Form submitted successfully');
+  
+        console.log('User details updated successfully');
+        Alert.alert('Success', 'User details updated successfully');
       } else {
+        console.error('User document not found');
         Alert.alert('Error', 'User document not found');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      Alert.alert('Error', 'Failed to submit form');
+      console.error('Error submitting volunteer details:', error);
+      Alert.alert('Error', 'Failed to submit volunteer details');
     }
   };
+  
+  
 
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
