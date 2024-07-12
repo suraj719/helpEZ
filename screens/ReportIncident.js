@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import axios from "axios";
@@ -288,7 +289,7 @@ export default function ReportIncident() {
 
   async function registerForPushNotificationsAsync() {
     let token;
-
+  
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -297,8 +298,8 @@ export default function ReportIncident() {
         lightColor: "#FF231F7C",
       });
     }
-
-    if (Device.isDevice) {
+  
+    if (Constants.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== "granted") {
@@ -314,9 +315,10 @@ export default function ReportIncident() {
     } else {
       alert("Must use physical device for Push Notifications");
     }
-
+  
     return token;
   }
+  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f0f0", padding: 16 }}>
