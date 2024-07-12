@@ -1,6 +1,7 @@
 import React from "react";
 import { SafeAreaView, StyleSheet, View, Text, Image } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { MaterialIcons } from '@expo/vector-icons';
 import {
   createDrawerNavigator,
   DrawerItemList,
@@ -15,6 +16,7 @@ import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
+import Analytics from "./DashBoardAnalytics";
 
 const Drawer = createDrawerNavigator();
 
@@ -132,6 +134,16 @@ const Dashboard = () => {
             ),
           }}
         />
+        <Drawer.Screen
+          name="Analytics"
+          component={Analytics}
+          options={{
+            drawerIcon: ({ color }) => (
+              <MaterialIcons name="analytics" size={22} color={color} />
+            ),
+          }}
+        />
+
       </Drawer.Navigator>
     </SafeAreaView>
   );

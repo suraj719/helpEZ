@@ -60,7 +60,6 @@ export default function ReportIncident() {
   const fetchUserLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
-      // console.log("Permission to access location was denied");
       Toast.show({
         type: "error",
         text1: "Location access was denied!!",
@@ -97,11 +96,60 @@ export default function ReportIncident() {
     }
   };
 
+  // const takePhoto = async () => {
+  //   try {
+  //     const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  //     if (status !== "granted") {
+  //       Toast.show({
+  //         type: "error",
+  //         text1: "Camera access was denied!!",
+  //       });
+  //       return;
+  //     }
+
+  //     let result = await ImagePicker.launchCameraAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //       quality: 1,
+  //     });
+
+  //     if (!result.cancelled) {
+  //       setSelectedImages([...selectedImages, result]);
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Toast.show({
+          type: "error",
+          text1: "Camera access was denied!!",
+        });
+        return;
+      }
+  
+      let result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+  
+      if (!result.cancelled) {
+        setSelectedImages([...selectedImages, result]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+
   const removeImage = (index) => {
     const newImages = [...selectedImages];
     newImages.splice(index, 1);
     setSelectedImages(newImages);
   };
+
   const uploadImagesToStorage = async () => {
     const imageUrls = [];
 
@@ -110,7 +158,7 @@ export default function ReportIncident() {
         selectedImages.map(async (image, index) => {
           const response = await fetch(image.uri);
           const blob = await response.blob();
-          const imageName = `${title}-${index}`; // Assuming `title` is defined elsewhere
+          const imageName = `${title}-${index}`; 
 
           const storageRef = ref(storage, `uploads/${imageName}`);
           const uploadTask = uploadBytesResumable(storageRef, blob);
@@ -153,7 +201,6 @@ export default function ReportIncident() {
     setLoading(true);
     const imageUrls = await uploadImagesToStorage();
     const formattedDate = date.toISOString().split("T")[0];
-    // Prepare data object to save in Firestore
     const reportData = {
       location,
       title,
@@ -202,7 +249,6 @@ export default function ReportIncident() {
         </View>
       </TouchableOpacity>
       <ScrollView>
-        {/* <Text className="text-xl font-bold mb-4">Report an Incident</Text> */}
         <Text className="mb-2">Title</Text>
         <TextInput
           className="bg-white p-2 rounded mb-4"
@@ -262,6 +308,17 @@ export default function ReportIncident() {
           <Ionicons name="image-outline" size={24} color="black" />
           <Text className="text-black text-center ml-2">
             Attach Photos/Videos
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
+          onPress={takePhoto}
+        >
+          <Ionicons name="camera-outline" size={24} color="black" />
+          <Text className="text-black text-center ml-2">
+            Take a Photo
           </Text>
         </TouchableOpacity>
 
