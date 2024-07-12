@@ -291,6 +291,8 @@ Example: "Need sanitation supplies for a temporary shelter."
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
+
+        //Displaying the incidents and requests based on generated category
         <FlatList
           data={displayedData}
           renderItem={renderItem}
