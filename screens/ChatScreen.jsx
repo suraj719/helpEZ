@@ -15,6 +15,7 @@ const ChatScreen = ({ route }) => {
   const messagesCollection = collection(db, 'messages');
   const [messages, setMessages] = useState([]);
   const [currentUserPhoneNumber, setCurrentUserPhoneNumber] = useState(null);
+   const [currentUserName, setCurrentUserName] = useState(null);
 
   // Function to create a unique conversation ID using hashing
   const createConversationId = (phoneNumber1, phoneNumber2) => {
@@ -25,7 +26,9 @@ const ChatScreen = ({ route }) => {
   useEffect(() => {
     const fetchStoredUserPhoneNumber = async () => {
       const storedUserPhoneNumber = await AsyncStorage.getItem("phoneNumber");
+      const storedUserName = await AsyncStorage.getItem("name");
       setCurrentUserPhoneNumber(storedUserPhoneNumber);
+      setCurrentUserName(storedUserName);
       const conversationId = createConversationId(storedUserPhoneNumber, memberPhoneNumber);
 
       const unsubscribe = onSnapshot(
@@ -61,7 +64,7 @@ const ChatScreen = ({ route }) => {
         createdAt: serverTimestamp(),
         user: {
           _id: currentUserPhoneNumber,
-          name: message.user.name,
+          name: currentUserName,
         },
         members: [currentUserPhoneNumber, memberPhoneNumber],
         conversationId: createConversationId(currentUserPhoneNumber, memberPhoneNumber),
