@@ -12,6 +12,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Ionicons';  // Import the Ionicons
 
 export default function Notifications() {
   const navigation = useNavigation();
@@ -53,15 +54,26 @@ export default function Notifications() {
     }, 1000);
   }, []);
 
+  const removeIncidentFromState = (id) => {
+    setIncidents((prevIncidents) => prevIncidents.filter((incident) => incident.id !== id));
+  };
+
   const renderEventItem = ({ item }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={() => navigation.navigate("IncidentDetails", { incident: item })}
-      style={styles.notificationItem}
-    >
-      <Text style={styles.notificationTitle}>{item.title}</Text>
-      <Text style={styles.notificationMessage}>Check incidents to know more.</Text>
-    </TouchableOpacity>
+    <View style={styles.notificationItem}>
+      <TouchableOpacity
+        style={styles.removeIconContainer}
+        onPress={() => removeIncidentFromState(item.id)}
+      >
+        <Icon name="close-circle" size={20} color="#6c757d" />
+      </TouchableOpacity>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate("IncidentDetails", { incident: item })}
+      >
+        <Text style={styles.notificationTitle}>{item.title}</Text>
+        <Text style={styles.notificationMessage}>Check incidents to know more.</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -123,6 +135,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
+    position: 'relative',  // Add position relative to contain the absolute position of the icon
+  },
+  removeIconContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
   },
   notificationTitle: {
     fontSize: 16,
