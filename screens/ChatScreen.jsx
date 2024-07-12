@@ -35,10 +35,14 @@ const ChatScreen = ({ route }) => {
           where('conversationId', '==', conversationId)
         ),
         (snapshot) => {
-          const updatedMessages = snapshot.docs.map((doc) => ({
-            _id: doc.id,
-            ...doc.data(),
-          }));
+          const updatedMessages = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              _id: doc.id,
+              ...data,
+              createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+            };
+          });
           setMessages(updatedMessages);
         }
       );
