@@ -23,7 +23,7 @@ import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen";
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
-
+import ProfileScreen from "./ProfileScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -172,10 +172,22 @@ const Dashboard = () => {
             ),
           }}
         />
+
+        {/* Add ProfileScreen */}
+        <Drawer.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="account-circle-outline" size={22} color={color} />
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   safeArea: {
