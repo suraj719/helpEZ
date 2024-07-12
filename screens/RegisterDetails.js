@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -32,6 +32,21 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
   const [isVolunteer, setIsVolunteer] = useState(false); // Added state for isVolunteer
   const [loading, setLoading] = useState(false);
 
+  // Function to clear AsyncStorage items
+  const clearAsyncStorage = async () => {
+    try {
+      await AsyncStorage.clear();
+      console.log("AsyncStorage cleared successfully.");
+    } catch (error) {
+      console.log("Error clearing AsyncStorage:", error);
+    }
+  };
+
+  // Clear AsyncStorage items when component mounts
+  useEffect(() => {
+    clearAsyncStorage();
+  }, []);
+
   const createAccount = async () => {
     if (!name || !gender || !dob || !bloodGroup) {
       Toast.show({
@@ -52,6 +67,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       bloodGroup: bloodGroup,
       alternateContact: alternateContact,
       isVolunteer: isVolunteer, // Include isVolunteer in user data
+      role: "",
     };
   
     setLoading(true);

@@ -9,6 +9,7 @@ export default function Logout() {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("phoneNumber");
+      await AsyncStorage.removeItem("name");
       navigation.dispatch(
         CommonActions.reset({
           index: 0,

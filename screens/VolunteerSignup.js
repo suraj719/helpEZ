@@ -1,12 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput ,Platform} from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import axios from 'axios';
 import { firestore } from '../utils/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 const VolunteerSignup = () => {
   const [incidents, setIncidents] = useState([]);
@@ -20,9 +30,15 @@ const VolunteerSignup = () => {
   const [otherSkills, setOtherSkills] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
+  const [assignedRole, setAssignedRole] = useState(""); // State to hold assigned role
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState(false);
 
   const technicalSkills = ["JavaScript", "React", "Node.js", "Python", "Java"];
   const nonTechnicalSkills = ["Communication", "Teamwork", "Project Management", "Leadership", "Problem Solving"];
+
+  const notificationListener = useRef();
+  const responseListener = useRef();
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -55,6 +71,7 @@ const VolunteerSignup = () => {
 
     fetchIncidents();
   }, []);
+
   const assignRole = (incident, skills) => {
     // Example role assignment logic
     if (incident.includes('Fire') && skills.includes('Leadership')) {
@@ -67,17 +84,25 @@ const VolunteerSignup = () => {
       return 'General Volunteer';
     }
   };
-
+      
   const handleSubmit = async () => {
     try {
       if (!selectedIncident || !age || !location || !skills || selectedSkills.length === 0) {
         Alert.alert('Validation Error', 'Please fill in all required fields');
         return;
       }
+  
+      // Assign role based on selected incident and skills
       const role = assignRole(selectedIncident, selectedSkills);
-
+  
+      // Log the role to verify before proceeding
+      console.log('Assigned Role:', role);
+  
+      // Set the assigned role state
+      setAssignedRole(role);
+  
       // Add volunteer details to Firestore
-      const volunteerDocRef = await addDoc(collection(firestore, "volunteers"), {
+      await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
         age,
         location,
@@ -87,27 +112,86 @@ const VolunteerSignup = () => {
         phoneNumber,
         role
       });
+  
+      Alert.alert('Success', 'Volunteer details submitted successfully');
 
+      const notificationContent = {
+        title: 'Role Updated!',
+        body: `Name: ${name}\nRole: ${role}\nIncident: ${selectedIncident}`,
+        data: { name, age, incident: selectedIncident },
+      };
+
+      await schedulePushNotification(notificationContent);
+  
       // Update 'users' collection to set isVolunteer to true for this user
       const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
-      const userDocId = userQuerySnapshot.docs.find(doc => doc.data().name === name)?.id;
-
+  
+      userQuerySnapshot.forEach(doc => {
+        console.log('User Document Data:', doc.data());
+      });
+  
+      const userDocId = userQuerySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber)?.id;
+  
+      console.log('User Document ID:', userDocId);
+  
       if (userDocId) {
         const userRef = doc(firestore, 'users', userDocId);
         await updateDoc(userRef, {
           isVolunteer: true,
-          role: role
+          role: role  // Ensure role is included here
         });
-
-        Alert.alert('Success', 'Form submitted successfully');
+  
+        console.log('User details updated successfully');
+        Alert.alert('Success', 'User details updated successfully');
       } else {
+        console.error('User document not found');
         Alert.alert('Error', 'User document not found');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
-      Alert.alert('Error', 'Failed to submit form');
+      console.error('Error submitting volunteer details:', error);
+      Alert.alert('Error', 'Failed to submit volunteer details');
     }
   };
+  
+  async function schedulePushNotification(content) {
+    await Notifications.scheduleNotificationAsync({
+      content,
+      trigger: { seconds: 1 }, // Trigger notification after 2 seconds
+    });
+  }
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
+    } else {
+      alert('Must use physical device for Push Notifications');
+    }
+
+    return token;
+  }
+  
 
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -249,6 +333,13 @@ const VolunteerSignup = () => {
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
+
+        {assignedRole !== "" && (
+          <View style={styles.roleContainer}>
+            <Text style={styles.label}>Assigned Role:</Text>
+            <Text style={styles.roleText}>{assignedRole}</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -302,6 +393,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     marginTop: 10,
+  },
+  roleContainer: {
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    alignItems: 'center',
+    padding: 10,
+  },
+  roleTextContainer: {
+    backgroundColor: '#007bff',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  roleText: {
+    fontSize: 16,
+    color: '#fff', // White color for assigned role text
   },
   picker: {
     borderWidth: 1,

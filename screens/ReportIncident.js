@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,14 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Constants from "expo-constants";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import axios from "axios";
 import { Picker } from "@react-native-picker/picker";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,12 +29,21 @@ import {
 } from "firebase/storage";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import Toast from "react-native-toast-message";
+import * as Notifications from "expo-notifications";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function ReportIncident() {
   const storage = getStorage(app);
   const db = getFirestore(app);
   const navigation = useNavigation();
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(null);
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState("Low");
   const [description, setDescription] = useState("");
@@ -40,12 +53,39 @@ export default function ReportIncident() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [region, setRegion] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [notification, setNotification] = useState(false);
+
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then((token) => setExpoPushToken(token));
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        setNotification(notification);
+      }
+    );
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        console.log(response);
+      }
+    );
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
 
   useEffect(() => {
     (async () => {
       await fetchUserLocation();
     })();
   }, []);
+
   useFocusEffect(
     useCallback(() => {
       setTitle("");
@@ -57,6 +97,7 @@ export default function ReportIncident() {
       fetchUserLocation();
     }, [])
   );
+
   const fetchUserLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -67,17 +108,25 @@ export default function ReportIncident() {
       return;
     }
 
-    let userLocation = await Location.getCurrentPositionAsync({});
-    setLocation({
-      latitude: userLocation.coords.latitude,
-      longitude: userLocation.coords.longitude,
-    });
-    setRegion({
-      latitude: userLocation.coords.latitude,
-      longitude: userLocation.coords.longitude,
-      latitudeDelta: 0.0922,
-      longitudeDelta: 0.0421,
-    });
+    try {
+      let userLocation = await Location.getCurrentPositionAsync({});
+      setLocation({
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+      });
+      setRegion({
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    } catch (error) {
+      console.error("Error fetching location:", error);
+      Toast.show({
+        type: "error",
+        text1: "Failed to fetch location details",
+      });
+    }
   };
 
   const pickImage = async () => {
@@ -88,7 +137,7 @@ export default function ReportIncident() {
         quality: 1,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
         setSelectedImages([...selectedImages, ...result.assets]);
       }
     } catch (error) {
@@ -217,6 +266,37 @@ export default function ReportIncident() {
         type: "success",
         text1: "Incident successfully created",
       });
+
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.latitude},${location.longitude}&key=AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc`
+      );
+
+      let locationText = "";
+      if (response.data.results.length > 0) {
+        const addressComponents = response.data.results[0].address_components;
+        let village = "";
+        let state = "";
+
+        for (let component of addressComponents) {
+          if (component.types.includes("locality")) {
+            village = component.long_name;
+          }
+          if (component.types.includes("administrative_area_level_1")) {
+            state = component.long_name;
+          }
+        }
+
+        locationText = `${village}, ${state}`;
+      } else {
+        console.warn("No address components found");
+        locationText = `${location.latitude}, ${location.longitude}`;
+      }
+
+      await schedulePushNotification({
+        title: "New Incident Reported!",
+        body: `Title: ${title}\nSeverity: ${severity}\nLocation: ${locationText}`,
+        data: { title, severity, date: formattedDate },
+      });
     } catch (error) {
       console.error("Error submitting report:", error);
       Toast.show({
@@ -241,23 +321,71 @@ export default function ReportIncident() {
     hideDatePicker();
   };
 
+  async function schedulePushNotification(content) {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          ...content,
+          sound: "default",
+        },
+        trigger: { seconds: 1 },
+      });
+    } catch (error) {
+      console.error("Error scheduling push notification:", error);
+    }
+  }
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+  
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+  
+    if (Constants.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== "granted") {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== "granted") {
+        alert("Failed to get push token for push notification!");
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
+    } else {
+      alert("Must use physical device for Push Notifications");
+    }
+  
+    return token;
+  }
+  
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 p-4">
-      <TouchableOpacity className="mb-4" onPress={() => navigation.goBack()}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f0f0", padding: 16 }}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="chevron-back" size={24} color="black" />
+          <Text>Back</Text>
         </View>
       </TouchableOpacity>
       <ScrollView>
-        <Text className="mb-2">Title</Text>
+        <Text style={{ marginBottom: 8 }}>Title</Text>
         <TextInput
-          className="bg-white p-2 rounded mb-4"
+          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
           value={title}
           onChangeText={setTitle}
           placeholder="Enter a title*"
         />
-        <Text className="mb-2">Severity</Text>
-        <View className="bg-white rounded mb-4">
+        <Text style={{ marginBottom: 8 }}>Severity</Text>
+        <View style={{ backgroundColor: "white", borderRadius: 8, marginBottom: 16 }}>
           <Picker
             selectedValue={severity}
             onValueChange={(itemValue) => setSeverity(itemValue)}
@@ -268,27 +396,26 @@ export default function ReportIncident() {
           </Picker>
         </View>
 
-        <Text className="mb-2">Description</Text>
+        <Text style={{ marginBottom: 8 }}>Description</Text>
         <TextInput
-          className="bg-white p-2 rounded mb-4 h-20"
+          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16, height: 120 }}
           value={description}
           onChangeText={setDescription}
           placeholder="Enter description*"
           multiline
         />
 
-        <Text className="mb-2">Contact Information</Text>
+        <Text style={{ marginBottom: 8 }}>Contact Information</Text>
         <TextInput
-          className="bg-white p-2 rounded mb-4"
+          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
           value={contact}
           onChangeText={setContact}
           placeholder="Enter suitable contact details"
         />
 
-        <Text className="mb-2">Date</Text>
+        <Text style={{ marginBottom: 8 }}>Date</Text>
         <TouchableOpacity
-          activeOpacity={0.7}
-          className="bg-white p-2 rounded mb-4"
+          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
           onPress={showDatePicker}
         >
           <Text>{date.toISOString().split("T")[0]}</Text>
@@ -300,7 +427,7 @@ export default function ReportIncident() {
           onCancel={hideDatePicker}
         />
 
-        <TouchableOpacity
+<TouchableOpacity
           activeOpacity={0.7}
           className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
           onPress={pickImage}
@@ -322,15 +449,26 @@ export default function ReportIncident() {
           </Text>
         </TouchableOpacity>
 
-        <View className="flex flex-wrap flex-row mt-4">
+        <TouchableOpacity
+          activeOpacity={0.7}
+          className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
+          onPress={takePhoto}
+        >
+          <Ionicons name="camera-outline" size={24} color="black" />
+          <Text className="text-black text-center ml-2">
+            Take a Photo
+          </Text>
+        </TouchableOpacity>
+
+        <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
           {selectedImages.map((image, index) => (
-            <View key={index} className="m-1 relative">
+            <View key={index} style={{ position: "relative", margin: 4 }}>
               <Image
                 source={{ uri: image.uri }}
-                className="w-20 h-20 rounded-lg"
+                style={{ width: 100, height: 100, borderRadius: 8 }}
               />
               <TouchableOpacity
-                className="absolute top-0 right-0 bg-black bg-opacity-50 p-1 rounded"
+                style={{ position: "absolute", top: 4, right: 4, backgroundColor: "rgba(0,0,0,0.5)", padding: 4, borderRadius: 8 }}
                 onPress={() => removeImage(index)}
               >
                 <Ionicons name="close" size={16} color="white" />
@@ -339,10 +477,10 @@ export default function ReportIncident() {
           ))}
         </View>
 
-        <Text className="mt-4">Location</Text>
-        <View className="rounded h-50">
+        <Text style={{ marginBottom: 8 }}>Location</Text>
+        <View style={{ height: 200, marginBottom: 16 }}>
           <MapView
-            style={{ width: "100%", height: 200, marginTop: 16 }}
+            style={{ flex: 1 }}
             region={region}
             onRegionChangeComplete={setRegion}
           >
@@ -357,14 +495,13 @@ export default function ReportIncident() {
         </View>
 
         <TouchableOpacity
-          activeOpacity={0.7}
-          className="bg-gray-900 p-4 rounded mt-4 items-center"
+          style={{ backgroundColor: "#444", padding: 16, borderRadius: 8, marginBottom: 16, alignItems: "center" }}
           onPress={submitReport}
         >
           {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text className="text-white font-bold text-lg">Submit Report</Text>
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>Submit Report</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

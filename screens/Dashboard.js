@@ -1,11 +1,18 @@
-import React from "react";
-import { SafeAreaView, StyleSheet, View, Text, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  StyleSheet,
+  View,
+  Text,
+  Image,
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { MaterialIcons } from '@expo/vector-icons';
 import {
   createDrawerNavigator,
   DrawerItemList,
 } from "@react-navigation/drawer";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
@@ -16,19 +23,45 @@ import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
+import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
+import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 
 const Drawer = createDrawerNavigator();
 
-const CustomDrawerContent = (props) => (
-  <View style={styles.drawerContent}>
-    <View style={styles.drawerHeader}>
-      <Image source={require("../assets/logo.png")} style={styles.logo} />
-      <Text style={styles.appName}>HelpEZ</Text>
+const CustomDrawerContent = (props) => {
+  const [userName, setUserName] = useState("");
+  const [userPhoneNumber, setUserPhoneNumber] = useState("");
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const name = await AsyncStorage.getItem("name");
+      const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+      setUserName(name || "Guest");
+      setUserPhoneNumber(phoneNumber || "Unknown");
+    };
+
+    fetchUserData();
+  }, []);
+
+  return (
+    <View style={styles.drawerContent}>
+      <View style={styles.drawerHeader}>
+        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Text style={styles.appName}>HelpEZ</Text>
+      </View>
+      <DrawerItemList {...props} />
+      <View style={styles.spacer} />
+      <View style={styles.userInfo}>
+        <Image source={require("../assets/avatar.png")} style={styles.avatar} />
+        <View>
+          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
+        </View>
+      </View>
     </View>
-    <DrawerItemList {...props} />
-  </View>
-);
+  );
+};
 
 const Dashboard = () => {
   return (
@@ -113,8 +146,16 @@ const Dashboard = () => {
             ),
           }}
         />
+        <Drawer.Screen
+          name="ResourcesTracking"
+          component={ResourcesTrackingScreen}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="earth" size={22} color={color} />
+            ),
+          }}
+        />
 
-        {/* New screen for Medicine Information */}
         <Drawer.Screen
           name="MedicineInfo"
           component={MedicineInfoScreen}
@@ -124,7 +165,6 @@ const Dashboard = () => {
             ),
           }}
         />
-
         <Drawer.Screen
           name="Logout"
           component={Logout}
@@ -143,11 +183,20 @@ const Dashboard = () => {
             ),
           }}
         />
-
+         <Drawer.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="account-circle-outline" size={22} color={color} />
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -155,6 +204,7 @@ const styles = StyleSheet.create({
   },
   drawerContent: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   drawerHeader: {
     flexDirection: "row",
@@ -172,6 +222,31 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#000",
+  },
+  spacer: {
+    flex: 1,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    paddingBottom: 18,
+    backgroundColor: '#e6e6e6',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 16,
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  userPhoneNumber: {
+    fontSize: 14,
+    color: "gray",
   },
 });
 
