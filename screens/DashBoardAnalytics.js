@@ -101,7 +101,7 @@ export default function Analytics() {
       setLoading(false);
     }
   };
-
+//Model for classifying incidents and requests
   const classifyText = async (description, type) => {
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
