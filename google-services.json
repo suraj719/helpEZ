@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "43832184547",
+    "firebase_url": "https://helpez-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "helpez",
+    "storage_bucket": "helpez.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:43832184547:android:fa27808a8e4fa735acffd6",
+        "android_client_info": {
+          "package_name": "com.suraj719.HelpEZ"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnDy7DaTbR6AfCs5s20BLJX39-CpEGSRk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
