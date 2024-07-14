@@ -62,7 +62,7 @@ export default function ReportIncident() {
   const responseListener = useRef();
 
   const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
-const genAI = new GoogleGenerativeAI(apiKey);
+  const genAI = new GoogleGenerativeAI(apiKey);
 
   useEffect(() => {
     registerForPushNotificationsAsync().then((token) =>
@@ -220,22 +220,6 @@ const genAI = new GoogleGenerativeAI(apiKey);
       return [];
     }
   };
-
-  const submitReport = async () => {
-    if (!title || !description) {
-      Toast.show({
-        type: "error",
-        text1: "Please fill in all required fields.",
-      });
-      return;
-    }
-    console.log('In submit report');
-    setLoading(true);
-    const imageUrls = await uploadImagesToStorage();
-    const formattedDate = date.toISOString().split("T")[0];
-    const category = await classifyText(description, "incident");
-    console.log(description);
-    //Model for classifying incidents and requests
   const classifyText = async (description, type) => {
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -254,26 +238,32 @@ const genAI = new GoogleGenerativeAI(apiKey);
           {
             role: "user",
             parts: [
-              { text: `You're a seasoned classifier, trained to identify and categorize various ${type}s based on their descriptions. Your task is to provide accurate classifications to help streamline response efforts. Provide a single-word category for each ${type} description.` },
+              {
+                text: `You're a seasoned classifier, trained to identify and categorize various ${type}s based on their descriptions. Your task is to provide accurate classifications to help streamline response efforts. Provide a single-word category for each ${type} description.`,
+              },
             ],
           },
           {
             role: "model",
             parts: [
-              { text: `Understood. I'll provide the single-word classification for each ${type} you describe. Bring on the descriptions!` },
+              {
+                text: `Understood. I'll provide the single-word classification for each ${type} you describe. Bring on the descriptions!`,
+              },
             ],
           },
           {
-            "role": "model",
-            "parts": [
-              { text: `You're right to ask!  Here are the fixed set of categories I'm currently using to classify incidents and requests:\n\n**For Incidents:**\n\n* Natural\n* Accident\n* Medical\n* Violent\n* Environmental\n* Technological\n* Social\n* Transportation\n* Animal\n* Miscellaneous\n\n**For Requests:**\n\n* Medical\n* Food Resources\n* Clothing\n* Technical Support\n* Rescue and Safety\n* Shelter and Housing\n* Transportation\n* Hygiene and Sanitation\n\nI'm open to expanding these categories as we go, but for now, these are the ones I'm using.  Let me know if you'd like to add or adjust these categories as we move forward! \n` },
+            role: "model",
+            parts: [
+              {
+                text: `You're right to ask!  Here are the fixed set of categories I'm currently using to classify incidents and requests:\n\n**For Incidents:**\n\n* Natural\n* Accident\n* Medical\n* Violent\n* Environmental\n* Technological\n* Social\n* Transportation\n* Animal\n* Miscellaneous\n\n**For Requests:**\n\n* Medical\n* Food Resources\n* Clothing\n* Technical Support\n* Rescue and Safety\n* Shelter and Housing\n* Transportation\n* Hygiene and Sanitation\n\nI'm open to expanding these categories as we go, but for now, these are the ones I'm using.  Let me know if you'd like to add or adjust these categories as we move forward! \n`,
+              },
             ],
           },
           {
             role: "user",
             parts: [
-              { text: 
-                  `Incident Categories and Training Prompts
+              {
+                text: `Incident Categories and Training Prompts
 Natural Calamities:
 
 Prompt: "Classify this incident as a natural calamity if the description involves events like earthquakes, floods, hurricanes, wildfires, or tsunamis."
@@ -314,7 +304,8 @@ Miscellaneous Incidents:
 
 Prompt: "Classify this incident as miscellaneous if the description does not fit into any specific category but requires attention or action."
 Example: "A large-scale public event caused traffic congestion and noise disturbances in the neighborhood."
-` },
+`,
+              },
             ],
           },
         ],
@@ -326,13 +317,28 @@ Example: "A large-scale public event caused traffic congestion and noise disturb
       if (!category) {
         throw new Error("No category returned from Generative AI model");
       }
-      setCategory(category.trim())
+      setCategory(category.trim());
       return category.trim();
     } catch (error) {
       console.error("Error classifying text: ", error);
       return "Unknown";
     }
   };
+  const submitReport = async () => {
+    if (!title || !description) {
+      Toast.show({
+        type: "error",
+        text1: "Please fill in all required fields.",
+      });
+      return;
+    }
+    console.log("In submit report");
+    setLoading(true);
+    const imageUrls = await uploadImagesToStorage();
+    const formattedDate = date.toISOString().split("T")[0];
+    const category = await classifyText(description, "incident");
+    console.log(description);
+
     const reportData = {
       location,
       title,
@@ -557,12 +563,12 @@ Example: "A large-scale public event caused traffic congestion and noise disturb
           onPress={takePhoto}
         >
           <Ionicons name="camera-outline" size={24} color="black" />
-          <Text className="text-black text-center ml-2">
-            Take a Photo
-          </Text>
+          <Text className="text-black text-center ml-2">Take a Photo</Text>
         </TouchableOpacity>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
+        <View
+          style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}
+        >
           {selectedImages.map((image, index) => (
             <View key={index} style={{ position: "relative", margin: 4 }}>
               <Image

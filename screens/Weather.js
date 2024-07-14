@@ -13,10 +13,9 @@ import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { weatherIconMap } from "../utils/weatherIcons";
-import { useTranslation } from 'react-i18next';
-
 const API_KEY_OPENWEATHER = "77003d306b25e391aca3f6d95268b3ed";
 const API_KEY_MISTRAL = "A76fl5FgS8vEmyujewq3TGPUdLJ7QtWF";
+import { useTranslation } from "react-i18next";
 
 const Weather = () => {
   const { t } = useTranslation();
@@ -138,15 +137,16 @@ const Weather = () => {
       </View>
     );
   }
-
   return (
     <ScrollView horizontal={false} className="flex-1 p-4 bg-gray-100">
       <View className="my-4 p-4 rounded-lg shadow-lg bg-white">
         <Text className="text-center font-bold text-5xl text-gray-800">
-          {Math.round(weather.main.temp - 273.15)}°C
+          {forecast?.current?.temperature2m ||
+            Math.round(weather?.main?.temp - 273.15)}
+          °C
         </Text>
         <Text className="text-center text-2xl font-semibold text-gray-600 mt-2">
-          {weather.name}
+          {weather?.name}
         </Text>
         <View className="flex-row justify-center gap-3 mt-3">
           <Text className="text-lg text-gray-600">
