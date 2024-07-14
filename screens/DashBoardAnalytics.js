@@ -6,6 +6,7 @@ import app from "../utils/firebase";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PieChart } from 'react-native-chart-kit';
 import { Picker } from '@react-native-picker/picker';
+import { useTranslation } from "react-i18next";
 
 const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
 const genAI = new GoogleGenerativeAI(apiKey);
