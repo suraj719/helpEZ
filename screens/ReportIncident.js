@@ -40,7 +40,6 @@ Notifications.setNotificationHandler({
 });
 
 export default function ReportIncident() {
-  const { t } = useTranslation();
   const storage = getStorage(app);
   const db = getFirestore(app);
   const navigation = useNavigation();
@@ -61,22 +60,24 @@ export default function ReportIncident() {
   const responseListener = useRef();
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then((token) => setExpoPushToken(token));
+    registerForPushNotificationsAsync().then((token) =>
+      setExpoPushToken(token)
+    );
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
         setNotification(notification);
-      }
-    );
+      });
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
         console.log(response);
-      }
-    );
+      });
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
       Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
@@ -145,30 +146,6 @@ export default function ReportIncident() {
       console.log(error);
     }
   };
-
-  // const takePhoto = async () => {
-  //   try {
-  //     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  //     if (status !== "granted") {
-  //       Toast.show({
-  //         type: "error",
-  //         text1: "Camera access was denied!!",
-  //       });
-  //       return;
-  //     }
-
-  //     let result = await ImagePicker.launchCameraAsync({
-  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //       quality: 1,
-  //     });
-
-  //     if (!result.cancelled) {
-  //       setSelectedImages([...selectedImages, result]);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
   const takePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -179,20 +156,19 @@ export default function ReportIncident() {
         });
         return;
       }
-  
+
       let result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
       });
-  
-      if (!result.cancelled) {
-        setSelectedImages([...selectedImages, result]);
+
+      if (!result.canceled) {
+        setSelectedImages([...selectedImages, result.assets[0]]);
       }
     } catch (error) {
       console.log(error);
     }
   };
-  
 
   const removeImage = (index) => {
     const newImages = [...selectedImages];
@@ -208,7 +184,7 @@ export default function ReportIncident() {
         selectedImages.map(async (image, index) => {
           const response = await fetch(image.uri);
           const blob = await response.blob();
-          const imageName = `${title}-${index}`; 
+          const imageName = `${title}-${index}`;
 
           const storageRef = ref(storage, `uploads/${imageName}`);
           const uploadTask = uploadBytesResumable(storageRef, blob);
@@ -338,7 +314,7 @@ export default function ReportIncident() {
 
   async function registerForPushNotificationsAsync() {
     let token;
-  
+
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -347,9 +323,10 @@ export default function ReportIncident() {
         lightColor: "#FF231F7C",
       });
     }
-  
+
     if (Constants.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
@@ -364,14 +341,16 @@ export default function ReportIncident() {
     } else {
       alert("Must use physical device for Push Notifications");
     }
-  
+
     return token;
   }
-  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f0f0", padding: 16 }}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={{ marginBottom: 16 }}
+      >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="chevron-back" size={24} color="black" />
           <Text>Back</Text>
@@ -380,13 +359,24 @@ export default function ReportIncident() {
       <ScrollView>
         <Text style={{ marginBottom: 8 }}>Title</Text>
         <TextInput
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
           value={title}
           onChangeText={setTitle}
           placeholder="Enter a title*"
         />
         <Text style={{ marginBottom: 8 }}>Severity</Text>
-        <View style={{ backgroundColor: "white", borderRadius: 8, marginBottom: 16 }}>
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
+        >
           <Picker
             selectedValue={severity}
             onValueChange={(itemValue) => setSeverity(itemValue)}
@@ -399,7 +389,13 @@ export default function ReportIncident() {
 
         <Text style={{ marginBottom: 8 }}>Description</Text>
         <TextInput
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16, height: 120 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+            height: 120,
+          }}
           value={description}
           onChangeText={setDescription}
           placeholder="Enter description*"
@@ -408,7 +404,12 @@ export default function ReportIncident() {
 
         <Text style={{ marginBottom: 8 }}>Contact Information</Text>
         <TextInput
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
           value={contact}
           onChangeText={setContact}
           placeholder="Enter suitable contact details"
@@ -416,7 +417,12 @@ export default function ReportIncident() {
 
         <Text style={{ marginBottom: 8 }}>Date</Text>
         <TouchableOpacity
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
           onPress={showDatePicker}
         >
           <Text>{date.toISOString().split("T")[0]}</Text>
@@ -428,7 +434,7 @@ export default function ReportIncident() {
           onCancel={hideDatePicker}
         />
 
-<TouchableOpacity
+        <TouchableOpacity
           activeOpacity={0.7}
           className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
           onPress={pickImage}
@@ -445,23 +451,12 @@ export default function ReportIncident() {
           onPress={takePhoto}
         >
           <Ionicons name="camera-outline" size={24} color="black" />
-          <Text className="text-black text-center ml-2">
-            Take a Photo
-          </Text>
+          <Text className="text-black text-center ml-2">Take a Photo</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
-          onPress={takePhoto}
+        <View
+          style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}
         >
-          <Ionicons name="camera-outline" size={24} color="black" />
-          <Text className="text-black text-center ml-2">
-            Take a Photo
-          </Text>
-        </TouchableOpacity>
-
-        <View style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 16 }}>
           {selectedImages.map((image, index) => (
             <View key={index} style={{ position: "relative", margin: 4 }}>
               <Image
@@ -469,7 +464,14 @@ export default function ReportIncident() {
                 style={{ width: 100, height: 100, borderRadius: 8 }}
               />
               <TouchableOpacity
-                style={{ position: "absolute", top: 4, right: 4, backgroundColor: "rgba(0,0,0,0.5)", padding: 4, borderRadius: 8 }}
+                style={{
+                  position: "absolute",
+                  top: 4,
+                  right: 4,
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  padding: 4,
+                  borderRadius: 8,
+                }}
                 onPress={() => removeImage(index)}
               >
                 <Ionicons name="close" size={16} color="white" />
@@ -496,13 +498,22 @@ export default function ReportIncident() {
         </View>
 
         <TouchableOpacity
-          style={{ backgroundColor: "#444", padding: 16, borderRadius: 8, marginBottom: 16, alignItems: "center" }}
+          style={{
+            backgroundColor: "#000",
+            padding: 16,
+            borderRadius: 8,
+            marginBottom: 16,
+            alignItems: "center",
+          }}
           onPress={submitReport}
+          activeOpacity={0.8}
         >
           {loading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>Submit Report</Text>
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+              Submit Report
+            </Text>
           )}
         </TouchableOpacity>
       </ScrollView>
