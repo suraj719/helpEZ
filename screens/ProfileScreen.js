@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
+import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();

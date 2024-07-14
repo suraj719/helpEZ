@@ -6,6 +6,7 @@ import imagePath from './imagePath';
 import MapViewDirections from 'react-native-maps-directions';
 import Loader from './Loader';
 import { locationPermission, getCurrentLocation } from './helperFunction';
+import { useTranslation } from 'react-i18next';
 
 const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;

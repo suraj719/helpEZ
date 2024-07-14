@@ -33,6 +33,7 @@ const CustomDrawerContent = (props) => {
   const { t } = useTranslation();  // Initialize useTranslation hook
   const [userName, setUserName] = useState("");
   const [userPhoneNumber, setUserPhoneNumber] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUserData = async () => {
