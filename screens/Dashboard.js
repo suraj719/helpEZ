@@ -33,6 +33,7 @@ const Drawer = createDrawerNavigator();
 const CustomDrawerContent = (props) => {
   const [userName, setUserName] = useState("");
   const [userPhoneNumber, setUserPhoneNumber] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUserData = async () => {

@@ -18,6 +18,7 @@ import app from "../utils/firebase";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from 'react-i18next';
 
 export default function RequestResources() {
   const { t } = useTranslation();

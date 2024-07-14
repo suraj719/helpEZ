@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from 'react-i18next';
 
 export default function Requests() {
   const { t } = useTranslation();
