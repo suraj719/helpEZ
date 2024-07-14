@@ -1,13 +1,17 @@
-import 'intl-pluralrules';
-import { useTranslation } from 'react-i18next';
+import "intl-pluralrules";
+import { useTranslation } from "react-i18next";
 import React, { useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { UserProvider } from './UserContext';
-import { useFonts, Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
-import Geolocation from 'react-native-geolocation-service';
+import { UserProvider } from "./UserContext";
+import {
+  useFonts,
+  Roboto_400Regular,
+  Roboto_700Bold,
+} from "@expo-google-fonts/roboto";
+import Geolocation from "react-native-geolocation-service";
 
 // Import screens
 import Register from "./screens/Register";
@@ -38,7 +42,7 @@ const App = () => {
     // Set geolocation configuration
     Geolocation.setRNConfiguration({
       skipPermissionRequests: false,
-      authorizationLevel: 'whenInUse', // or 'always'
+      authorizationLevel: "whenInUse", // or 'always'
     });
   }, []);
 

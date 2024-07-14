@@ -8,6 +8,8 @@ import {
   Image,
   ScrollView,
   ImageBackground,
+  ScrollView,
+  ImageBackground,
 } from "react-native";
 import app from "../utils/firebase";
 import {
@@ -17,14 +19,15 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { CheckBox } from 'react-native-elements';
+import { CheckBox } from "react-native-elements";
 
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 export default function Register() {
+  const [isChecked, setIsChecked] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const { t } = useTranslation();
   const navigation = useNavigation();
@@ -83,6 +86,7 @@ export default function Register() {
           })
         );
       } else {
+        navigation.navigate("RegisterDetails", { phoneNumber, name });
         setIsNewMember(true);
       }
     } catch (error) {
@@ -97,17 +101,21 @@ export default function Register() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton}>
           <Image
-            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}
+            source={{
+              uri: "https://cdn-icons-png.flaticon.com/512/271/271220.png",
+            }}
             style={styles.backIcon}
           />
         </TouchableOpacity>
       </View>
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: 'https://cdn.usegalileo.ai/sdxl10/b27516fe-a579-4bdd-bd02-0f982549ccf0.png' }}
+          source={{
+            uri: "https://cdn.usegalileo.ai/sdxl10/b27516fe-a579-4bdd-bd02-0f982549ccf0.png",
+          }}
           style={styles.image}
         />
       </View>
@@ -143,7 +151,8 @@ export default function Register() {
           onPress={() => setIsChecked(!isChecked)}
         />
         <Text style={styles.termsText}>
-          By continuing, you are indicating that you agree to the Terms of Service and Privacy Policy.
+          By continuing, you are indicating that you agree to the Terms of
+          Service and Privacy Policy.
         </Text>
       </View>
     </ScrollView>
@@ -153,13 +162,13 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     padding: 16,
   },
   backButton: {
@@ -167,57 +176,73 @@ const styles = StyleSheet.create({
     height: 24,
   },
   backIcon: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   imageContainer: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 3 / 2,
   },
   image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   title: {
     fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     paddingVertical: 20,
   },
   inputContainer: {
-    width: '90%',
+    width: "90%",
     marginVertical: 10,
   },
   input: {
     height: 56,
-    borderColor: '#DEDEDE',
+    borderColor: "#DEDEDE",
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    color: '#000000',
+    backgroundColor: "#FFFFFF",
+    color: "#000000",
   },
   buttonContainer: {
-    width: '90%',
+    width: "90%",
     marginVertical: 10,
   },
   button: {
-    backgroundColor: '#000000',
+    backgroundColor: "#000000",
     borderRadius: 10,
     height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    flex: 1,
+    paddingLeft: 8,
   },
   termsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  checkbox: {
+    margin: 0,
+    padding: 0,
+  },
+  termsText: {
+    fontSize: 16,
+    flex: 1,
+    paddingLeft: 8,
+  },
+  termsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
   },

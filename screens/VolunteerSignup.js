@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
+    shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
@@ -26,19 +26,25 @@ const VolunteerSignup = () => {
   const [selectedIncident, setSelectedIncident] = useState("");
   const [age, setAge] = useState("");
   const [location, setLocation] = useState("");
-  const [skills, setSkills] = useState("");
-  const [skillsDetails, setSkillsDetails] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [otherSkills, setOtherSkills] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
-  const [assignedRole, setAssignedRole] = useState(""); // State to hold assigned role
+  const [assignedRole, setAssignedRole] = useState("");
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const technicalSkills = ["JavaScript", "React", "Node.js", "Python", "Java"];
-  const nonTechnicalSkills = ["Communication", "Teamwork", "Project Management", "Leadership", "Problem Solving"];
+  const skills = {
+    Medical: ["First Aid", "CPR", "Nursing", "Paramedic Skills", "Mental Health Support", "Medical Equipment Operation", "Triage"],
+    SearchAndRescue: ["Search and Rescue Operations", "Rope and Knot Tying", "Water Rescue", "Climbing and Rappelling", "Navigation and Map Reading", "Disaster Site Management"],
+    Technical: ["Emergency Communication Systems", "Radio Operation (HAM, VHF, etc.)", "GIS Mapping and Analysis", "Drone Operation", "IT Support for Emergency Operations", "Data Collection and Reporting"],
+    Logistics: ["Supply Chain Management", "Inventory Management", "Transportation Logistics", "Shelter Management", "Food Distribution", "Volunteer Coordination"],
+    Construction: ["Structural Engineering", "Electrical Repairs", "Plumbing Repairs", "Heavy Machinery Operation", "Debris Removal", "Temporary Housing Construction"],
+    General: ["Cooking and Meal Preparation", "Language Translation", "Childcare", "Elderly Care", "Community Outreach", "Legal Assistance"],
+  };
 
   const notificationListener = useRef();
   const responseListener = useRef();
@@ -65,7 +71,9 @@ const VolunteerSignup = () => {
     const fetchIncidents = async () => {
       try {
         const querySnapshot = await getDocs(collection(firestore, 'incidents'));
+
         const incidentsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        {console.log(incidentsList);}
         setIncidents(incidentsList);
       } catch (error) {
         console.error("Error fetching incidents:", error);
@@ -75,48 +83,63 @@ const VolunteerSignup = () => {
     fetchIncidents();
   }, []);
 
-  const assignRole = (incident, skills) => {
-    // Example role assignment logic
-    if (incident.includes('Fire') && skills.includes('Leadership')) {
-      return t('Fire Response Leader');
-    } else if (incident.includes('Flood') && skills.includes('Teamwork')) {
-      return t('Flood Relief Coordinator');
-    } else if (incident.includes('Earthquake') && skills.includes('Project Management')) {
-      return t('Earthquake Relief Manager');
-    } else {
-      return t('General Volunteer');
+  const assignRole = async (selectedIncident, selectedSkills) => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, 'incidentCategories'));
+      const incidentCategories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const incidentCategory = incidentCategories.find(inc => inc.title === selectedIncident)?.category || '';
+
+      const roleMappings = {
+        Medical: "Medical Team Volunteer",
+        SearchAndRescue: "Rescue Team Volunteer",
+        Technical: "Tech Support Volunteer",
+        Logistics: "Logistics Coordinator",
+        Construction: "Construction Crew Volunteer",
+        General: "Support Volunteer",
+      };
+
+      let selectedCategory = '';
+      Object.keys(skills).forEach(category => {
+        if (skills[category].some(skill => selectedSkills.includes(skill))) {
+          selectedCategory = category;
+        }
+      });
+
+      const role = roleMappings[selectedCategory] || roleMappings[incidentCategory] || 'General Support Volunteer';
+      return role;
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      return 'General Support Volunteer';
     }
   };
-      
+
   const handleSubmit = async () => {
     try {
-      if (!selectedIncident || !age || !location || !skills || selectedSkills.length === 0) {
-        Alert.alert(t('Validation Error'), t('Please fill in all required fields'));
+      if (!selectedIncident || !age || !location || selectedSkills.length === 0) {
+        Alert.alert('Validation Error', 'Please fill in all required fields');
         return;
       }
-  
-      // Assign role based on selected incident and skills
-      const role = assignRole(selectedIncident, selectedSkills);
-  
-      // Log the role to verify before proceeding
-      console.log(t('Assigned Role'), role);
-  
-      // Set the assigned role state
+
+      const role = await assignRole(selectedIncident, selectedSkills);
+
+      { console.log(selectedSkills); }
+
+      console.log('Assigned Role:', role);
+
       setAssignedRole(role);
-  
-      // Add volunteer details to Firestore
+
       await addDoc(collection(firestore, "volunteers"), {
         selectedIncident,
         age,
         location,
-        skills,
-        skillsDetails: [...selectedSkills, otherSkills].join(", "),
+        skills: selectedSkills.join(", "),
         name,
         phoneNumber,
         role
       });
-  
-      Alert.alert(t('Success'), t('Volunteer details submitted successfully'));
+
+      Alert.alert('Success', 'Volunteer details submitted successfully');
 
       const notificationContent = {
         title: t('Role Updated!'),
@@ -125,25 +148,24 @@ const VolunteerSignup = () => {
       };
 
       await schedulePushNotification(notificationContent);
-  
-      // Update 'users' collection to set isVolunteer to true for this user
+
       const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
-  
+
       userQuerySnapshot.forEach(doc => {
         console.log('User Document Data:', doc.data());
       });
-  
+
       const userDocId = userQuerySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber)?.id;
-  
+
       console.log('User Document ID:', userDocId);
-  
+
       if (userDocId) {
         const userRef = doc(firestore, 'users', userDocId);
         await updateDoc(userRef, {
           isVolunteer: true,
-          role: role  // Ensure role is included here
+          role: role
         });
-  
+
         console.log('User details updated successfully');
         Alert.alert(t('Success'), t('User details updated successfully'));
       } else {
@@ -155,11 +177,11 @@ const VolunteerSignup = () => {
       Alert.alert(t('Error'), t('Failed to submit volunteer details'));
     }
   };
-  
+
   async function schedulePushNotification(content) {
     await Notifications.scheduleNotificationAsync({
       content,
-      trigger: { seconds: 1 }, // Trigger notification after 2 seconds
+      trigger: { seconds: 1 },
     });
   }
 
@@ -194,7 +216,6 @@ const VolunteerSignup = () => {
 
     return token;
   }
-  
 
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -219,7 +240,7 @@ const VolunteerSignup = () => {
 
         for (let component of addressComponents) {
           if (component.types.includes('locality')) {
-            village = component.long_name;
+            village = component.long_name;  
           }
           if (component.types.includes('administrative_area_level_1')) {
             state = component.long_name;
@@ -234,117 +255,166 @@ const VolunteerSignup = () => {
       }
     } catch (error) {
       console.error('Error fetching location:', error);
-      Alert.alert(t('Error'), t('Failed to fetch location details'));
+      Alert.alert('Error', 'Failed to fetch location');
     }
   };
 
-  const handleTagPress = (tag) => {
-    if (selectedSkills.includes(tag)) {
-      handleTagRemove(tag);
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      setNotification(notification);
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log(response);
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
+
+  const handleSkillChange = (skill) => {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter(s => s !== skill));
     } else {
-      setSelectedSkills([...selectedSkills, tag]);
+      setSelectedSkills([...selectedSkills, skill]);
     }
   };
 
-  const handleTagRemove = (tag) => {
-    setSelectedSkills(selectedSkills.filter((skill) => skill !== tag));
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    setSelectedSkills([]);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>{t('Volunteer Signup Page')}</Text>
+      <Text style={styles.heading}>Volunteer Signup</Text>
 
-        <Text style={styles.userInfo}>{t('name')}: {name}</Text>
-        <Text style={styles.userInfo}>{t('Phone Number')}: {phoneNumber}</Text>
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Name:</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Enter your name"
+        />
+      </View>
 
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Phone Number:</Text>
+        <TextInput
+          style={styles.input}
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          placeholder="Enter your phone number"
+          keyboardType="phone-pad"
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Age:</Text>
+        <TextInput
+          style={styles.input}
+          value={age}
+          onChangeText={setAge}
+          placeholder="Enter your age"
+          keyboardType="numeric"
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Location:</Text>
+        <View style={styles.locationContainer}>
+          <TextInput
+            style={styles.input}
+            value={location}
+            onChangeText={setLocation}
+            placeholder="Enter your location"
+          />
+          <TouchableOpacity onPress={handleLocationFetch} style={styles.locationButton}>
+            <MaterialIcons name="my-location" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Incident:</Text>
         <Picker
           selectedValue={selectedIncident}
-          style={styles.input}
           onValueChange={(itemValue) => setSelectedIncident(itemValue)}
+          style={styles.picker}
         >
-          <Picker.Item label={t('Select Incident')} value="" />
-          {incidents.map((incident) => (
+          <Picker.Item label="Select an incident" value="" />
+          {incidents.map(incident => (
             <Picker.Item key={incident.id} label={incident.title} value={incident.title} />
           ))}
         </Picker>
+      </View>
 
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Category:</Text>
+        <Picker
+          selectedValue={selectedCategory}
+          onValueChange={handleCategoryChange}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select a category" value="" />
+          {Object.keys(skills).map(category => (
+            <Picker.Item key={category} label={category} value={category} />
+          ))}
+        </Picker>
+      </View>
 
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Skills:</Text>
         <TextInput
           style={styles.input}
-          placeholder="Age"
-          value={age}
-          onChangeText={(text) => setAge(text)}
-          keyboardType="numeric"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search skills"
         />
-        <View style={styles.locationContainer}>
-          <Text style={styles.locationText}>{location}</Text>
-          <TouchableOpacity onPress={handleLocationFetch} style={styles.locationIcon}>
-            <MaterialIcons name="my-location" size={24} color="#007bff" />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.label}>{t('Skills')}</Text>
-        <Picker
-          selectedValue={skills}
-          style={styles.picker}
-          onValueChange={(itemValue) => setSkills(itemValue)}
-        >
-          <Picker.Item label="Select Skills" value="" />
-          <Picker.Item label="Technical" value="technical" />
-          <Picker.Item label="Non-Technical" value="non-technical" />
-        </Picker>
-
-        {skills !== "" && (
-          <View>
-            <Text style={styles.label}>Select {skills} skills:</Text>
-            <View style={styles.tagContainer}>
-              {(skills === "technical" ? technicalSkills : nonTechnicalSkills).map((tag) => (
+        <View style={styles.skillsContainer}>
+          {skills[selectedCategory] &&
+            skills[selectedCategory]
+              .filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map(skill => (
                 <TouchableOpacity
-                  key={tag}
-                  style={[styles.tag, selectedSkills.includes(tag) && styles.selectedTag]}
-                  onPress={() => handleTagPress(tag)}
+                  key={skill}
+                  onPress={() => handleSkillChange(skill)}
+                  style={[
+                    styles.skillButton,
+                    selectedSkills.includes(skill) && styles.selectedSkillButton,
+                  ]}
                 >
-                  <Text style={styles.tagText}>{tag}</Text>
+                  <Text
+                    style={[
+                      styles.skillButtonText,
+                      selectedSkills.includes(skill) && styles.selectedSkillButtonText,
+                    ]}
+                  >
+                    {skill}
+                  </Text>
                 </TouchableOpacity>
               ))}
-              <TextInput
-                style={[styles.tag, styles.tagInput]}
-                placeholder="Add other skills"
-                value={otherSkills}
-                onChangeText={(text) => setOtherSkills(text)}
-                onSubmitEditing={() => {
-                  if (otherSkills.trim()) {
-                    handleTagPress(otherSkills.trim());
-                    setOtherSkills("");
-                  }
-                }}
-              />
-            </View>
-          </View>
-        )}
-
-        <View style={styles.selectedSkillsContainer}>
-          {selectedSkills.map((tag) => (
-            <View key={tag} style={styles.selectedTagContainer}>
-              <TouchableOpacity style={styles.selectedTag} onPress={() => handleTagRemove(tag)}>
-                <Text style={styles.selectedTagText}>{tag}</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
         </View>
-
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Submit</Text>
-        </TouchableOpacity>
-
-        {assignedRole !== "" && (
-          <View style={styles.roleContainer}>
-            <Text style={styles.label}>Assigned Role:</Text>
-            <Text style={styles.roleText}>{assignedRole}</Text>
-          </View>
-        )}
       </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Other Skills:</Text>
+        <TextInput
+          style={styles.input}
+          value={otherSkills}
+          onChangeText={setOtherSkills}
+          placeholder="Enter other skills"
+        />
+      </View>
+
+      <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -352,152 +422,74 @@ const VolunteerSignup = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    paddingVertical: 20,
+    padding: 20,
+    backgroundColor: '#fff',
   },
-  formContainer: {
-    width: "90%",
-    backgroundColor: "#333", // Darkened background color for better contrast
-    padding: 30,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  title: {
+  heading: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: "center",
+    textAlign: 'center',
   },
-  userInfo: {
-    fontSize: 16,
-    color: "#fff",
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 6,
-    height: 40,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-    color: "#000",
-    backgroundColor: "#fff",
+  formGroup: {
+    marginBottom: 15,
   },
   label: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
-    marginTop: 10,
+    marginBottom: 5,
   },
-  roleContainer: {
-    marginTop: 20,
+  input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    alignItems: 'center',
     padding: 10,
+    fontSize: 16,
   },
-  roleTextContainer: {
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationButton: {
+    marginLeft: 10,
     backgroundColor: '#007bff',
     borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-  },
-  roleText: {
-    fontSize: 16,
-    color: '#fff', // White color for assigned role text
+    padding: 5,
   },
   picker: {
     borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 6,
-    marginBottom: 10,
-    color: "#000",
-    backgroundColor: "#fff",
+    borderColor: '#ccc',
+    borderRadius: 5,
   },
-  tagContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 10,
+  skillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  tag: {
-    padding: 10,
+  skillButton: {
     borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 6,
-    backgroundColor: "#000",
-    marginRight: 10,
-    marginBottom: 10,
+    borderColor: '#007bff',
+    borderRadius: 5,
+    padding: 5,
+    margin: 5,
   },
-  tagInput: {
-    backgroundColor: "#fff",
-    borderColor: "#fff",
-    color: "#000",
+  skillButtonText: {
+    color: '#007bff',
   },
-  tagText: {
-    color: "#fff",
+  selectedSkillButton: {
+    backgroundColor: '#007bff',
   },
-  selectedSkillsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 10,
-    marginTop: 10,
+  selectedSkillButtonText: {
+    color: '#fff',
   },
-  selectedTagContainer: {
-    marginRight: 10,
-    marginBottom: 10,
+  submitButton: {
+    backgroundColor: '#28a745',
+    borderRadius: 5,
+    padding: 15,
+    alignItems: 'center',
   },
-  selectedTag: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: "#DCDCDC",
-    borderWidth: 1,
-    borderColor: "#000",
-  },
-  selectedTagText: {
-    color: "#000",
-    fontSize: 14,
-  },
-  button: {
-    backgroundColor: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#000",
+  submitButtonText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "bold",
-  },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  locationText: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#fff",
-    borderRadius: 6,
-    height: 40,
-    paddingHorizontal: 16,
-    color: "#000",
-    backgroundColor: "#fff",
-  },
-  locationIcon: {
-    marginLeft: 10,
+    fontWeight: 'bold',
   },
 });
 

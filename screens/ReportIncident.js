@@ -40,11 +40,11 @@ Notifications.setNotificationHandler({
 });
 
 export default function ReportIncident() {
-  const { t } = useTranslation();
   const storage = getStorage(app);
   const db = getFirestore(app);
   const navigation = useNavigation();
   const [location, setLocation] = useState(null);
+  const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState("Low");
   const [description, setDescription] = useState("");
@@ -61,22 +61,24 @@ export default function ReportIncident() {
   const responseListener = useRef();
 
   useEffect(() => {
-    registerForPushNotificationsAsync().then((token) => setExpoPushToken(token));
+    registerForPushNotificationsAsync().then((token) =>
+      setExpoPushToken(token)
+    );
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
         setNotification(notification);
-      }
-    );
+      });
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
         console.log(response);
-      }
-    );
+      });
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
       Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
@@ -145,30 +147,6 @@ export default function ReportIncident() {
       console.log(error);
     }
   };
-
-  // const takePhoto = async () => {
-  //   try {
-  //     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  //     if (status !== "granted") {
-  //       Toast.show({
-  //         type: "error",
-  //         text1: "Camera access was denied!!",
-  //       });
-  //       return;
-  //     }
-
-  //     let result = await ImagePicker.launchCameraAsync({
-  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //       quality: 1,
-  //     });
-
-  //     if (!result.cancelled) {
-  //       setSelectedImages([...selectedImages, result]);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
   const takePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -179,20 +157,19 @@ export default function ReportIncident() {
         });
         return;
       }
-  
+
       let result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
       });
-  
-      if (!result.cancelled) {
-        setSelectedImages([...selectedImages, result]);
+
+      if (!result.canceled) {
+        setSelectedImages([...selectedImages, result.assets[0]]);
       }
     } catch (error) {
       console.log(error);
     }
   };
-  
 
   const removeImage = (index) => {
     const newImages = [...selectedImages];
@@ -208,7 +185,7 @@ export default function ReportIncident() {
         selectedImages.map(async (image, index) => {
           const response = await fetch(image.uri);
           const blob = await response.blob();
-          const imageName = `${title}-${index}`; 
+          const imageName = `${title}-${index}`;
 
           const storageRef = ref(storage, `uploads/${imageName}`);
           const uploadTask = uploadBytesResumable(storageRef, blob);
@@ -248,9 +225,150 @@ export default function ReportIncident() {
       });
       return;
     }
+    console.log('In submit report');
     setLoading(true);
     const imageUrls = await uploadImagesToStorage();
     const formattedDate = date.toISOString().split("T")[0];
+    const category = await classifyText(description, "incident");
+    console.log(description);
+    //Model for classifying incidents and requests
+  const classifyText = async (description, type) => {
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: "text/plain",
+      };
+      console.log(`In the classifying function`);
+
+      const chatSession = model.startChat({
+        generationConfig,
+        history: [
+          {
+            role: "user",
+            parts: [
+              { text: `You're a seasoned classifier, trained to identify and categorize various ${type}s based on their descriptions. Your task is to provide accurate classifications to help streamline response efforts. Provide a single-word category for each ${type} description.` },
+            ],
+          },
+          {
+            role: "model",
+            parts: [
+              { text: `Understood. I'll provide the single-word classification for each ${type} you describe. Bring on the descriptions!` },
+            ],
+          },
+          {
+            "role": "model",
+            "parts": [
+              { text: `You're right to ask!  Here are the fixed set of categories I'm currently using to classify incidents and requests:\n\n**For Incidents:**\n\n* Natural\n* Accident\n* Medical\n* Violent\n* Environmental\n* Technological\n* Social\n* Transportation\n* Animal\n* Miscellaneous\n\n**For Requests:**\n\n* Medical\n* Food Resources\n* Clothing\n* Technical Support\n* Rescue and Safety\n* Shelter and Housing\n* Transportation\n* Hygiene and Sanitation\n\nI'm open to expanding these categories as we go, but for now, these are the ones I'm using.  Let me know if you'd like to add or adjust these categories as we move forward! \n` },
+            ],
+          },
+          {
+            role: "user",
+            parts: [
+              { text: type === "incident" ? 
+                  `Incident Categories and Training Prompts
+Natural Calamities:
+
+Prompt: "Classify this incident as a natural calamity if the description involves events like earthquakes, floods, hurricanes, wildfires, or tsunamis."
+Example: "A devastating earthquake struck the region, causing widespread damage and displacement."
+Accidents:
+
+Prompt: "Classify this incident as an accident if the description involves unforeseen events leading to injury, damage, or loss."
+Example: "A car collision on the highway resulted in multiple injuries and traffic congestion."
+Medical Emergencies:
+
+Prompt: "Classify this incident as a medical emergency if the description involves urgent medical attention needed due to illness, injury, or health crisis."
+Example: "An elderly person collapsed due to a suspected heart attack, requiring immediate medical assistance."
+Violent Incidents:
+
+Prompt: "Classify this incident as a violent incident if the description involves criminal activities, assaults, or public disturbances."
+Example: "A brawl broke out in the city square, leading to multiple injuries and arrests."
+Environmental Issues:
+
+Prompt: "Classify this incident as an environmental issue if the description involves pollution, environmental degradation, or ecological concerns."
+Example: "Toxic waste leakage from a factory contaminated nearby water sources, endangering wildlife."
+Technological Failures:
+
+Prompt: "Classify this incident as a technological failure if the description involves failures in infrastructure, utilities, or technological systems."
+Example: "A major power outage affected several neighborhoods, disrupting daily life and services."
+Social Issues:
+
+Prompt: "Classify this incident as a social issue if the description involves protests, demonstrations, or social unrest."
+Example: "Mass protests erupted in the capital demanding political reforms and social justice."
+Transportation Issues:
+
+Prompt: "Classify this incident as a transportation issue if the description involves accidents, delays, or disruptions in transportation services."
+Example: "A subway train derailment caused delays during rush hour, affecting thousands of commuters."
+Animal Incidents:
+
+Prompt: "Classify this incident as an animal incident if the description involves incidents related to wildlife, pets, or animal attacks."
+Example: "A bear sighting in a residential area prompted authorities to issue a wildlife alert."
+Miscellaneous Incidents:
+
+Prompt: "Classify this incident as miscellaneous if the description does not fit into any specific category but requires attention or action."
+Example: "A large-scale public event caused traffic congestion and noise disturbances in the neighborhood."
+` : `Request Categories and Training Prompts
+Medical:
+
+Prompt: "Classify this request as a Medical request if the description involves the need for medical attention, supplies, or health-related assistance."
+Example: "Urgent need for medical supplies for injured victims."
+
+Food Resources:
+
+Prompt: "Classify this request as a Food Resources request if the description involves the need for food, water, or nutrition-related assistance."
+Example: "Requesting food and clean water for a community affected by the disaster."
+
+Clothing:
+
+Prompt: "Classify this request as a Clothing request if the description involves the need for clothes, blankets, or similar items."
+Example: "Need warm clothing for families displaced by the flood."
+
+Technical Support:
+
+Prompt: "Classify this request as a Technical Support request if the description involves the need for technical assistance, equipment, or services."
+Example: "Requesting technical support to restore communication lines."
+
+Rescue and Safety:
+
+Prompt: "Classify this request as a Rescue and Safety request if the description involves rescue operations, safety measures, or evacuation assistance."
+Example: "Requesting evacuation assistance due to flooding."
+
+Shelter and Housing:
+
+Prompt: "Classify this request as a Shelter and Housing request if the description involves the need for temporary shelter, housing assistance, or relocation support."
+Example: "Need temporary shelter for a family displaced by a fire."
+
+Transportation:
+
+Prompt: "Classify this request as a Transportation request if the description involves the need for transportation services, vehicle support, or travel assistance."
+Example: "Requesting transportation to a medical facility."
+
+Hygiene and Sanitation:
+
+Prompt: "Classify this request as a Hygiene and Sanitation request if the description involves the need for hygiene products, sanitation facilities, or cleaning supplies."
+Example: "Need sanitation supplies for a temporary shelter."
+` },
+            ],
+          },
+        ],
+      });
+
+      const result = await chatSession.sendMessage(description);
+      const category = result.response?.text?.();
+
+      if (!category) {
+        throw new Error("No category returned from Generative AI model");
+      }
+      setCategory(category.trim())
+      return category.trim();
+    } catch (error) {
+      console.error("Error classifying text: ", error);
+      return "Unknown";
+    }
+  };
     const reportData = {
       location,
       title,
@@ -259,6 +377,7 @@ export default function ReportIncident() {
       contact,
       images: imageUrls,
       date: formattedDate,
+      category,
     };
     try {
       const docRef = await addDoc(collection(db, "incidents"), reportData);
@@ -338,7 +457,7 @@ export default function ReportIncident() {
 
   async function registerForPushNotificationsAsync() {
     let token;
-  
+
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", {
         name: "default",
@@ -347,9 +466,10 @@ export default function ReportIncident() {
         lightColor: "#FF231F7C",
       });
     }
-  
+
     if (Constants.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
@@ -364,14 +484,16 @@ export default function ReportIncident() {
     } else {
       alert("Must use physical device for Push Notifications");
     }
-  
+
     return token;
   }
-  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f0f0", padding: 16 }}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 16 }}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={{ marginBottom: 16 }}
+      >
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons name="chevron-back" size={24} color="black" />
           <Text>Back</Text>
@@ -380,13 +502,24 @@ export default function ReportIncident() {
       <ScrollView>
         <Text style={{ marginBottom: 8 }}>Title</Text>
         <TextInput
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
           value={title}
           onChangeText={setTitle}
           placeholder="Enter a title*"
         />
         <Text style={{ marginBottom: 8 }}>Severity</Text>
-        <View style={{ backgroundColor: "white", borderRadius: 8, marginBottom: 16 }}>
+        <View
+          style={{
+            backgroundColor: "white",
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
+        >
           <Picker
             selectedValue={severity}
             onValueChange={(itemValue) => setSeverity(itemValue)}
@@ -399,7 +532,13 @@ export default function ReportIncident() {
 
         <Text style={{ marginBottom: 8 }}>Description</Text>
         <TextInput
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16, height: 120 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+            height: 120,
+          }}
           value={description}
           onChangeText={setDescription}
           placeholder="Enter description*"
@@ -408,7 +547,12 @@ export default function ReportIncident() {
 
         <Text style={{ marginBottom: 8 }}>Contact Information</Text>
         <TextInput
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
           value={contact}
           onChangeText={setContact}
           placeholder="Enter suitable contact details"
@@ -416,7 +560,12 @@ export default function ReportIncident() {
 
         <Text style={{ marginBottom: 8 }}>Date</Text>
         <TouchableOpacity
-          style={{ backgroundColor: "white", padding: 8, borderRadius: 8, marginBottom: 16 }}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+            borderRadius: 8,
+            marginBottom: 16,
+          }}
           onPress={showDatePicker}
         >
           <Text>{date.toISOString().split("T")[0]}</Text>
@@ -428,7 +577,7 @@ export default function ReportIncident() {
           onCancel={hideDatePicker}
         />
 
-<TouchableOpacity
+        <TouchableOpacity
           activeOpacity={0.7}
           className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
           onPress={pickImage}
@@ -438,18 +587,6 @@ export default function ReportIncident() {
             Attach Photos/Videos
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
-          onPress={takePhoto}
-        >
-          <Ionicons name="camera-outline" size={24} color="black" />
-          <Text className="text-black text-center ml-2">
-            Take a Photo
-          </Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           activeOpacity={0.7}
           className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
@@ -469,7 +606,14 @@ export default function ReportIncident() {
                 style={{ width: 100, height: 100, borderRadius: 8 }}
               />
               <TouchableOpacity
-                style={{ position: "absolute", top: 4, right: 4, backgroundColor: "rgba(0,0,0,0.5)", padding: 4, borderRadius: 8 }}
+                style={{
+                  position: "absolute",
+                  top: 4,
+                  right: 4,
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  padding: 4,
+                  borderRadius: 8,
+                }}
                 onPress={() => removeImage(index)}
               >
                 <Ionicons name="close" size={16} color="white" />
@@ -496,13 +640,22 @@ export default function ReportIncident() {
         </View>
 
         <TouchableOpacity
-          style={{ backgroundColor: "#444", padding: 16, borderRadius: 8, marginBottom: 16, alignItems: "center" }}
+          style={{
+            backgroundColor: "#000",
+            padding: 16,
+            borderRadius: 8,
+            marginBottom: 16,
+            alignItems: "center",
+          }}
           onPress={submitReport}
+          activeOpacity={0.8}
         >
           {loading ? (
             <ActivityIndicator size="small" color="white" />
           ) : (
-            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>Submit Report</Text>
+            <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+              Submit Report
+            </Text>
           )}
         </TouchableOpacity>
       </ScrollView>
