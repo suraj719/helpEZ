@@ -8,8 +8,6 @@ import {
   Image,
   ScrollView,
   ImageBackground,
-  ScrollView,
-  ImageBackground,
 } from "react-native";
 import app from "../utils/firebase";
 import {
@@ -27,7 +25,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
 
 export default function Register() {
-  const [isChecked, setIsChecked] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const { t } = useTranslation();
   const navigation = useNavigation();
@@ -102,11 +99,9 @@ export default function Register() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Image
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/512/271/271220.png",
-            }}
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}
             style={styles.backIcon}
           />
         </TouchableOpacity>
@@ -222,23 +217,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
-    flex: 1,
-    paddingLeft: 8,
-  },
-  termsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  checkbox: {
-    margin: 0,
-    padding: 0,
-  },
-  termsText: {
-    fontSize: 16,
-    flex: 1,
-    paddingLeft: 8,
+    fontWeight: "bold",
   },
   termsContainer: {
     flexDirection: "row",
