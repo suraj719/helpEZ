@@ -70,7 +70,9 @@ const VolunteerSignup = () => {
     const fetchIncidents = async () => {
       try {
         const querySnapshot = await getDocs(collection(firestore, 'incidents'));
+
         const incidentsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        {console.log(incidentsList);}
         setIncidents(incidentsList);
       } catch (error) {
         console.error("Error fetching incidents:", error);
