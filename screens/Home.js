@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TextInput, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
+import { useFonts } from 'expo-font';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,7 +12,14 @@ import Incidents from './Incidents';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
 
-export default function Home() {
+const Home = () => {
+  const [fontsLoaded] = useFonts({
+    'NotoSans-Regular': require('../assets/fonts/NotoSans-VariableFont_wdth,wght.ttf'),
+    'NotoSans-Bold': require('../assets/fonts/NotoSans-Italic-VariableFont_wdth,wght.ttf'),
+    'PublicSans-Regular': require('../assets/fonts/PublicSans-VariableFont_wght.ttf'),
+    'PublicSans-Bold': require('../assets/fonts/PublicSans-Italic-VariableFont_wght.ttf'),
+  });
+
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const [newNotifications, setNewNotifications] = useState(false);
@@ -73,12 +82,21 @@ export default function Home() {
     setSelectedLanguage(lang);
   };
 
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
-    <ImageBackground
-      source={require("../assets/images/temp.png")}
-      style={{ width: "100%", height: "100%" }}
-    >
+    <ScrollView style={styles.container}>
       <View style={styles.header}>
+        <Text style={styles.headerTitle}>HelpEZ</Text>
+        <View style={styles.headerButton}>
+        <View>
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => {
@@ -92,260 +110,80 @@ export default function Home() {
             color="black" 
           />
         </TouchableOpacity>
-        <View style={styles.container}>
-          <LanguageSwitch 
-            ref={languageSwitchRef} 
-            switchLanguage={switchLanguage} 
-            selectedLanguage={selectedLanguage} 
-          />
+      </View>
         </View>
       </View>
 
-
-      <View style={styles.content}>
-        <Text style={styles.title}>
+      <View style={styles.profileSection}>
+        <View style={styles.profile}>
+          <ImageBackground
+            style={styles.profileImage}
+            source={{ uri: 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png' }}
+          />
+          <View style={styles.profileText}>
+          <Text style={styles.title}>
           {t('hello')}, {userName ? userName : t('user')}
         </Text>
-
-        <View style={styles.searchContainer}>
-          <Image
-            source={require("../assets/images/search.png")}
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder={t('search')}
-            style={styles.searchInput}
-          />
+            <Text style={styles.status}>You are in a safe area.</Text>
+          </View>
         </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.scrollContainer}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Incidents")}
-            style={styles.scrollItem}
-          >
-            <Image
-              source={require("../assets/images/p.png")}
-              style={styles.scrollItemImage}
-            />
-          </TouchableOpacity>
-
-          <View style={[styles.scrollItem, styles.scrollItemTrain]}>
-            <Ionicons name="train" color="white" size={32} />
-          </View>
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              height: 66,
-              width: 66,
-              borderRadius: 50,
-              backgroundColor: "#ffa06c",
-            }}
-          >
-            <Ionicons name="bus" color="white" size={32} />
-          </View>
-
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              height: 66,
-              width: 66,
-              borderRadius: 50,
-              backgroundColor: "#bb32fe",
-              marginLeft: 22,
-            }}
-          >
-             <Ionicons name="bus" color="white" size={32} />
-          </View>
-        </ScrollView>
-
-        <Text
-          style={{
-            color: "black",
-            fontFamily: "RobotoRegular",
-            marginTop: 50,
-            fontSize: 20, 
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            letterSpacing: 1,
-            textAlign: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.8,
-            shadowRadius: 2,
-            elevation: 5,
-          }}
-        >
-          {t('recommended')}
-        </Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginHorizontal: -40, marginTop: 30 }}
-        >
-          <View
-            style={{
-              backgroundColor: "#FEFEFE",
-              height: 200,
-              width: 190,
-              borderRadius: 15,
-              padding: 5,
-            }}
-          >
-            <Image
-              source={require("../assets/images/1.jpg")}
-              style={{ width: 180, borderRadius: 10, height: 130 }}
-            />
-            <View
-              style={{
-                flexDirection: "row",
-                width: 150,
-                alignItems: "center",
-              }}
-            >
-              <View
-                style={{
-                  paddingHorizontal: 5,
-                  paddingVertical: 5,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "RobotoRegular",
-                    fontSize: 11,
-                    color: "#a2a2db",
-                  }}
-                >
-                  {t('image_description_1')}
-                </Text>
-              </View>
-              <Ionicons name="location-outline" size={25} color="#ff5c83" />
-            </View>
-          </View>
-
-          <View
-            style={{
-              backgroundColor: "#FEFEFE",
-              height: 200,
-              width: 190,
-              borderRadius: 15,
-              padding: 5,
-              marginHorizontal: 20,
-            }}
-          >
-            <Image
-              source={require("../assets/images/2.jpg")}
-              style={{ width: 180, borderRadius: 10, height: 130 }}
-            />
-            <View
-              style={{
-                flexDirection: "row",
-                width: 150,
-                alignItems: "center",
-              }}
-            >
-              <View
-                style={{
-                  paddingHorizontal: 5,
-                  paddingVertical: 5,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "RobotoRegular",
-                    fontSize: 11,
-                    color: "#a2a2db",
-                  }}
-                >
-                  {t('image_description_2')}
-                </Text>
-              </View>
-              <Ionicons name="location-outline" size={25} color="#5facdb" />
-            </View>
-          </View>
-
-          <View
-            style={{
-              backgroundColor: "#FEFEFE",
-              height: 200,
-              width: 190,
-              borderRadius: 15,
-              padding: 5,
-            }}
-          >
-            <Image
-              source={require("../assets/images/3.jpg")}
-              style={{ width: 180, borderRadius: 10, height: 130 }}
-            />
-            <View
-              style={{
-                flexDirection: "row",
-                width: 150,
-                alignItems: "center",
-              }}
-            >
-              <View
-                style={{
-                  paddingHorizontal: 5,
-                  paddingVertical: 5,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: "RobotoRegular",
-                    fontSize: 11,
-                    color: "#a2a2db",
-                  }}
-                >
-                  Lorem ipsum dolor sit amet, consectetuer adipiscing elit,
-                </Text>
-              </View>
-              <Ionicons name="location-outline" size={25} color="#bb32fe" />
-            </View>
-          </View>
-        </ScrollView>
       </View>
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+
+      <Text style={styles.sectionTitle}>Quick Access</Text>
+      <View style={styles.quickAccessSection}>
+        <QuickAccessCard title="Report Incident" imageUrl="https://cdn.usegalileo.ai/stability/16d1a4dc-e978-4f52-bc09-9df8bcee6adc.png" />
+        <QuickAccessCard title="Request Help" imageUrl="https://cdn.usegalileo.ai/sdxl10/ff21b330-4886-4c44-ac3d-44fdcdc78bb1.png" />
+        <QuickAccessCard title="Volunteer Signup" imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png" />
+      </View>
+
+      <Text style={styles.sectionTitle}>Recent Incidents</Text>
+      <IncidentCard title="Red flag warning" time="1 hour ago" location="San Francisco Bay Area" />
+      <IncidentCard title="Heatwave warning" time="5 hours ago" location="Los Angeles" />
+      <IncidentCard title="Tsunami alert" time="12 hours ago" location="Hawaii" />
+
+      <Text style={styles.sectionTitle}>Resources</Text>
+      <View style={styles.resourceSection}>
+        <ImageBackground
+          style={styles.resourceImage}
+          source={{ uri: 'https://cdn.usegalileo.ai/maps/837c0b68-3005-4200-b222-e94625e368ee.png' }}
+        />
+      </View>
+    </ScrollView>
+  );
+};
+
+const QuickAccessCard = ({ title, imageUrl }) => {
+  return (
+    <ImageBackground
+      style={styles.quickAccessCard}
+      source={{ uri: imageUrl }}
+      imageStyle={styles.cardImage}
+    >
+      <View style={styles.cardTextContainer}>
+        <Text style={styles.cardText}>{title}</Text>
+      </View>
     </ImageBackground>
   );
-}
+};
+
+const IncidentCard = ({ title, time, location }) => {
+  return (
+    <View style={styles.incidentCard}>
+      <View style={styles.incidentCardText}>
+        <Text style={styles.incidentTitle}>{title}</Text>
+        <Text style={styles.incidentTime}>{time}</Text>
+        <Text style={styles.incidentLocation}>{location}</Text>
+      </View>
+      <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   notificationButton: {
     position: 'absolute',
     top: 10,
     right: 20,
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  languageSwitch: {
-    flexDirection: 'row',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 25,
-    padding: 4,
-  },
-  languageButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  languageButtonSelected: {
-    backgroundColor: '#007bff',
-  },
-  languageButtonText: {
-    color: '#000',
-    fontSize: 16,
-  },
-  languageButtonTextSelected: {
-    color: '#fff',
   },
   header: {
     flexDirection: "row",
@@ -377,51 +215,154 @@ const styles = StyleSheet.create({
   languageButtonTextSelected: {
     color: '#fff',
   },
-  content: {
-    paddingHorizontal: 40,
-    marginTop: 25,
-  },
   title: {
     fontSize: 40,
     color: "black",
     fontFamily: "RobotoBold",
   },
-  searchContainer: {
-    flexDirection: "row",
-    backgroundColor: "#FFF",
-    borderRadius: 40,
-    alignItems: "center",
+  languageSwitch: {
+    flexDirection: 'row',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 25,
+    padding: 4,
+  },
+  languageButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    marginTop: 30,
+    borderRadius: 20,
   },
-  searchIcon: {
-    height: 20,
-    width: 16,
+  languageButtonSelected: {
+    backgroundColor: '#007bff',
   },
-  searchInput: {
-    paddingHorizontal: 20,
-    fontSize: 15,
-    color: "#ccccef",
+  languageButtonText: {
+    color: '#000',
+    fontSize: 16,
   },
-  scrollContainer: {
-    marginRight: -40,
-    marginTop: 30,
+  languageButtonTextSelected: {
+    color: '#fff',
   },
-  scrollItem: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 66,
-    width: 66,
-    borderRadius: 50,
-    backgroundColor: "#5facdb",
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  scrollItemTrain: {
-    backgroundColor: "#ff5c83",
-    marginHorizontal: 22,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  scrollItemImage: {
-    height: 24,
-    width: 24,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    padding: 16,
   },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+    paddingLeft: 48,
+  },
+  headerButton: {
+    width: 48,
+    alignItems: 'flex-end',
+  },
+  button: {
+    padding: 8,
+  },
+  profileSection: {
+    padding: 16,
+  },
+  profile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 128,
+    height: 128,
+    borderRadius: 64,
+  },
+  profileText: {
+    marginLeft: 16,
+  },
+  greeting: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  status: {
+    color: '#6B6B6B',
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    paddingLeft: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  quickAccessSection: {
+    padding: 16,
+  },
+  quickAccessCard: {
+    height: 200,
+    marginBottom: 16,
+    justifyContent: 'flex-end',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  cardImage: {
+    borderRadius: 16,
+  },
+  cardTextContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    padding: 16,
+  },
+  cardText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  incidentCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  incidentCardText: {
+    flex: 1,
+  },
+  incidentTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  incidentTime: {
+    color: '#6B6B6B',
+    fontSize: 14,
+  },
+  incidentLocation: {
+    color: '#6B6B6B',
+    fontSize: 14,
+  },
+  resourceSection: {
+    padding: 16,
+  },
+  resourceImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+  },
+  languageSwitchContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  
 });
+
+export default Home;
