@@ -30,6 +30,7 @@ import {
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import Toast from "react-native-toast-message";
 import * as Notifications from "expo-notifications";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -59,6 +60,9 @@ export default function ReportIncident() {
 
   const notificationListener = useRef();
   const responseListener = useRef();
+
+  const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
+const genAI = new GoogleGenerativeAI(apiKey);
 
   useEffect(() => {
     registerForPushNotificationsAsync().then((token) =>
@@ -268,7 +272,7 @@ export default function ReportIncident() {
           {
             role: "user",
             parts: [
-              { text: type === "incident" ? 
+              { text: 
                   `Incident Categories and Training Prompts
 Natural Calamities:
 
@@ -310,46 +314,6 @@ Miscellaneous Incidents:
 
 Prompt: "Classify this incident as miscellaneous if the description does not fit into any specific category but requires attention or action."
 Example: "A large-scale public event caused traffic congestion and noise disturbances in the neighborhood."
-` : `Request Categories and Training Prompts
-Medical:
-
-Prompt: "Classify this request as a Medical request if the description involves the need for medical attention, supplies, or health-related assistance."
-Example: "Urgent need for medical supplies for injured victims."
-
-Food Resources:
-
-Prompt: "Classify this request as a Food Resources request if the description involves the need for food, water, or nutrition-related assistance."
-Example: "Requesting food and clean water for a community affected by the disaster."
-
-Clothing:
-
-Prompt: "Classify this request as a Clothing request if the description involves the need for clothes, blankets, or similar items."
-Example: "Need warm clothing for families displaced by the flood."
-
-Technical Support:
-
-Prompt: "Classify this request as a Technical Support request if the description involves the need for technical assistance, equipment, or services."
-Example: "Requesting technical support to restore communication lines."
-
-Rescue and Safety:
-
-Prompt: "Classify this request as a Rescue and Safety request if the description involves rescue operations, safety measures, or evacuation assistance."
-Example: "Requesting evacuation assistance due to flooding."
-
-Shelter and Housing:
-
-Prompt: "Classify this request as a Shelter and Housing request if the description involves the need for temporary shelter, housing assistance, or relocation support."
-Example: "Need temporary shelter for a family displaced by a fire."
-
-Transportation:
-
-Prompt: "Classify this request as a Transportation request if the description involves the need for transportation services, vehicle support, or travel assistance."
-Example: "Requesting transportation to a medical facility."
-
-Hygiene and Sanitation:
-
-Prompt: "Classify this request as a Hygiene and Sanitation request if the description involves the need for hygiene products, sanitation facilities, or cleaning supplies."
-Example: "Need sanitation supplies for a temporary shelter."
 ` },
             ],
           },
