@@ -29,8 +29,7 @@ import Analytics from "./DashBoardAnalytics";
 
 const Drawer = createDrawerNavigator();
 
-const CustomDrawerContent = (props) => {
-  const { t } = useTranslation();  // Initialize useTranslation hook
+const CustomDrawerContent = (props) => { // Initialize useTranslation hook
   const [userName, setUserName] = useState("");
   const [userPhoneNumber, setUserPhoneNumber] = useState("");
   const { t } = useTranslation();
