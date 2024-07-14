@@ -21,6 +21,7 @@ import RegisterDetails from "./RegisterDetails";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from 'react-i18next';
 
 export default function Register() {
   const { t } = useTranslation();
