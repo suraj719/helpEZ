@@ -437,18 +437,6 @@ export default function ReportIncident() {
             Attach Photos/Videos
           </Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
-          onPress={takePhoto}
-        >
-          <Ionicons name="camera-outline" size={24} color="black" />
-          <Text className="text-black text-center ml-2">
-            Take a Photo
-          </Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           activeOpacity={0.7}
           className="border-2 p-4 rounded mt-4 flex flex-row justify-center items-center"
