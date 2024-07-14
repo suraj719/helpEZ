@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const ResourceCard = ({ title, fromLocation, toLocation, truckStartedTime }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.card}>
       <View style={styles.header}>

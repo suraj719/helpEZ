@@ -9,6 +9,7 @@ import { firestore } from '../utils/firebase'; // Adjust the import path as per 
 
 
 export default function Nearby() {
+  const { t } = useTranslation();
   const [region, setRegion] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);

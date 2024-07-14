@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -64,6 +65,7 @@ const CustomDrawerContent = (props) => {
 };
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   return (
     <SafeAreaView style={styles.safeArea}>
       <Drawer.Navigator
@@ -82,16 +84,16 @@ const Dashboard = () => {
           drawerInactiveBackgroundColor: "#e6e6e6",
         }}
       >
-        {/* Existing screens */}
         <Drawer.Screen
-          name="Home"
-          component={Home}
-          options={{
-            drawerIcon: ({ color }) => (
-              <Icon name="home-outline" size={22} color={color} />
-            ),
-          }}
-        />
+  name={t('Home')}
+  component={Home}
+  options={{
+    drawerIcon: ({ color }) => (
+      <Icon name="home-outline" size={22} color={color} />
+    ),
+  }}
+/>
+
         <Drawer.Screen
           name="Nearby"
           component={Nearby}

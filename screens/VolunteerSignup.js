@@ -9,6 +9,7 @@ import axios from 'axios';
 import { firestore } from '../utils/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -19,6 +20,7 @@ Notifications.setNotificationHandler({
 });
 
 const VolunteerSignup = () => {
+  const { t } = useTranslation();
   const [incidents, setIncidents] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState("");
   const [age, setAge] = useState("");
@@ -137,8 +139,8 @@ const VolunteerSignup = () => {
       Alert.alert('Success', 'Volunteer details submitted successfully');
 
       const notificationContent = {
-        title: 'Role Updated!',
-        body: `Name: ${name}\nRole: ${role}\nIncident: ${selectedIncident}`,
+        title: t('Role Updated!'),
+        body: `${t('Name')}: ${name}\n${t('Role')}: ${role}\n${t('Incident')}: ${selectedIncident}`,
         data: { name, age, incident: selectedIncident },
       };
 
@@ -162,14 +164,14 @@ const VolunteerSignup = () => {
         });
 
         console.log('User details updated successfully');
-        Alert.alert('Success', 'User details updated successfully');
+        Alert.alert(t('Success'), t('User details updated successfully'));
       } else {
         console.error('User document not found');
-        Alert.alert('Error', 'User document not found');
+        Alert.alert(t('Error'), t('User document not found'));
       }
     } catch (error) {
       console.error('Error submitting volunteer details:', error);
-      Alert.alert('Error', 'Failed to submit volunteer details');
+      Alert.alert(t('Error'), t('Failed to submit volunteer details'));
     }
   };
 
@@ -200,13 +202,13 @@ const VolunteerSignup = () => {
         finalStatus = status;
       }
       if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
+        alert(t('Failed to get push token for push notification!'));
         return;
       }
       token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log(token);
     } else {
-      alert('Must use physical device for Push Notifications');
+      alert(t('Must use physical device for Push Notifications'));
     }
 
     return token;
@@ -215,7 +217,7 @@ const VolunteerSignup = () => {
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      console.warn('Location permission denied');
+      console.warn(t('Location permission denied'));
       return;
     }
 
@@ -245,8 +247,8 @@ const VolunteerSignup = () => {
         let areaName = `${village}, ${state}`;
         setLocation(areaName);
       } else {
-        console.warn('No address components found');
-        Alert.alert('Location Not Found', 'Unable to fetch location details');
+        console.warn(t('No address components found'));
+        Alert.alert(t('Location Not Found'), t('Unable to fetch location details'));
       }
     } catch (error) {
       console.error('Error fetching location:', error);

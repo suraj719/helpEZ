@@ -13,6 +13,7 @@ import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
 
 export default function Incidents() {
+  const { t } = useTranslation();
   const navigate = useNavigation();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);

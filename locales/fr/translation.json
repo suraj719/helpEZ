@@ -1,0 +1,27 @@
+{
+    "hello": "Bonjour",
+    "search": "Recherche",
+    "recommended": "Recommandé",
+    "new_incidents_detected": "Nouveaux incidents détectés",
+    "check_notifications_tab": "Vérifiez vos notifications",
+    "user": "Utilisateur",
+    "image_description_1": "Beau paysage",
+    "image_description_2": "Monument historique",
+    "incidents": "Incidents",
+    "volunteers": "Bénévoles",
+    "report_incident": "Signaler un incident",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter",
+    "welcome_back": "Content de te revoir",
+    "language": "Langue",
+    "change_language": "Changer de langue",
+    "profile": "Profil",
+    "notifications": "Notifications",
+    "no_new_notifications": "Aucune nouvelle notification",
+    "emergency_contacts": "Contacts d'urgence",
+    "help_center": "Centre d'aide",
+    "privacy_policy": "Politique de confidentialité",
+    "terms_of_service": "Conditions d'utilisation",
+    "about_us": "À propos de nous"
+  }
+  

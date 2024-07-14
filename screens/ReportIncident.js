@@ -40,6 +40,7 @@ Notifications.setNotificationHandler({
 });
 
 export default function ReportIncident() {
+  const { t } = useTranslation();
   const storage = getStorage(app);
   const db = getFirestore(app);
   const navigation = useNavigation();

@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, ScrollView, ActivityIndicato
 import axios from 'axios';
 
 const MedicineInfoScreen = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [medicineInfo, setMedicineInfo] = useState(null);
   const [loading, setLoading] = useState(false);

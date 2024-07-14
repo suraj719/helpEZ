@@ -4,6 +4,7 @@ import { useNavigation, CommonActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Logout() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
 
   const handleLogout = async () => {
