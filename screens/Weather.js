@@ -13,6 +13,8 @@ import Toast from "react-native-toast-message";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { weatherIconMap } from "../utils/weatherIcons";
+import { useTranslation } from 'react-i18next';
+
 const API_KEY_OPENWEATHER = "77003d306b25e391aca3f6d95268b3ed";
 const API_KEY_MISTRAL = "A76fl5FgS8vEmyujewq3TGPUdLJ7QtWF";
 

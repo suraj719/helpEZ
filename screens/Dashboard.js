@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -14,12 +13,12 @@ import {
   DrawerItemList,
 } from "@react-navigation/drawer";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';  // Import useTranslation
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
 import Logout from "./Logout";
 import Incidents from "./Incidents";
-import RequestResources from "./RequestResources";
 import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
@@ -30,16 +29,17 @@ import Analytics from "./DashBoardAnalytics";
 
 const Drawer = createDrawerNavigator();
 
-const CustomDrawerContent = (props) => {
+const CustomDrawerContent = (props) => { // Initialize useTranslation hook
   const [userName, setUserName] = useState("");
   const [userPhoneNumber, setUserPhoneNumber] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchUserData = async () => {
       const name = await AsyncStorage.getItem("name");
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
-      setUserName(name || "Guest");
-      setUserPhoneNumber(phoneNumber || "Unknown");
+      setUserName(name || t('guest'));
+      setUserPhoneNumber(phoneNumber || t('unknown'));
     };
 
     fetchUserData();
@@ -65,7 +65,7 @@ const CustomDrawerContent = (props) => {
 };
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation();  // Initialize useTranslation hook
   return (
     <SafeAreaView style={styles.safeArea}>
       <Drawer.Navigator
@@ -85,17 +85,17 @@ const Dashboard = () => {
         }}
       >
         <Drawer.Screen
-  name={t('Home')}
-  component={Home}
-  options={{
-    drawerIcon: ({ color }) => (
-      <Icon name="home-outline" size={22} color={color} />
-    ),
-  }}
-/>
+          name={t('Home')}
+          component={Home}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="home-outline" size={22} color={color} />
+            ),
+          }}
+        />
 
         <Drawer.Screen
-          name="Nearby"
+          name={t('Nearby')}
           component={Nearby}
           options={{
             drawerIcon: ({ color }) => (
@@ -104,7 +104,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="Weather"
+          name={t('Weather')}
           component={Weather}
           options={{
             drawerIcon: ({ color }) => (
@@ -113,7 +113,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="Family"
+          name={t('Family')}
           component={Family}
           options={{
             drawerIcon: ({ color }) => (
@@ -122,7 +122,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="Incidents"
+          name={t('Incidents')}
           component={Incidents}
           options={{
             drawerIcon: ({ color }) => (
@@ -131,7 +131,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="Requests"
+          name={t('Requests')}
           component={Requests}
           options={{
             drawerIcon: ({ color }) => (
@@ -140,7 +140,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen 
-          name="VolunteerSignup" 
+          name={t('VolunteerSignup')} 
           component={VolunteerSignup}
           options={{
             drawerIcon: ({ color }) => (
@@ -149,7 +149,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="ResourcesTracking"
+          name={t('ResourcesTracking')}
           component={ResourcesTrackingScreen}
           options={{
             drawerIcon: ({ color }) => (
@@ -159,7 +159,7 @@ const Dashboard = () => {
         />
 
         <Drawer.Screen
-          name="MedicineInfo"
+          name={t('MedicineInfo')}
           component={MedicineInfoScreen}
           options={{
             drawerIcon: ({ color }) => (
@@ -168,7 +168,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="Logout"
+          name={t('Logout')}
           component={Logout}
           options={{
             drawerIcon: ({ color }) => (
@@ -177,7 +177,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="Analytics"
+          name={t('Analytics')}
           component={Analytics}
           options={{
             drawerIcon: ({ color }) => (
@@ -186,7 +186,7 @@ const Dashboard = () => {
           }}
         />
          <Drawer.Screen
-          name="Profile"
+          name={t('Profile')}
           component={ProfileScreen}
           options={{
             drawerIcon: ({ color }) => (

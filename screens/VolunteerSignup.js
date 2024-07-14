@@ -19,6 +19,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
+
 const VolunteerSignup = () => {
   const { t } = useTranslation();
   const [incidents, setIncidents] = useState([]);

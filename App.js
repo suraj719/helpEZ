@@ -25,9 +25,9 @@ import VolunteerSignup from "./screens/VolunteerSignup";
 import Home from "./screens/Home";
 import Notifications from "./screens/Notifications";
 import ResourceRouteScreen from "./screens/ResourceRouteScreen";
-import { I18nextProvider } from "react-i18next";
-import i18n from "./screens/i18n";
-import RegisterDetails from "./screens/RegisterDetails";
+import GalileoDesign from './screens/GalileoDesign';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './screens/i18n';
 
 const Stack = createStackNavigator();
 
@@ -60,34 +60,20 @@ const App = () => {
               screenOptions={{
                 headerShown: false,
               }}
+              initialRouteName="GalileoDesign"
             >
+              <Stack.Screen name="GalileoDesign" component={GalileoDesign} />
               <Stack.Screen name="Register" component={Register} />
-              <Stack.Screen
-                name="RegisterDetails"
-                component={RegisterDetails}
-              />
               <Stack.Screen name="Dashboard" component={Dashboard} />
               <Stack.Screen name="ReportIncident" component={ReportIncident} />
-              <Stack.Screen
-                name="IncidentDetails"
-                component={IncidentDetails}
-              />
-              <Stack.Screen
-                name="RequestResources"
-                component={RequestResources}
-              />
+              <Stack.Screen name="IncidentDetails" component={IncidentDetails} />
+              <Stack.Screen name="RequestResources" component={RequestResources} />
               <Stack.Screen name="Family" component={Family} />
               <Stack.Screen name="ChatScreen" component={ChatScreen} />
-              <Stack.Screen
-                name="VolunteerSignup"
-                component={VolunteerSignup}
-              />
-              <Stack.Screen name={t("Home")} component={Home} />
+              <Stack.Screen name="VolunteerSignup" component={VolunteerSignup} />
+              <Stack.Screen name={t('Home')} component={Home} />
               <Stack.Screen name="Notifications" component={Notifications} />
-              <Stack.Screen
-                name="ResourceRouteScreen"
-                component={ResourceRouteScreen}
-              />
+              <Stack.Screen name="ResourceRouteScreen" component={ResourceRouteScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         </SafeAreaView>

@@ -7,6 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, addDoc, query, orderBy, where, onSnapshot, getFirestore, serverTimestamp } from 'firebase/firestore';
 import CryptoJS from 'crypto-js';
 import app from '../utils/firebase';
+import { useTranslation } from 'react-i18next';
 
 const ChatScreen = ({ route }) => {
   const { t } = useTranslation();

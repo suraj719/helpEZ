@@ -99,11 +99,9 @@ export default function Register() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Image
-            source={{
-              uri: "https://cdn-icons-png.flaticon.com/512/271/271220.png",
-            }}
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}
             style={styles.backIcon}
           />
         </TouchableOpacity>
