@@ -4,10 +4,10 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
   Image,
-  ImageBackground, // Import ImageBackground component
+  ScrollView,
+  ImageBackground,
 } from "react-native";
 import app from "../utils/firebase";
 import {
@@ -17,13 +17,15 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import RegisterDetails from "./RegisterDetails";
+import { CheckBox } from 'react-native-elements';
+
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from 'react-i18next';
 
 export default function Register() {
+  const [isChecked, setIsChecked] = useState(false);
   const { t } = useTranslation();
   const navigation = useNavigation();
   const db = getFirestore(app);
@@ -51,6 +53,12 @@ export default function Register() {
 
     checkStoredUserData();
   }, []);
+
+  useEffect(() => {
+    if (isNewMember) {
+      navigation.navigate("RegisterDetails", { phoneNumber, name });
+    }
+  }, [isNewMember, navigation]); // Added navigation as a dependency
 
   const signInWithPhoneNumber = async () => {
     if (!phoneNumber || !name) {
@@ -87,125 +95,139 @@ export default function Register() {
     }
   };
 
-  const storeNameInStorage = async (name) => {
-    try {
-      await AsyncStorage.setItem("name", name);
-      setName(name);
-      console.log(`Name "${name}" stored successfully in AsyncStorage`);
-    } catch (error) {
-      console.error("Error storing name in AsyncStorage:", error);
-    }
-  };
-
   return (
-    <ImageBackground
-      source={require("../assets/images/Designer (1).png")} // Replace with your background image path
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#000" />
-        ) : isNewMember ? (
-          <RegisterDetails
-            changeNumber={setIsNewMember}
-            phoneNumber={phoneNumber}
+    <ScrollView contentContainerStyle={styles.container}>
+       <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Image
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}
+            style={styles.backIcon}
           />
-        ) : (
-          <View style={styles.authContainer}>
-            <Image source={require("../assets/logo.png")} style={styles.image} />
-            <Text style={styles.description}>
-              HelpEZ helps manage disasters efficiently by connecting people in
-              need with resources and assistance. Join us in making a difference.
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Your Name *"
-              placeholderTextColor="#888"
-            />
-            <TextInput
-              style={styles.input}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              placeholder="Phone Number *"
-              keyboardType="phone-pad"
-              placeholderTextColor="#888"
-            />
-            <TouchableOpacity
-              onPress={() => signInWithPhoneNumber()}
-              style={styles.button}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.buttonText}>Proceed</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        </TouchableOpacity>
       </View>
-    </ImageBackground>
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: 'https://cdn.usegalileo.ai/sdxl10/b27516fe-a579-4bdd-bd02-0f982549ccf0.png' }}
+          style={styles.image}
+        />
+      </View>
+      <Text style={styles.title}>Sign in or create an account.</Text>
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Name"
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholderTextColor="#6B6B6B"
+        />
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Phone number"
+          style={styles.input}
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          keyboardType="phone-pad"
+          placeholderTextColor="#6B6B6B"
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={signInWithPhoneNumber}>
+          <Text style={styles.buttonText}>Submit and verify</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.termsContainer}>
+        <CheckBox
+          containerStyle={styles.checkbox}
+          checked={isChecked}
+          onPress={() => setIsChecked(!isChecked)}
+        />
+        <Text style={styles.termsText}>
+          By continuing, you are indicating that you agree to the Terms of Service and Privacy Policy.
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: "100%",
-    height: "100%",
-  },
   container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Optional: Add a semi-transparent overlay
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
   },
-  authContainer: {
-    width: "85%",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 3,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    padding: 16,
+  },
+  backButton: {
+    width: 24,
+    height: 24,
+  },
+  backIcon: {
+    width: '100%',
+    height: '100%',
+  },
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 3 / 2,
   },
   image: {
-    alignSelf: "center",
-    width: 250,
-    height: 200,
-    marginBottom: 20,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
-  description: {
-    fontWeight: "600",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#333",
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  inputContainer: {
+    width: '90%',
+    marginVertical: 10,
   },
   input: {
-    height: 50,
+    height: 56,
+    borderColor: '#DEDEDE',
+    borderWidth: 1,
     borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 18,
-    backgroundColor: "#e8e8e8",
-    marginBottom: 20,
-    color: "#333",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    color: '#000000',
+  },
+  buttonContainer: {
+    width: '90%',
+    marginVertical: 10,
   },
   button: {
-    backgroundColor: "#000",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignItems: "center",
+    backgroundColor: '#000000',
+    borderRadius: 10,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
-    color: "#fff",
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  checkbox: {
+    margin: 0,
+    padding: 0,
+  },
+  termsText: {
+    fontSize: 16,
+    flex: 1,
+    paddingLeft: 8,
   },
 });

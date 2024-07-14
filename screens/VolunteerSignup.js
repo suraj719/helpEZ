@@ -19,6 +19,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
+
 const VolunteerSignup = () => {
   const { t } = useTranslation();
   const [incidents, setIncidents] = useState([]);
@@ -267,6 +268,7 @@ const VolunteerSignup = () => {
             <Picker.Item key={incident.id} label={incident.title} value={incident.title} />
           ))}
         </Picker>
+
 
         <TextInput
           style={styles.input}
