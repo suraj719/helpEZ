@@ -15,7 +15,7 @@ export default function Logout() {
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
-          routes: [{ name: "Register" }],
+          routes: [{ name: "GalileoDesign" }],
         })
       );
     } catch (error) {

@@ -27,7 +27,7 @@ import * as Location from "expo-location";
 import { useTranslation } from "react-i18next";
 
 export default function RegisterDetails({ route }) {
-  const { phoneNumber} = route.params;
+  const { phoneNumber } = route.params;
   const { t } = useTranslation();
   const navigation = useNavigation();
   const db = getFirestore(app);
@@ -103,6 +103,7 @@ export default function RegisterDetails({ route }) {
 
       // Store phone number in AsyncStorage
       await AsyncStorage.setItem("phoneNumber", phoneNumber);
+      await AsyncStorage.setItem("name", name);
 
       Toast.show({
         type: "success",
@@ -213,13 +214,13 @@ export default function RegisterDetails({ route }) {
             keyboardType="phone-pad"
           />
         </View>
-        {/* <TouchableOpacity
-          onPress={() => changeNumber(false)}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Register")}
           className="self-center mb-1.5"
           activeOpacity={0.7}
         >
           <Text className="text-[#3498db] text-sm">Change Phone Number</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
         <View className="mt-4">
           <TouchableOpacity
             onPress={() => createAccount()}
