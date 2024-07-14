@@ -1,23 +1,25 @@
 import React from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native"; // Import useNavigation hook
-import ResourceCard from "./ResourceCard"; // Import ResourceCard component
+import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from 'react-i18next';
+import ResourceCard from "./ResourceCard";
 
 const ResourcesTrackingScreen = () => {
-  const navigation = useNavigation(); // Hook into navigation object
+  const navigation = useNavigation();
+  const { t } = useTranslation();
 
   // Sample data for demonstration
   const resourcesData = [
     {
-      title: "Resource 1",
-      fromLocation: "Kamareddy",
-      toLocation: "Hyderabad",
+      title: t('resource1.title'),
+      fromLocation: t('resource1.fromLocation'),
+      toLocation: t('resource1.toLocation'),
       truckStartedTime: "2024-07-10 10:00 AM",
     },
     {
-      title: "Resource 2",
-      fromLocation: "Coimbatore",
-      toLocation: "Hyderabad",
+      title: t('resource2.title'),
+      fromLocation: t('resource2.fromLocation'),
+      toLocation: t('resource2.toLocation'),
       truckStartedTime: "2024-07-11 11:00 AM",
     },
     // Add more resource data as needed
@@ -26,8 +28,7 @@ const ResourcesTrackingScreen = () => {
   const handleResourceCardPress = (resource) => {
     navigation.navigate('ResourceRouteScreen', {
       curLoc: { latitude: 18.3197, longitude: 78.3506 },
-destinationCords: { latitude: 17.3850, longitude: 78.4867 }
- // Example coordinates, replace with actual data
+      destinationCords: { latitude: 17.3850, longitude: 78.4867 }
     });
   };
 

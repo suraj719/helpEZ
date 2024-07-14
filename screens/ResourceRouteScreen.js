@@ -13,6 +13,7 @@ const LATITUDE_DELTA = 0.04;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 const ResourceRouteScreen = ({ route }) => {
+    const { t } = useTranslation();
     const mapRef = useRef();
     const markerRef = useRef();
 

@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';  // Import the Ionicons
 
 export default function Notifications() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);

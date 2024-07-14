@@ -11,6 +11,7 @@ const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export default function Analytics() {
+  const { t } = useTranslation();
   const navigate = useNavigation();
   const [incidents, setIncidents] = useState([]);
   const [requests, setRequests] = useState([]);

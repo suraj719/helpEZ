@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 
 export default function IncidentDetails({ route }) {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const { incident } = route.params;
   const [modalVisible, setModalVisible] = useState(false);

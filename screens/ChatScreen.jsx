@@ -9,6 +9,7 @@ import CryptoJS from 'crypto-js';
 import app from '../utils/firebase';
 
 const ChatScreen = ({ route }) => {
+  const { t } = useTranslation();
   const { memberName, memberPhoneNumber } = route.params;
   const navigation = useNavigation();
   const db = getFirestore(app);

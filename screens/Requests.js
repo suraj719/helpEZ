@@ -19,6 +19,7 @@ import app from "../utils/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Requests() {
+  const { t } = useTranslation();
   const navigate = useNavigation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);

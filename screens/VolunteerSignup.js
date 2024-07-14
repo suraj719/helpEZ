@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput ,Platform} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
@@ -9,6 +9,7 @@ import axios from 'axios';
 import { firestore } from '../utils/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -19,6 +20,7 @@ Notifications.setNotificationHandler({
 });
 
 const VolunteerSignup = () => {
+  const { t } = useTranslation();
   const [incidents, setIncidents] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState("");
   const [age, setAge] = useState("");
@@ -75,20 +77,20 @@ const VolunteerSignup = () => {
   const assignRole = (incident, skills) => {
     // Example role assignment logic
     if (incident.includes('Fire') && skills.includes('Leadership')) {
-      return 'Fire Response Leader';
+      return t('Fire Response Leader');
     } else if (incident.includes('Flood') && skills.includes('Teamwork')) {
-      return 'Flood Relief Coordinator';
+      return t('Flood Relief Coordinator');
     } else if (incident.includes('Earthquake') && skills.includes('Project Management')) {
-      return 'Earthquake Relief Manager';
+      return t('Earthquake Relief Manager');
     } else {
-      return 'General Volunteer';
+      return t('General Volunteer');
     }
   };
       
   const handleSubmit = async () => {
     try {
       if (!selectedIncident || !age || !location || !skills || selectedSkills.length === 0) {
-        Alert.alert('Validation Error', 'Please fill in all required fields');
+        Alert.alert(t('Validation Error'), t('Please fill in all required fields'));
         return;
       }
   
@@ -96,7 +98,7 @@ const VolunteerSignup = () => {
       const role = assignRole(selectedIncident, selectedSkills);
   
       // Log the role to verify before proceeding
-      console.log('Assigned Role:', role);
+      console.log(t('Assigned Role'), role);
   
       // Set the assigned role state
       setAssignedRole(role);
@@ -113,11 +115,11 @@ const VolunteerSignup = () => {
         role
       });
   
-      Alert.alert('Success', 'Volunteer details submitted successfully');
+      Alert.alert(t('Success'), t('Volunteer details submitted successfully'));
 
       const notificationContent = {
-        title: 'Role Updated!',
-        body: `Name: ${name}\nRole: ${role}\nIncident: ${selectedIncident}`,
+        title: t('Role Updated!'),
+        body: `${t('Name')}: ${name}\n${t('Role')}: ${role}\n${t('Incident')}: ${selectedIncident}`,
         data: { name, age, incident: selectedIncident },
       };
 
@@ -142,14 +144,14 @@ const VolunteerSignup = () => {
         });
   
         console.log('User details updated successfully');
-        Alert.alert('Success', 'User details updated successfully');
+        Alert.alert(t('Success'), t('User details updated successfully'));
       } else {
         console.error('User document not found');
-        Alert.alert('Error', 'User document not found');
+        Alert.alert(t('Error'), t('User document not found'));
       }
     } catch (error) {
       console.error('Error submitting volunteer details:', error);
-      Alert.alert('Error', 'Failed to submit volunteer details');
+      Alert.alert(t('Error'), t('Failed to submit volunteer details'));
     }
   };
   
@@ -180,13 +182,13 @@ const VolunteerSignup = () => {
         finalStatus = status;
       }
       if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
+        alert(t('Failed to get push token for push notification!'));
         return;
       }
       token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log(token);
     } else {
-      alert('Must use physical device for Push Notifications');
+      alert(t('Must use physical device for Push Notifications'));
     }
 
     return token;
@@ -196,7 +198,7 @@ const VolunteerSignup = () => {
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      console.warn('Location permission denied');
+      console.warn(t('Location permission denied'));
       return;
     }
 
@@ -226,12 +228,12 @@ const VolunteerSignup = () => {
         let areaName = `${village}, ${state}`;
         setLocation(areaName);
       } else {
-        console.warn('No address components found');
-        Alert.alert('Location Not Found', 'Unable to fetch location details');
+        console.warn(t('No address components found'));
+        Alert.alert(t('Location Not Found'), t('Unable to fetch location details'));
       }
     } catch (error) {
       console.error('Error fetching location:', error);
-      Alert.alert('Error', 'Failed to fetch location details');
+      Alert.alert(t('Error'), t('Failed to fetch location details'));
     }
   };
 
@@ -250,17 +252,17 @@ const VolunteerSignup = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Volunteer Signup Page</Text>
+        <Text style={styles.title}>{t('Volunteer Signup Page')}</Text>
 
-        <Text style={styles.userInfo}>Name: {name}</Text>
-        <Text style={styles.userInfo}>Phone Number: {phoneNumber}</Text>
+        <Text style={styles.userInfo}>{t('name')}: {name}</Text>
+        <Text style={styles.userInfo}>{t('Phone Number')}: {phoneNumber}</Text>
 
         <Picker
           selectedValue={selectedIncident}
           style={styles.input}
           onValueChange={(itemValue) => setSelectedIncident(itemValue)}
         >
-          <Picker.Item label="Select Incident" value="" />
+          <Picker.Item label={t('Select Incident')} value="" />
           {incidents.map((incident) => (
             <Picker.Item key={incident.id} label={incident.title} value={incident.title} />
           ))}
@@ -280,7 +282,7 @@ const VolunteerSignup = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.label}>Skills:</Text>
+        <Text style={styles.label}>{t('Skills')}</Text>
         <Picker
           selectedValue={skills}
           style={styles.picker}

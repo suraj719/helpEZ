@@ -30,6 +30,7 @@ import * as geolib from "geolib";
 import { useNavigation } from "@react-navigation/native";
 
 const Family = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
 
   const [userPhoneNumber, setUserPhoneNumber] = useState("");

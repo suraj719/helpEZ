@@ -17,6 +17,7 @@ const API_KEY_OPENWEATHER = "77003d306b25e391aca3f6d95268b3ed";
 const API_KEY_MISTRAL = "A76fl5FgS8vEmyujewq3TGPUdLJ7QtWF";
 
 const Weather = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);

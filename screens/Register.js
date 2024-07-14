@@ -23,6 +23,7 @@ import Toast from "react-native-toast-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const db = getFirestore(app);
   const usersCollection = collection(db, "users");

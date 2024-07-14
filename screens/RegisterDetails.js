@@ -20,6 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from 'expo-location';
 
 export default function RegisterDetails({ phoneNumber, changeNumber }) {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const db = getFirestore(app);
   const usersCollection = collection(db, "users");

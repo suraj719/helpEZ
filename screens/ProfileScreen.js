@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
 
   return (
