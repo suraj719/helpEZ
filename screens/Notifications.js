@@ -24,17 +24,23 @@ export default function Notifications() {
 
   const fetchIncidents = async () => {
     setLoading(true);
+
+    // Fetch incidents from Firestore
     const snapshot = await getDocs(collection(db, "incidents"));
     const data = snapshot.docs.map((doc) => {
       const vals = doc.data();
       const id = doc.id;
       return { id, ...vals };
     });
-    setIncidents(data);
-    setLoading(false);
 
-    const incidentIds = snapshot.docs.map(doc => doc.id);
-    await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
+    // Fetch removed incidents from AsyncStorage
+    const removedIncidents = JSON.parse(await AsyncStorage.getItem('removedIncidents')) || [];
+
+    // Filter out removed incidents
+    const filteredData = data.filter(incident => !removedIncidents.includes(incident.id));
+
+    setIncidents(filteredData);
+    setLoading(false);
   };
 
   useFocusEffect(
@@ -55,8 +61,13 @@ export default function Notifications() {
     }, 1000);
   }, []);
 
-  const removeIncidentFromState = (id) => {
+  const removeIncidentFromState = async (id) => {
     setIncidents((prevIncidents) => prevIncidents.filter((incident) => incident.id !== id));
+
+    // Update AsyncStorage with the removed incident ID
+    const removedIncidents = JSON.parse(await AsyncStorage.getItem('removedIncidents')) || [];
+    removedIncidents.push(id);
+    await AsyncStorage.setItem('removedIncidents', JSON.stringify(removedIncidents));
   };
 
   const renderEventItem = ({ item }) => (
