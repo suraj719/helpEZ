@@ -23,7 +23,7 @@ import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen";
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
-
+import FlutterLink from "./FlutterLink";
 
 const Drawer = createDrawerNavigator();
 
@@ -45,7 +45,7 @@ const CustomDrawerContent = (props) => {
   return (
     <View style={styles.drawerContent}>
       <View style={styles.drawerHeader}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Image source={require("../assets/drawer.png")} style={styles.logo} />
         <Text style={styles.appName}>HelpEZ</Text>
       </View>
       <DrawerItemList {...props} />
@@ -144,7 +144,16 @@ const Dashboard = () => {
             ),
           }}
         />
-        <Drawer.Screen
+        <Drawer.Screen 
+          name="Linking" 
+          component={FlutterLink}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="account-plus-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        {/*<Drawer.Screen
           name="ResourcesTracking"
           component={ResourcesTrackingScreen}
           options={{
@@ -162,7 +171,7 @@ const Dashboard = () => {
               <Icon name="pill" size={22} color={color} />
             ),
           }}
-        />
+        />*/}
         <Drawer.Screen
           name="Logout"
           component={Logout}

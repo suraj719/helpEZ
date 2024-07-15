@@ -35,8 +35,17 @@
         "projectId": "cc61ff1b-787d-4de1-a695-198a37f34a8d"
       }
     },
+    "scheme": "bridgefysample",
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": true,
+          "modes": ["peripheral", "central"],
+          "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices"
+        }
+      ]
     ]
   }
 }
