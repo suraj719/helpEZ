@@ -6,6 +6,7 @@ import imagePath from './imagePath';
 import MapViewDirections from 'react-native-maps-directions';
 import Loader from './Loader';
 import { locationPermission, getCurrentLocation } from './helperFunction';
+import { useTranslation } from 'react-i18next';
 
 const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
@@ -13,6 +14,7 @@ const LATITUDE_DELTA = 0.04;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 const ResourceRouteScreen = ({ route }) => {
+    const { t } = useTranslation();
     const mapRef = useRef();
     const markerRef = useRef();
 

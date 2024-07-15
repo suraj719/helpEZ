@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 
 const ResourceCard = ({ title, fromLocation, toLocation, truckStartedTime }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.card}>
       <View style={styles.header}>

@@ -17,8 +17,10 @@ import {
 } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from 'react-i18next';
 
 export default function Requests() {
+  const { t } = useTranslation();
   const navigate = useNavigation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,11 +76,11 @@ export default function Requests() {
     >
       <View className="p-4">
         <Text className="text-lg font-bold text-gray-800">
-          {item.requirements}
+          {item.requestTitle}
         </Text>
-        {item?.additionalInfo && (
+        {item?.requestDescription && (
           <Text className="text-sm text-gray-600 my-1">
-            Additional Info: {item.additionalInfo}
+            Additional Info: {item.requestDescription}
           </Text>
         )}
         <Text className="text-sm text-gray-500">

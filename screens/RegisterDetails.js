@@ -9,7 +9,13 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
-import { addDoc, collection, getFirestore, updateDoc, doc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getFirestore,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import app from "../utils/firebase";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -17,9 +23,12 @@ import { Picker } from "@react-native-picker/picker";
 import Toast from "react-native-toast-message";
 import { useNavigation, CommonActions } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
+import { useTranslation } from "react-i18next";
 
-export default function RegisterDetails({ phoneNumber, changeNumber }) {
+export default function RegisterDetails({ route }) {
+  const { phoneNumber } = route.params;
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const db = getFirestore(app);
   const usersCollection = collection(db, "users");
@@ -55,7 +64,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       });
       return;
     }
-  
+
     const formattedDob = dob.toISOString().split("T")[0];
     const createdAt = new Date().toLocaleString();
     const userData = {
@@ -69,32 +78,33 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       isVolunteer: isVolunteer, // Include isVolunteer in user data
       role: "",
     };
-  
+
     setLoading(true);
     try {
       // Add user to Firestore
       const userDocRef = await addDoc(usersCollection, userData);
-  
+
       // Fetch current location
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        throw new Error('Location permission not granted');
+      if (status !== "granted") {
+        throw new Error("Location permission not granted");
       }
-  
+
       let location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-  
+
       // Update user document with location data
-      await updateDoc(doc(db, 'users', userDocRef.id), {
+      await updateDoc(doc(db, "users", userDocRef.id), {
         location: {
           latitude: latitude,
-          longitude: longitude
-        }
+          longitude: longitude,
+        },
       });
-  
+
       // Store phone number in AsyncStorage
       await AsyncStorage.setItem("phoneNumber", phoneNumber);
-  
+      await AsyncStorage.setItem("name", name);
+
       Toast.show({
         type: "success",
         text1: "Account created Successfully!",
@@ -115,7 +125,6 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
       setLoading(false);
     }
   };
-  
 
   const onChangeDate = (event, selectedDate) => {
     setShowDatePicker(Platform.OS === "ios");
@@ -206,7 +215,7 @@ export default function RegisterDetails({ phoneNumber, changeNumber }) {
           />
         </View>
         <TouchableOpacity
-          onPress={() => changeNumber(false)}
+          onPress={() => navigation.navigate("Register")}
           className="self-center mb-1.5"
           activeOpacity={0.7}
         >

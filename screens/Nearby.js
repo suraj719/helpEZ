@@ -6,9 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { firestore } from '../utils/firebase'; // Adjust the import path as per your project structure
-
+import { useTranslation } from 'react-i18next';
 
 export default function Nearby() {
+  const { t } = useTranslation();
   const [region, setRegion] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);

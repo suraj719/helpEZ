@@ -11,8 +11,11 @@ import {
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../utils/firebase";
+import { useTranslation } from 'react-i18next';
+
 
 export default function Incidents() {
+  const { t } = useTranslation();
   const navigate = useNavigation();
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);

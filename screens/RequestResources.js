@@ -18,15 +18,18 @@ import app from "../utils/firebase";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from 'react-i18next';
 
 export default function RequestResources() {
+  const { t } = useTranslation();
   const db = getFirestore(app);
   const navigation = useNavigation();
   const [location, setLocation] = useState(null);
   const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
   const [severity, setSeverity] = useState("Low");
-  const [requirements, setRequirements] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState("");
+  const [requestTitle, setrequestTitle] = useState("");
+  const [requestDescription, setAdditionalInfo] = useState("");
   const [neededBy, setNeededBy] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [region, setRegion] = useState(null);
@@ -41,7 +44,7 @@ export default function RequestResources() {
     useCallback(() => {
       setTitle("");
       setSeverity("Low");
-      setRequirements("");
+      setrequestTitle("");
       setAdditionalInfo("");
       setNeededBy(new Date());
       fetchUserLocation();
@@ -71,7 +74,7 @@ export default function RequestResources() {
     });
   };
   const submitRequest = async () => {
-    if (!requirements || !neededBy) {
+    if (!requestTitle || !neededBy) {
       Toast.show({
         type: "error",
         text1: "Please fill in all required fields.",
@@ -81,11 +84,11 @@ export default function RequestResources() {
     const formattedDate = neededBy.toISOString().split("T")[0];
     const reportData = {
       location,
-      title,
       severity,
-      requirements,
+      category,
+      requestTitle,
       contact: await AsyncStorage.getItem("phoneNumber"),
-      additionalInfo,
+      requestDescription,
       neededBy: formattedDate,
     };
     setLoading(true);
@@ -133,12 +136,12 @@ export default function RequestResources() {
           Request Resources that you need and we will get back to you with a
           good news!!
         </Text>
-        <Text className="mb-2">Requirements</Text>
+        <Text className="mb-2">requestTitle</Text>
         <TextInput
           className="bg-white p-2 rounded mb-4 h-20"
-          value={requirements}
-          onChangeText={setRequirements}
-          placeholder="Enter your requirements*"
+          value={requestTitle}
+          onChangeText={setrequestTitle}
+          placeholder="Enter your requestTitle*"
           multiline
         />
         <Text className="mb-2">Severity</Text>
@@ -155,7 +158,7 @@ export default function RequestResources() {
         <Text className="mb-2">Additional Information</Text>
         <TextInput
           className="bg-white p-2 rounded mb-4"
-          value={additionalInfo}
+          value={requestDescription}
           onChangeText={setAdditionalInfo}
           placeholder="Enter any additional information"
         />

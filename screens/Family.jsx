@@ -25,9 +25,13 @@ import Toast from "react-native-toast-message";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as geolib from "geolib";
+import { useTranslation } from 'react-i18next';
+
+// Assume you have imported React Navigation dependencies here
 import { useNavigation } from "@react-navigation/native";
 
 const Family = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
 
   const [userPhoneNumber, setUserPhoneNumber] = useState("");

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 const MedicineInfoScreen = () => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [medicineInfo, setMedicineInfo] = useState(null);
   const [loading, setLoading] = useState(false);

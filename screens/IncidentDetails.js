@@ -8,9 +8,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
+import Carousel from "react-native-reanimated-carousel";
 
 export default function IncidentDetails({ route }) {
   const navigation = useNavigation();
@@ -27,6 +29,7 @@ export default function IncidentDetails({ route }) {
     setSelectedImage(null);
     setModalVisible(false);
   };
+  const width = Dimensions.get("window").width;
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
       <TouchableOpacity
@@ -38,24 +41,75 @@ export default function IncidentDetails({ route }) {
         </View>
       </TouchableOpacity>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <View className="bg-white p-4 rounded-lg shadow-md mb-4">
-          <Text className="text-2xl font-bold mb-2 text-gray-800">
-            {incident.title}
-          </Text>
-          <Text className="text-base mb-2 text-gray-600">
-            {incident.description}
-          </Text>
-          <Text className="text-sm mb-2 text-gray-500">Date: {incident.date}</Text>
-          <Text className="text-sm mb-2 text-gray-500">
-            Severity: {incident.severity}
-          </Text>
-          {incident?.contact && (
-            <Text className="text-sm mb-2 text-gray-500">
-              Contact: {incident.contact}
-            </Text>
+        <View className="bg-white rounded-lg shadow-md mb-4">
+          {incident?.images?.length > 0 && (
+            <View style={{ flex: 1 }}>
+              {incident.images.length === 1 ? (
+                <>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => openModal(incident.images[0])}
+                    // className="w-1/2 p-1"
+                  >
+                    <Image
+                      width={700}
+                      height={500}
+                      source={{ uri: incident.images[0] }}
+                      className="w-full h-40 rounded-lg"
+                      style={{ resizeMode: "cover" }}
+                    />
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <>
+                  <Carousel
+                    // loop
+                    width={700}
+                    height={170}
+                    data={incident.images}
+                    renderItem={({ index }) => (
+                      <View>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          key={index}
+                          onPress={() => openModal(incident.images[index])}
+                          className="w-1/2 p-1"
+                        >
+                          <Image
+                            source={{ uri: incident.images[index] }}
+                            className="w-full h-40"
+                            style={{ resizeMode: "cover" }}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  />
+                </>
+              )}
+            </View>
           )}
+          <View className="p-3">
+            <Text className="text-2xl font-bold mb-2 text-gray-800">
+              {incident.title}
+            </Text>
+            <Text className="text-base mb-2 text-gray-600">
+              {incident.description}
+            </Text>
+            <Text className="text-sm mb-2 text-gray-500">
+              Date: {incident.date}
+            </Text>
+            <Text className="text-sm mb-2 text-gray-500">
+              Severity: {incident.severity}
+            </Text>
+            {incident?.contact && (
+              <Text className="text-sm mb-2 text-gray-500">
+                Contact: {incident.contact}
+              </Text>
+            )}
+          </View>
         </View>
-        <View className="rounded-lg p-2 mb-4">
+        {/* <Text className="font-bold text-xl">Location</Text> */}
+        <View className="rounded-lg bg-white p-1 mb-4">
           <MapView
             className="w-full h-60"
             initialRegion={{
@@ -75,21 +129,11 @@ export default function IncidentDetails({ route }) {
             />
           </MapView>
         </View>
-        <View className="flex flex-wrap flex-row">
-          {incident.images.map((image, index) => (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              key={index}
-              onPress={() => openModal(image)}
-              className="w-1/2 p-1"
-            >
-              <Image
-                source={{ uri: image }}
-                className="w-full h-40 rounded-lg"
-                style={{ resizeMode: "cover" }}
-              />
-            </TouchableOpacity>
-          ))}
+        <View className="mb-4">
+          <Text className="font-bold text-xl mb-2">Recommended Actions</Text>
+          {/* <View className="bg-white p-4 rounded-lg shadow-md"> */}
+          <Text>Secure loose outdoor items. Take in or tie down...</Text>
+          {/* </View> */}
         </View>
 
         <Modal visible={modalVisible} transparent={true}>
