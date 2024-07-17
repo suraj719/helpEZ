@@ -10,7 +10,6 @@ import * as Location from "expo-location";
 import axios from "axios";
 import MistralClient from "@mistralai/mistralai";
 import Toast from "react-native-toast-message";
-import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { weatherIconMap } from "../utils/weatherIcons";
 const API_KEY_OPENWEATHER = "77003d306b25e391aca3f6d95268b3ed";
@@ -19,14 +18,12 @@ import { useTranslation } from "react-i18next";
 
 const Weather = () => {
   const { t } = useTranslation();
-  const navigation = useNavigation();
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showForecast, setShowForecast] = useState(false);
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -230,7 +227,10 @@ const Weather = () => {
         />
       </View>
 
-      <View className="p-4 bg-white m-3 rounded-lg shadow-lg">
+      <View
+        style={{ marginBottom: 30 }}
+        className="p-4 bg-white m-3 rounded-lg shadow-lg"
+      >
         <Text className="text-lg text-gray-700 mt-2">{suggestions}</Text>
       </View>
     </ScrollView>
