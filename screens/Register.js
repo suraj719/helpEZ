@@ -39,13 +39,13 @@ export default function Register() {
     const checkStoredUserData = async () => {
       try {
         const storedPhoneNumber = await AsyncStorage.getItem("phoneNumber");
-        const storedName = await AsyncStorage.getItem("name");
+        // const storedName = await AsyncStorage.getItem("name");
         if (storedPhoneNumber) {
           setPhoneNumber(storedPhoneNumber);
         }
-        if (storedName) {
-          setName(storedName);
-        }
+        // if (storedName) {
+        //   setName(storedName);
+        // }
       } catch (error) {
         console.log("Error retrieving data from storage", error);
       }
@@ -56,15 +56,22 @@ export default function Register() {
 
   useEffect(() => {
     if (isNewMember) {
-      navigation.navigate("RegisterDetails", { phoneNumber, name });
+      navigation.navigate("RegisterDetails", { phoneNumber });
     }
   }, [isNewMember, navigation]); // Added navigation as a dependency
 
   const signInWithPhoneNumber = async () => {
-    if (!phoneNumber || !name) {
+    if (!phoneNumber) {
       Toast.show({
         type: "error",
         text1: "Please enter both Name and Mobile Number",
+      });
+      return;
+    }
+    if (!isChecked) {
+      Toast.show({
+        type: "error",
+        text1: "Please agree to our T&C to continue",
       });
       return;
     }
@@ -75,7 +82,7 @@ export default function Register() {
       setLoading(false);
       if (!querySnapshot.empty) {
         await AsyncStorage.setItem("phoneNumber", phoneNumber);
-        await AsyncStorage.setItem("name", name); // Store name here
+        await AsyncStorage.setItem("name", querySnapshot.docs[0].data().name); // Store name here
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -83,7 +90,7 @@ export default function Register() {
           })
         );
       } else {
-        navigation.navigate("RegisterDetails", { phoneNumber, name });
+        navigation.navigate("RegisterDetails", { phoneNumber });
         setIsNewMember(true);
       }
     } catch (error) {
@@ -99,9 +106,14 @@ export default function Register() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.navigate("GalileoDesign")}
+        >
           <Image
-            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/271/271220.png' }}
+            source={{
+              uri: "https://cdn-icons-png.flaticon.com/512/271/271220.png",
+            }}
             style={styles.backIcon}
           />
         </TouchableOpacity>
@@ -115,7 +127,7 @@ export default function Register() {
         />
       </View>
       <Text style={styles.title}>Sign in or create an account.</Text>
-      <View style={styles.inputContainer}>
+      {/* <View style={styles.inputContainer}>
         <TextInput
           placeholder="Name"
           style={styles.input}
@@ -123,7 +135,7 @@ export default function Register() {
           onChangeText={setName}
           placeholderTextColor="#6B6B6B"
         />
-      </View>
+      </View> */}
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Phone number"
@@ -135,7 +147,11 @@ export default function Register() {
         />
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={signInWithPhoneNumber}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.button}
+          onPress={signInWithPhoneNumber}
+        >
           <Text style={styles.buttonText}>Submit and verify</Text>
         </TouchableOpacity>
       </View>

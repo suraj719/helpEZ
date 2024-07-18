@@ -1,257 +1,344 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TextInput,
+  ImageBackground,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
   Platform,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
+  KeyboardAvoidingView,
+  Alert,
+  Modal,
 } from "react-native";
-import {
-  addDoc,
-  collection,
-  getFirestore,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
-import app from "../utils/firebase";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import Icon from "react-native-vector-icons/Ionicons";
-import { Picker } from "@react-native-picker/picker";
-import Toast from "react-native-toast-message";
-import { useNavigation, CommonActions } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from "expo-location";
-import { useTranslation } from "react-i18next";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useNavigation } from "@react-navigation/native";
 
-export default function RegisterDetails({ route }) {
-  const { phoneNumber} = route.params;
-  const { t } = useTranslation();
+const RegisterDetails = () => {
   const navigation = useNavigation();
-  const db = getFirestore(app);
-  const usersCollection = collection(db, "users");
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState("");
-  const [dob, setDob] = useState(new Date());
+  const [dob, setDob] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [gender, setGender] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
   const [alternateContact, setAlternateContact] = useState("");
-  const [isVolunteer, setIsVolunteer] = useState(false); // Added state for isVolunteer
-  const [loading, setLoading] = useState(false);
+  const [genderModalVisible, setGenderModalVisible] = useState(false);
 
-  // Function to clear AsyncStorage items
-  const clearAsyncStorage = async () => {
-    try {
-      await AsyncStorage.clear();
-      console.log("AsyncStorage cleared successfully.");
-    } catch (error) {
-      console.log("Error clearing AsyncStorage:", error);
-    }
-  };
-
-  // Clear AsyncStorage items when component mounts
-  useEffect(() => {
-    clearAsyncStorage();
-  }, []);
-
-  const createAccount = async () => {
-    if (!name || !gender || !dob || !bloodGroup) {
-      Toast.show({
-        type: "error",
-        text1: "Please fill in all required fields.",
-      });
-      return;
-    }
-
-    const formattedDob = dob.toISOString().split("T")[0];
-    const createdAt = new Date().toLocaleString();
-    const userData = {
-      createdAt: createdAt,
-      phoneNumber: phoneNumber,
-      name: name,
-      gender: gender,
-      dob: formattedDob,
-      bloodGroup: bloodGroup,
-      alternateContact: alternateContact,
-      isVolunteer: isVolunteer, // Include isVolunteer in user data
-      role: "",
-    };
-
-    setLoading(true);
-    try {
-      // Add user to Firestore
-      const userDocRef = await addDoc(usersCollection, userData);
-
-      // Fetch current location
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        throw new Error("Location permission not granted");
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-
-      // Update user document with location data
-      await updateDoc(doc(db, "users", userDocRef.id), {
-        location: {
-          latitude: latitude,
-          longitude: longitude,
-        },
-      });
-
-      // Store phone number in AsyncStorage
-      await AsyncStorage.setItem("phoneNumber", phoneNumber);
-
-      Toast.show({
-        type: "success",
-        text1: "Account created Successfully!",
-      });
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: "Dashboard" }],
-        })
-      );
-    } catch (error) {
-      console.log("Error while creating account", error);
-      Toast.show({
-        type: "error",
-        text1: "Please try again later!",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onChangeDate = (event, selectedDate) => {
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dob;
     setShowDatePicker(Platform.OS === "ios");
-    if (selectedDate) {
-      setDob(selectedDate);
+    setDob(currentDate);
+  };
+
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const handleGenderSelect = (selectedGender) => {
+    setGender(selectedGender);
+    setGenderModalVisible(false);
+  };
+
+  const handleSubmit = () => {
+    if (fullName && gender && bloodGroup && alternateContact) {
+      Alert.alert("Success", "Form Submitted Successfully");
+    } else {
+      Alert.alert("Error", "Please fill all fields");
     }
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        // backgroundColor: "#ecf0f1",
-      }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.keyboardAvoidingView}
     >
-      <View className="justify-center bg-white py-8 px-5 rounded-lg shadow-lg w-[100%] max-w-[400px]">
-        <Text className="text-xl mb-5 text-center text-[#2c3e50] font-bold">
-          Please provide some more details!
-        </Text>
-        <View className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white">
-          <Icon name="person" size={20} color="#2c3e50" className="mr-2.5" />
-          <TextInput
-            className="flex-1 ml-2 text-[#2c3e50]"
-            value={name}
-            onChangeText={setName}
-            placeholder="Full Name *"
-            placeholderTextColor="#bdc3c7"
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Register</Text>
+        </View>
+        <View className="m-4">
+          <ImageBackground
+            source={require("../assets/images/register.png")}
+            style={styles.imageBackground}
           />
         </View>
-
         <View style={styles.inputContainer}>
-          <Icon
-            name="male-female"
-            size={20}
-            color="#2c3e50"
-            style={styles.icon}
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            placeholderTextColor="#6B6B6B"
+            value={fullName}
+            onChangeText={setFullName}
           />
-          <Picker
-            selectedValue={gender}
-            style={styles.picker}
-            onValueChange={(itemValue) => setGender(itemValue)}
-          >
-            <Picker.Item label="Select Gender *" value="" color="#939da3" />
-            <Picker.Item label="Male" value="male" />
-            <Picker.Item label="Female" value="female" />
-          </Picker>
         </View>
-
-        <TouchableOpacity
-          onPress={() => setShowDatePicker(true)}
-          activeOpacity={0.8}
-          className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white"
+        <View style={styles.inputContainer}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.inputLeft}
+            onPress={() => setGenderModalVisible(true)}
+          >
+            <Text style={styles.inputText}>{gender || "Select Gender"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setGenderModalVisible(true)}
+            style={styles.iconContainer}
+          >
+            <Icon name="chevron-down" size={24} />
+          </TouchableOpacity>
+        </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={genderModalVisible}
+          onRequestClose={() => {
+            setGenderModalVisible(false);
+          }}
         >
-          <Icon name="calendar" size={20} color="#2c3e50" className="mr-2.5" />
-          <Text className="ml-2 text-[#2c3e50]">
-            {dob.toISOString().split("T")[0]}
-          </Text>
-        </TouchableOpacity>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.modalItem}
+                onPress={() => handleGenderSelect("Male")}
+              >
+                <Text style={styles.modalText}>Male</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.modalItem}
+                onPress={() => handleGenderSelect("Female")}
+              >
+                <Text style={styles.modalText}>Female</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.modalItem}
+                onPress={() => handleGenderSelect("Other")}
+              >
+                <Text style={styles.modalText}>Other</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        <View style={styles.inputContainer}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.inputLeft}
+            onPress={showDatepicker}
+          >
+            <Text style={styles.inputText}>
+              {dob ? dob.toLocaleDateString() : "DOB"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={showDatepicker}
+            style={styles.iconContainer}
+          >
+            <Icon name="calendar-month" size={24} />
+          </TouchableOpacity>
+        </View>
         {showDatePicker && (
           <DateTimePicker
-            value={dob}
+            value={dob || new Date()}
             mode="date"
             display="default"
-            onChange={onChangeDate}
+            onChange={handleDateChange}
           />
         )}
-        <View className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white">
-          <Icon name="water" size={20} color="#2c3e50" className="mr-2.5" />
+        <View style={styles.inputContainer}>
           <TextInput
-            className="flex-1 ml-2 text-[#2c3e50]"
+            style={styles.input}
+            placeholder="Blood Group"
+            placeholderTextColor="#6B6B6B"
             value={bloodGroup}
             onChangeText={setBloodGroup}
-            placeholder="Blood Group *"
-            placeholderTextColor="#bdc3c7"
           />
         </View>
-        <View className="flex-row items-center h-12 shadow border mb-4 px-3 rounded bg-white">
-          <Icon name="call" size={20} color="#2c3e50" className="mr-2.5" />
+        <View style={styles.inputContainer}>
           <TextInput
-            className="flex-1 ml-2 text-[#2c3e50]"
+            style={styles.input}
+            placeholder="Alternate Contact Number"
+            placeholderTextColor="#6B6B6B"
             value={alternateContact}
             onChangeText={setAlternateContact}
-            placeholder="Alternate Contact Number"
-            placeholderTextColor="#bdc3c7"
             keyboardType="phone-pad"
           />
         </View>
-        {/* <TouchableOpacity
-          onPress={() => changeNumber(false)}
-          className="self-center mb-1.5"
-          activeOpacity={0.7}
-        >
-          <Text className="text-[#3498db] text-sm">Change Phone Number</Text>
-        </TouchableOpacity> */}
-        <View className="mt-4">
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
-            onPress={() => createAccount()}
-            className="bg-black py-3 px-5 items-center rounded"
-            activeOpacity={0.7}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("Register")}
+            className="bg-gray-300"
+            style={styles.cancelButton}
           >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text className="text-white text-lg font-bold">Proceed</Text>
-            )}
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.submitButton}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.buttonText}>Submit</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+        <View style={styles.footerSpacing} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  inputContainer: {
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  container: {
+    flexGrow: 1,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "space-between",
+  },
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    height: 50,
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 10,
-    borderRadius: 5,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    paddingBottom: 8,
+    justifyContent: "space-between",
   },
-  picker: {
+  title: {
+    color: "#000000",
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign: "center",
     flex: 1,
-    marginLeft: 10,
-    color: "#2c3e50",
+  },
+  imageContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  imageBackground: {
+    width: "100%",
+    height: 218,
+    borderRadius: 15,
+    overflow: "hidden",
+  },
+  inputContainer: {
+    maxWidth: 480,
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  input: {
+    flex: 1,
+    borderColor: "#DEDEDE",
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 15,
+    color: "#000000",
+    backgroundColor: "#FFFFFF",
+    fontSize: 16,
+  },
+  inputLeft: {
+    flex: 1,
+    borderColor: "#DEDEDE",
+    borderWidth: 1,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    padding: 15,
+    color: "#000000",
+    backgroundColor: "#FFFFFF",
+    fontSize: 16,
+  },
+  inputText: {
+    color: "#6B6B6B",
+    fontSize: 16,
+  },
+  iconContainer: {
+    borderColor: "#DEDEDE",
+    borderWidth: 1,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 13,
+    padding: 15,
+    backgroundColor: "#FFFFFF",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    maxWidth: 480,
+    width: "100%",
+  },
+  cancelButton: {
+    flex: 1,
+    minHeight: 48,
+    // backgroundColor: "#EEEEEE",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  submitButton: {
+    flex: 1,
+    minHeight: 48,
+    backgroundColor: "#000000",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  footerSpacing: {
+    height: 20,
+    backgroundColor: "#FFFFFF",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: 200,
+  },
+  modalItem: {
+    width: "100%",
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#DEDEDE",
+  },
+  modalText: {
+    fontSize: 18,
+    textAlign: "center",
+    color: "#000000",
   },
 });
+
+export default RegisterDetails;

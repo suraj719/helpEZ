@@ -26,6 +26,7 @@ import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScr
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
+import FlutterLink from "./FlutterLink";
 
 const Drawer = createDrawerNavigator();
 
@@ -48,7 +49,7 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
   return (
     <View style={styles.drawerContent}>
       <View style={styles.drawerHeader}>
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <Image source={require("../assets/drawer.png")} style={styles.logo} />
         <Text style={styles.appName}>HelpEZ</Text>
       </View>
       <DrawerItemList {...props} />

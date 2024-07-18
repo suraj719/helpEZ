@@ -131,9 +131,21 @@ const Home = () => {
 
       <Text style={styles.sectionTitle}>Quick Access</Text>
       <View style={styles.quickAccessSection}>
-        <QuickAccessCard title="Report Incident" imageUrl="https://cdn.usegalileo.ai/stability/16d1a4dc-e978-4f52-bc09-9df8bcee6adc.png" />
-        <QuickAccessCard title="Request Help" imageUrl="https://cdn.usegalileo.ai/sdxl10/ff21b330-4886-4c44-ac3d-44fdcdc78bb1.png" />
-        <QuickAccessCard title="Volunteer Signup" imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png" />
+        <QuickAccessCard
+          title="Report Incident"
+          imageUrl="https://cdn.usegalileo.ai/stability/16d1a4dc-e978-4f52-bc09-9df8bcee6adc.png"
+          onPress={() => navigation.navigate('Incidents')}
+        />
+        <QuickAccessCard
+          title="Request Help"
+          imageUrl="https://cdn.usegalileo.ai/sdxl10/ff21b330-4886-4c44-ac3d-44fdcdc78bb1.png"
+          onPress={() => navigation.navigate('Requests')}
+        />
+        <QuickAccessCard
+          title="Volunteer Signup"
+          imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
+          onPress={() => navigation.navigate('VolunteerSignup')}
+        />
       </View>
 
       <Text style={styles.sectionTitle}>Recent Incidents</Text>
@@ -152,19 +164,22 @@ const Home = () => {
   );
 };
 
-const QuickAccessCard = ({ title, imageUrl }) => {
+const QuickAccessCard = ({ title, imageUrl, onPress }) => {
   return (
-    <ImageBackground
-      style={styles.quickAccessCard}
-      source={{ uri: imageUrl }}
-      imageStyle={styles.cardImage}
-    >
-      <View style={styles.cardTextContainer}>
-        <Text style={styles.cardText}>{title}</Text>
-      </View>
-    </ImageBackground>
+    <TouchableOpacity onPress={onPress}>
+      <ImageBackground
+        style={styles.quickAccessCard}
+        source={{ uri: imageUrl }}
+        imageStyle={styles.cardImage}
+      >
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardText}>{title}</Text>
+        </View>
+      </ImageBackground>
+    </TouchableOpacity>
   );
 };
+
 
 const IncidentCard = ({ title, time, location }) => {
   return (

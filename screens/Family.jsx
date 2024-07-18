@@ -248,6 +248,7 @@ const Family = () => {
   };
 
   const calculateDistance = (current, destination) => {
+    if (!current || !destination) return { value: "-", unit: "-" };
     const distance = geolib.getDistance(
       { latitude: current.latitude, longitude: current.longitude },
       { latitude: destination.latitude, longitude: destination.longitude }
@@ -269,7 +270,7 @@ const Family = () => {
   };
 
   const handleAnimateToLocation = (location) => {
-    if (mapRef.current) {
+    if (location && mapRef.current) {
       mapRef.current.animateToRegion({
         latitude: location.latitude,
         longitude: location.longitude,
@@ -308,6 +309,7 @@ const Family = () => {
             }}
           >
             {familyMembers.map((member, index) => (
+              member.location && member.location.latitude && member.location.longitude ? (
               <Marker
                 key={index}
                 coordinate={{
@@ -317,6 +319,7 @@ const Family = () => {
                 title={member.name}
                 description={member.phoneNumber}
               />
+              ) : null
             ))}
             <Marker
               coordinate={currentLocation}
@@ -337,23 +340,18 @@ const Family = () => {
         data={familyMembers}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity style={styles.card}
+          onPress={() => handleAnimateToLocation(item.location)}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between",paddingBottom: 4 }}>
               <Text style={styles.name}>{item.name}</Text>
-              <TouchableOpacity
-                onPress={() => handleAnimateToLocation(item.location)}
-                style={styles.locationButton}
-              >
-                <AntDesign name="enviromento" size={26} color="black" />
-              </TouchableOpacity>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between",paddingBottom: 6 }}>
-            <Text>{item.phoneNumber}</Text>
-              <Text>{`Distance: ${
+              <Text>{`${
                 calculateDistance(currentLocation, item.location).value
               } ${
                 calculateDistance(currentLocation, item.location).unit
               }`}</Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between",paddingBottom: 6 }}>
+            <Text>{item.phoneNumber}</Text>
             </View>
             
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between"  }}>
