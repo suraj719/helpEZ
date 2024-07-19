@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -9,7 +10,7 @@ import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
-const MemberSignup = () => {
+const MemberSignupScreen = () => {
   const { t } = useTranslation();
   const [age, setAge] = useState("");
   const [location, setLocation] = useState("");
@@ -18,11 +19,9 @@ const MemberSignup = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
   const [otherSkills, setOtherSkills] = useState("");
-
 
   const skills = {
     Medical: ["First Aid", "CPR", "Nursing", "Paramedic Skills", "Mental Health Support", "Medical Equipment Operation", "Triage"],
@@ -61,7 +60,7 @@ const MemberSignup = () => {
   const handleSubmit = async () => {
     try {
       if (!age || !location || selectedSkills.length === 0) {
-        Alert.alert('Validation Error', 'Please fill in all required fields');
+        Alert.alert(t('Validation Error'), t('Please fill in all required fields'));
         return;
       }
 
@@ -74,17 +73,10 @@ const MemberSignup = () => {
         password,
       });
 
-      Alert.alert('Success', 'Member details submitted successfully');
+      Alert.alert(t('Success'), t('Member details submitted successfully'));
 
       const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
-
-      userQuerySnapshot.forEach(doc => {
-        console.log('User Document Data:', doc.data());
-      });
-
       const userDocId = userQuerySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber)?.id;
-
-      console.log('User Document ID:', userDocId);
 
       if (userDocId) {
         const userRef = doc(firestore, 'users', userDocId);
@@ -92,11 +84,9 @@ const MemberSignup = () => {
           isMember: true,
         });
 
-        console.log('User details updated successfully');
         Alert.alert(t('Success'), t('User details updated successfully'));
         setIsRegistered(true);
       } else {
-        console.error('User document not found');
         Alert.alert(t('Error'), t('User document not found'));
       }
     } catch (error) {
@@ -108,7 +98,7 @@ const MemberSignup = () => {
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      console.warn(t('Location permission denied'));
+      Alert.alert(t('Location permission denied'));
       return;
     }
 
@@ -138,12 +128,11 @@ const MemberSignup = () => {
         let areaName = `${village}, ${state}`;
         setLocation(areaName);
       } else {
-        console.warn(t('No address components found'));
         Alert.alert(t('Location Not Found'), t('Unable to fetch location details'));
       }
     } catch (error) {
       console.error('Error fetching location:', error);
-      Alert.alert('Error', 'Failed to fetch location');
+      Alert.alert(t('Error'), t('Failed to fetch location'));
     }
   };
 
@@ -163,220 +152,218 @@ const MemberSignup = () => {
   if (isRegistered) {
     return (
       <View style={styles.container}>
-  <View style={styles.messageBox}>
-    <Text style={styles.heading}>You are already registered as a member.</Text>
-  </View>
-</View>
-
+        <View style={styles.messageBox}>
+          <Text style={styles.heading}>{t('You are already registered as a member.')}</Text>
+        </View>
+      </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Member Signup</Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t('Member Signup')}</Text>
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Name:</Text>
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter your name"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Phone Number:</Text>
-        <TextInput
-          style={styles.input}
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          placeholder="Enter your phone number"
-          keyboardType="phone-pad"
-        />
-      </View>
-      
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Password:</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={(password) => setPassword(password)}
-          value={password}
-          placeholder="Enter your password"
-          secureTextEntry={true}
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Age:</Text>
-        <TextInput
-          style={styles.input}
-          value={age}
-          onChangeText={setAge}
-          placeholder="Enter your age"
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Location:</Text>
-        <View style={styles.locationContainer}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{t('Name')}</Text>
           <TextInput
             style={styles.input}
-            value={location}
-            onChangeText={setLocation}
-            placeholder="Enter your location"
+            value={name}
+            editable={false}
+            placeholder={t('Enter your name')}
           />
-          <TouchableOpacity onPress={handleLocationFetch} style={styles.locationButton}>
-            <MaterialIcons name="my-location" size={24} color="white" />
-          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Category:</Text>
-        <Picker
-          selectedValue={selectedCategory}
-          onValueChange={handleCategoryChange}
-          style={styles.picker}
-        >
-          <Picker.Item label="Select a category" value="" />
-          {Object.keys(skills).map(category => (
-            <Picker.Item key={category} label={category} value={category} />
-          ))}
-        </Picker>
-      </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{t('Phone Number')}</Text>
+          <TextInput
+            style={styles.input}
+            value={phoneNumber}
+            editable={false}
+            placeholder={t('Enter your phone number')}
+            keyboardType="phone-pad"
+          />
+        </View>
 
-      {selectedCategory ? (
-  <View style={styles.formGroup}>
-    <Text style={styles.label}>Skills:</Text>
-    {skills[selectedCategory].map(skill => (
-      <TouchableOpacity
-        key={skill}
-        style={[
-          styles.skillButton,
-          selectedSkills.includes(skill) && styles.skillButtonSelected,
-        ]}
-        onPress={() => handleSkillChange(skill)}
-      >
-        <Text
-          style={[
-            styles.skillButtonText,
-            selectedSkills.includes(skill) && styles.skillButtonTextSelected,
-          ]}
-        >
-          {skill}
-        </Text>
-      </TouchableOpacity>
-    ))}
-    <TextInput
-      style={styles.input}
-      value={otherSkills}
-      onChangeText={setOtherSkills}
-      placeholder="Enter other skills"
-    />
-  </View>
-) : null}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{t('Password')}</Text>
+          <View style={styles.inputGroup}>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder={t('Enter your password')}
+              secureTextEntry
+            />
+            <TouchableOpacity style={styles.iconContainer} onPress={() => {}}>
+              <FontAwesome5 name="eye" size={20} color="#007bff" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Submit</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{t('Age')}</Text>
+          <TextInput
+            style={styles.input}
+            value={age}
+            onChangeText={setAge}
+            placeholder={t('Enter your age')}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{t('Location')}</Text>
+          <View style={styles.locationContainer}>
+            <TextInput
+              style={styles.input}
+              value={location}
+              onChangeText={setLocation}
+              placeholder={t('Enter your location')}
+              editable={false}
+            />
+            <TouchableOpacity onPress={handleLocationFetch} style={styles.locationButton}>
+              <MaterialIcons name="my-location" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>{t('Category')}</Text>
+          <Picker
+            selectedValue={selectedCategory}
+            onValueChange={handleCategoryChange}
+            style={styles.picker}
+          >
+            <Picker.Item label={t('Select a category')} value="" />
+            {Object.keys(skills).map(category => (
+              <Picker.Item key={category} label={category} value={category} />
+            ))}
+          </Picker>
+        </View>
+
+        {selectedCategory && (
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>{t('Skills')}</Text>
+            <View style={styles.skillsContainer}>
+              {skills[selectedCategory].map(skill => (
+                <TouchableOpacity
+                  key={skill}
+                  style={[styles.skillButton, selectedSkills.includes(skill) && styles.selectedSkill]}
+                  onPress={() => handleSkillChange(skill)}
+                >
+                  <Text style={styles.skillText}>{skill}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.input}
+              value={otherSkills}
+              onChangeText={setOtherSkills}
+              placeholder={t('Other skills')}
+            />
+          </View>
+        )}
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>{t('Submit')}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa', 
-    padding: 20,
-  },
-  messageBox: {
-    backgroundColor: '#ffffff', 
-    borderRadius: 10,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    alignItems: 'center',
-  },
-  heading: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#343a40', 
-    textAlign: 'center',
-  },
-  container: {
-    flexGrow: 1,
-    padding: 16,
     backgroundColor: '#fff',
+    padding: 20,
   },
-  heading: {
+  scrollViewContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  header: {
+    marginBottom: 20,
+  },
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
     textAlign: 'center',
   },
-  formGroup: {
-    marginBottom: 16,
+  inputContainer: {
+    marginBottom: 15,
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
+    fontWeight: '600',
+    marginBottom: 5,
   },
   input: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+  },
+  inputGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconContainer: {
+    position: 'absolute',
+    right: 10,
+  },
+  picker: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   locationButton: {
-    marginLeft: 8,
-    backgroundColor: '#007BFF',
-    padding: 8,
-    borderRadius: 4,
+    marginLeft: 10,
+    backgroundColor: 'black',
+    borderRadius: 5,
+    padding: 10,
   },
-  picker: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
+  skillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   skillButton: {
-    padding: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    padding: 10,
+    margin: 5,
   },
-  skillButtonSelected: {
-    backgroundColor: '#007BFF',
+  selectedSkill: {
+    backgroundColor: '#007bff',
   },
-  skillButtonText: {
-    textAlign: 'center',
-  },
-  skillButtonTextSelected: {
-    color: 'white',
+  skillText: {
+    color: '#333',
   },
   submitButton: {
-    backgroundColor: '#007BFF',
-    padding: 16,
-    borderRadius: 4,
+    backgroundColor: 'black',
+    borderRadius: 5,
+    padding: 15,
     alignItems: 'center',
   },
   submitButtonText: {
-    color: 'white',
-    fontSize: 16,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  messageBox: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
-export default MemberSignup;
+export default MemberSignupScreen;
