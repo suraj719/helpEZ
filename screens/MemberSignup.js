@@ -3,27 +3,14 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, TextInput,
 import { MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as Location from 'expo-location';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import axios from 'axios';
 import { firestore } from '../utils/firebase';
 import { collection, addDoc, getDocs, updateDoc, doc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
-
-const VolunteerSignup = () => {
+const MemberSignup = () => {
   const { t } = useTranslation();
-  const [incidents, setIncidents] = useState([]);
-  const [selectedIncident, setSelectedIncident] = useState("");
   const [age, setAge] = useState("");
   const [location, setLocation] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
@@ -31,11 +18,9 @@ const VolunteerSignup = () => {
   const [otherSkills, setOtherSkills] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
-  const [assignedRole, setAssignedRole] = useState("");
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [password, setPassword] = useState("");
 
   const skills = {
     Medical: ["First Aid", "CPR", "Nursing", "Paramedic Skills", "Mental Health Support", "Medical Equipment Operation", "Triage"],
@@ -45,9 +30,6 @@ const VolunteerSignup = () => {
     Construction: ["Structural Engineering", "Electrical Repairs", "Plumbing Repairs", "Heavy Machinery Operation", "Debris Removal", "Temporary Housing Construction"],
     General: ["Cooking and Meal Preparation", "Language Translation", "Childcare", "Elderly Care", "Community Outreach", "Legal Assistance"],
   };
-
-  const notificationListener = useRef();
-  const responseListener = useRef();
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -67,87 +49,27 @@ const VolunteerSignup = () => {
     fetchUserDetails();
   }, []);
 
-  useEffect(() => {
-    const fetchIncidents = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(firestore, 'incidents'));
-
-        const incidentsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        {console.log(incidentsList);}
-        setIncidents(incidentsList);
-      } catch (error) {
-        console.error("Error fetching incidents:", error);
-      }
-    };
-
-    fetchIncidents();
-  }, []);
-
-  const assignRole = async (selectedIncident, selectedSkills) => {
-    try {
-      const querySnapshot = await getDocs(collection(firestore, 'incidentCategories'));
-      const incidentCategories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      const incidentCategory = incidentCategories.find(inc => inc.title === selectedIncident)?.category || '';
-
-      const roleMappings = {
-        Medical: "Medical Team Volunteer",
-        SearchAndRescue: "Rescue Team Volunteer",
-        Technical: "Tech Support Volunteer",
-        Logistics: "Logistics Coordinator",
-        Construction: "Construction Crew Volunteer",
-        General: "Support Volunteer",
-      };
-
-      let selectedCategory = '';
-      Object.keys(skills).forEach(category => {
-        if (skills[category].some(skill => selectedSkills.includes(skill))) {
-          selectedCategory = category;
-        }
-      });
-
-      const role = roleMappings[selectedCategory] || roleMappings[incidentCategory] || 'General Support Volunteer';
-      return role;
-    } catch (error) {
-      console.error('Error assigning role:', error);
-      return 'General Support Volunteer';
-    }
-  };
 
   const handleSubmit = async () => {
     try {
-      if (!selectedIncident || !age || !location || selectedSkills.length === 0) {
+      if (!age || !location || selectedSkills.length === 0) {
         Alert.alert('Validation Error', 'Please fill in all required fields');
         return;
       }
 
-      const role = await assignRole(selectedIncident, selectedSkills);
-
       { console.log(selectedSkills); }
 
-      console.log('Assigned Role:', role);
 
-      setAssignedRole(role);
-
-      await addDoc(collection(firestore, "volunteers"), {
-        selectedIncident,
+      await addDoc(collection(firestore, "MemberSignup"), {
         age,
         location,
         skills: selectedSkills.join(", "),
         name,
         phoneNumber,
-        role
+        password,
       });
 
-      Alert.alert('Success', 'Volunteer details submitted successfully');
-
-      const notificationContent = {
-        title: t('Role Updated!'),
-        body: `${t('Name')}: ${name}\n${t('Role')}: ${role}\n${t('Incident')}: ${selectedIncident}`,
-        data: { name, age, incident: selectedIncident },
-      };
-
-      await schedulePushNotification(notificationContent);
+      Alert.alert('Success', 'Member details submitted successfully');
 
       const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
 
@@ -162,8 +84,7 @@ const VolunteerSignup = () => {
       if (userDocId) {
         const userRef = doc(firestore, 'users', userDocId);
         await updateDoc(userRef, {
-          isVolunteer: true,
-          role: role
+          isMember: true,
         });
 
         console.log('User details updated successfully');
@@ -173,18 +94,10 @@ const VolunteerSignup = () => {
         Alert.alert(t('Error'), t('User document not found'));
       }
     } catch (error) {
-      console.error('Error submitting volunteer details:', error);
-      Alert.alert(t('Error'), t('Failed to submit volunteer details'));
+      console.error('Error submitting Member details:', error);
+      Alert.alert(t('Error'), t('Failed to submit Member details'));
     }
   };
-
-  async function schedulePushNotification(content) {
-    await Notifications.scheduleNotificationAsync({
-      content,
-      trigger: { seconds: 1 },
-    });
-  }
-
   async function registerForPushNotificationsAsync() {
     let token;
 
@@ -240,7 +153,7 @@ const VolunteerSignup = () => {
 
         for (let component of addressComponents) {
           if (component.types.includes('locality')) {
-            village = component.long_name;  
+            village = component.long_name;
           }
           if (component.types.includes('administrative_area_level_1')) {
             state = component.long_name;
@@ -259,22 +172,6 @@ const VolunteerSignup = () => {
     }
   };
 
-  useEffect(() => {
-    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
-
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
-
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-
-    return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current);
-      Notifications.removeNotificationSubscription(responseListener.current);
-    };
-  }, []);
 
   const handleSkillChange = (skill) => {
     if (selectedSkills.includes(skill)) {
@@ -291,7 +188,7 @@ const VolunteerSignup = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Volunteer Signup</Text>
+      <Text style={styles.heading}>Member Signup</Text>
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>Name:</Text>
@@ -313,6 +210,17 @@ const VolunteerSignup = () => {
           keyboardType="phone-pad"
         />
       </View>
+      
+      <View style={styles.formGroup}>
+  <Text style={styles.label}>Password</Text>
+  <TextInput
+    style={styles.input}
+    onChangeText={(password) => setPassword(password)}
+    value={password}
+    placeholder="Enter your password"
+    secureTextEntry={true}
+  />
+</View>
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>Age:</Text>
@@ -338,20 +246,6 @@ const VolunteerSignup = () => {
             <MaterialIcons name="my-location" size={24} color="white" />
           </TouchableOpacity>
         </View>
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Incident:</Text>
-        <Picker
-          selectedValue={selectedIncident}
-          onValueChange={(itemValue) => setSelectedIncident(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Select an incident" value="" />
-          {incidents.map(incident => (
-            <Picker.Item key={incident.id} label={incident.title} value={incident.title} />
-          ))}
-        </Picker>
       </View>
 
       <View style={styles.formGroup}>
@@ -493,4 +387,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VolunteerSignup;
+export default MemberSignup;
