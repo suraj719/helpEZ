@@ -8,11 +8,15 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
+  StyleSheet,
+  Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, doc, updateDoc } from "firebase/firestore";
 import app from "../utils/firebase";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from "react-i18next";
+import { getDoc } from "firebase/firestore";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 export default function Incidents() {
@@ -22,6 +26,9 @@ export default function Incidents() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [phoneNumber, setPhoneNumber] = useState(null);
+  const [disabledButtons, setDisabledButtons] = useState([]);
+
   const categories = [
     "All",
     "Natural",
@@ -67,103 +74,140 @@ export default function Incidents() {
     selectedCategory !== "All"
       ? incidents.filter((incident) => incident.category === selectedCategory)
       : incidents;
+
   const getSeverityColor = (severity) => {
     switch (severity) {
       case "High":
-        return "text-red-600";
+        return "#e3342f";
       case "Moderate":
-        return "text-yellow-600";
+        return "#f59e0b";
       case "Low":
-        return "text-green-600";
+        return "#10b981";
       default:
-        return "text-gray-600";
+        return "#6b7280";
     }
   };
+
   const renderEventItem = ({ item }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={() => navigation.navigate("IncidentDetails", { incident: item })}
-      className="bg-white m-2 rounded-lg shadow-md overflow-hidden"
-    >
-      {item?.images?.length > 0 ? (
-        <>
-          <View className="flex flex-row items-center justify-between p-4">
-            <View className="w-[65%] pr-4">
-              <Text className="text-lg font-bold text-gray-800">
-                {item.title}
-              </Text>
-              <Text numberOfLines={2} className="text-md text-gray-600 my-1">
+    <View style={styles.cardContainer}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate("IncidentDetails", { incident: item })}
+        style={styles.card}
+      >
+        {item?.images?.length > 0 ? (
+          <View style={styles.cardContent}>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text numberOfLines={2} style={styles.description}>
                 {item.description}
               </Text>
-              <Text
-                className={`text-sm font-semibold ${getSeverityColor(
-                  item.severity
-                )}`}
-              >
+              <Text style={[styles.severity, { color: getSeverityColor(item.severity) }]}>
                 Severity: {item.severity}
               </Text>
             </View>
             <Image
               source={{ uri: item.images[0] }}
-              style={{ resizeMode: "cover" }}
-              className="w-[35%] h-24 rounded-lg"
+              style={styles.image}
             />
           </View>
-        </>
-      ) : (
-        <>
-          <View className="flex flex-row items-center justify-between p-4">
-            <View className="flex-1 pr-4">
-              <Text className="text-lg font-bold text-gray-800">
-                {item.title}
-              </Text>
-              <Text numberOfLines={2} className="text-md text-gray-600 my-1">
+        ) : (
+          <View style={styles.cardContent}>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text numberOfLines={2} style={styles.description}>
                 {item.description}
               </Text>
-              <Text
-                className={`text-sm font-semibold ${getSeverityColor(
-                  item.severity
-                )}`}
-              >
+              <Text style={[styles.severity, { color: getSeverityColor(item.severity) }]}>
                 Severity: {item.severity}
               </Text>
             </View>
           </View>
-        </>
-      )}
-    </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.updateButton,
+          disabledButtons.includes(item.id) && styles.disabledButton,
+        ]}
+        onPress={() => handleSignUpToVolunteer(item.id)}
+        disabled={disabledButtons.includes(item.id)}
+      >
+        <Text style={styles.updateButtonText}>Sign Up to Volunteer</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderCategoryItem = (category) => (
     <TouchableOpacity
       key={category}
       activeOpacity={0.7}
-      className={`h-[40px] m- px-4 py-2 border-b-4 ${
-        selectedCategory === category ? "border-gray-900" : "border-transparent"
-      }`}
+      style={[
+        styles.categoryButton,
+        selectedCategory === category && styles.selectedCategoryButton,
+      ]}
       onPress={() => setSelectedCategory(category)}
     >
       <Text
-        className={`text-sm font-bold ${
-          selectedCategory === category ? "text-gray-900" : "text-gray-400"
-        }`}
+        style={[
+          styles.categoryText,
+          selectedCategory === category && styles.selectedCategoryText,
+        ]}
       >
         {category}
       </Text>
     </TouchableOpacity>
   );
 
+  useEffect(() => {
+    const fetchPhoneNumber = async () => {
+      try {
+        const phoneNumber = await AsyncStorage.getItem('phoneNumber');
+        if (phoneNumber !== null) {
+          setPhoneNumber(phoneNumber);
+        }
+      } catch (error) {
+        console.error('Error fetching phone number:', error);
+      }
+    };
+    fetchPhoneNumber();
+  }, []);
+
+  const handleSignUpToVolunteer = async (incidentId) => {
+    try {
+      const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+      console.log('Retrieved phone number for update:', phoneNumber);
+  
+      if (phoneNumber !== null) {
+        const incidentRef = doc(db, "incidents", incidentId);
+        
+        const incidentSnapshot = await getDoc(incidentRef);
+        const currentData = incidentSnapshot.data();
+        const currentVolunteerUsers = currentData.VolunteerUsers || [];
+  
+        if (!currentVolunteerUsers.includes(phoneNumber)) {
+          const updatedVolunteerUsers = [...currentVolunteerUsers, phoneNumber];
+          await updateDoc(incidentRef, { VolunteerUsers: updatedVolunteerUsers });
+        }
+  
+        setDisabledButtons([...disabledButtons, incidentId]);
+        fetchIncidents();
+        Alert.alert("Success", "You have signed up to volunteer!");
+      } else {
+        console.error("No phone number found in AsyncStorage");
+      }
+    } catch (error) {
+      console.error("Error updating incident: ", error);
+    }
+  };
+  
   return (
-    <View className="flex- bg-gray-100">
-      <View
-        className="flex flex-row items-center justify-around "
-        style={{ paddingEnd: 15 }}
-      >
+    <View style={styles.container}>
+      <View style={styles.header}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ marginStart: 20 }}
-          className="p-4 h-[75px] m-4 border-b-2 border-gray-200"
+          style={styles.categoryScroll}
         >
           {categories.map(renderCategoryItem)}
         </ScrollView>
@@ -171,16 +215,16 @@ export default function Incidents() {
           activeOpacity={0.8}
           onPress={() => navigation.navigate("ReportIncident")}
         >
-          <Icon name="plus-circle" size={28} />
+          <Icon name="plus-circle" size={28} color="#007bff" />
         </TouchableOpacity>
       </View>
       {loading ? (
-        <View className="flex h-[70vh] justify-center items-center">
+        <View style={styles.loader}>
           <ActivityIndicator size="large" color="#000" />
         </View>
       ) : filteredIncidents.length === 0 ? (
-        <View className="flex h-[70vh] justify-center items-center">
-          <Text className="text-lg text-gray-600">
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>
             No incidents reported in this category.
           </Text>
         </View>
@@ -192,10 +236,129 @@ export default function Incidents() {
           data={filteredIncidents}
           renderItem={renderEventItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 2 }}
-          ListFooterComponent={<View className="h-36" />}
+          contentContainerStyle={styles.flatListContainer}
+          ListFooterComponent={<View style={styles.footer} />}
         />
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: '#e5e5e5',
+  },
+  categoryScroll: {
+    flexGrow: 0,
+    marginHorizontal: 10,
+  },
+  categoryButton: {
+    height: 40,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    borderBottomWidth: 4,
+    borderBottomColor: 'transparent',
+  },
+  selectedCategoryButton: {
+    borderBottomColor: '#007bff',
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#888',
+  },
+  selectedCategoryText: {
+    color: '#007bff',
+  },
+  cardContainer: {
+    marginBottom: 10,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    padding: 10,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  description: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+  severity: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    marginLeft: 10,
+  },
+  updateButton: {
+    backgroundColor: 'black',
+    paddingVertical: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+  },
+  updateButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+  },
+  flatListContainer: {
+    padding: 15,
+  },
+  footer: {
+    height: 80,
+  },
+});

@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   },
   messageBox: {
     backgroundColor: '#ffffff', 
-    borderRadius: 10, //hello
+    borderRadius: 10,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
