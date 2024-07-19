@@ -15,12 +15,14 @@ const MemberSignup = () => {
   const [location, setLocation] = useState("");
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [otherSkills, setOtherSkills] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [password, setPassword] = useState("");
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [otherSkills, setOtherSkills] = useState("");
+
 
   const skills = {
     Medical: ["First Aid", "CPR", "Nursing", "Paramedic Skills", "Mental Health Support", "Medical Equipment Operation", "Triage"],
@@ -32,7 +34,7 @@ const MemberSignup = () => {
   };
 
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    const checkRegistrationStatus = async () => {
       try {
         const storedPhoneNumber = await AsyncStorage.getItem("phoneNumber");
         const storedName = await AsyncStorage.getItem("name");
@@ -42,13 +44,19 @@ const MemberSignup = () => {
         if (storedName) {
           setName(storedName);
         }
+
+        const userQuerySnapshot = await getDocs(collection(firestore, 'users'));
+        const userDoc = userQuerySnapshot.docs.find(doc => doc.data().phoneNumber === storedPhoneNumber);
+        
+        if (userDoc && userDoc.data().isMember) {
+          setIsRegistered(true);
+        }
       } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error("Error checking registration status:", error);
       }
     };
-    fetchUserDetails();
+    checkRegistrationStatus();
   }, []);
-
 
   const handleSubmit = async () => {
     try {
@@ -57,13 +65,10 @@ const MemberSignup = () => {
         return;
       }
 
-      { console.log(selectedSkills); }
-
-
       await addDoc(collection(firestore, "MemberSignup"), {
         age,
         location,
-        skills: selectedSkills.join(", "),
+        skills: [...selectedSkills, otherSkills].filter(Boolean).join(", "),
         name,
         phoneNumber,
         password,
@@ -89,6 +94,7 @@ const MemberSignup = () => {
 
         console.log('User details updated successfully');
         Alert.alert(t('Success'), t('User details updated successfully'));
+        setIsRegistered(true);
       } else {
         console.error('User document not found');
         Alert.alert(t('Error'), t('User document not found'));
@@ -98,37 +104,6 @@ const MemberSignup = () => {
       Alert.alert(t('Error'), t('Failed to submit Member details'));
     }
   };
-  async function registerForPushNotificationsAsync() {
-    let token;
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        alert(t('Failed to get push token for push notification!'));
-        return;
-      }
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log(token);
-    } else {
-      alert(t('Must use physical device for Push Notifications'));
-    }
-
-    return token;
-  }
 
   const handleLocationFetch = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -172,7 +147,6 @@ const MemberSignup = () => {
     }
   };
 
-
   const handleSkillChange = (skill) => {
     if (selectedSkills.includes(skill)) {
       setSelectedSkills(selectedSkills.filter(s => s !== skill));
@@ -185,6 +159,17 @@ const MemberSignup = () => {
     setSelectedCategory(category);
     setSelectedSkills([]);
   };
+
+  if (isRegistered) {
+    return (
+      <View style={styles.container}>
+  <View style={styles.messageBox}>
+    <Text style={styles.heading}>You are already registered as a member.</Text>
+  </View>
+</View>
+
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -212,15 +197,15 @@ const MemberSignup = () => {
       </View>
       
       <View style={styles.formGroup}>
-  <Text style={styles.label}>Password</Text>
-  <TextInput
-    style={styles.input}
-    onChangeText={(password) => setPassword(password)}
-    value={password}
-    placeholder="Enter your password"
-    secureTextEntry={true}
-  />
-</View>
+        <Text style={styles.label}>Password:</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={(password) => setPassword(password)}
+          value={password}
+          placeholder="Enter your password"
+          secureTextEntry={true}
+        />
+      </View>
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>Age:</Text>
@@ -262,51 +247,38 @@ const MemberSignup = () => {
         </Picker>
       </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Skills:</Text>
-        <TextInput
-          style={styles.input}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Search skills"
-        />
-        <View style={styles.skillsContainer}>
-          {skills[selectedCategory] &&
-            skills[selectedCategory]
-              .filter(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
-              .map(skill => (
-                <TouchableOpacity
-                  key={skill}
-                  onPress={() => handleSkillChange(skill)}
-                  style={[
-                    styles.skillButton,
-                    selectedSkills.includes(skill) && styles.selectedSkillButton,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.skillButtonText,
-                      selectedSkills.includes(skill) && styles.selectedSkillButtonText,
-                    ]}
-                  >
-                    {skill}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-        </View>
-      </View>
+      {selectedCategory ? (
+  <View style={styles.formGroup}>
+    <Text style={styles.label}>Skills:</Text>
+    {skills[selectedCategory].map(skill => (
+      <TouchableOpacity
+        key={skill}
+        style={[
+          styles.skillButton,
+          selectedSkills.includes(skill) && styles.skillButtonSelected,
+        ]}
+        onPress={() => handleSkillChange(skill)}
+      >
+        <Text
+          style={[
+            styles.skillButtonText,
+            selectedSkills.includes(skill) && styles.skillButtonTextSelected,
+          ]}
+        >
+          {skill}
+        </Text>
+      </TouchableOpacity>
+    ))}
+    <TextInput
+      style={styles.input}
+      value={otherSkills}
+      onChangeText={setOtherSkills}
+      placeholder="Enter other skills"
+    />
+  </View>
+) : null}
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Other Skills:</Text>
-        <TextInput
-          style={styles.input}
-          value={otherSkills}
-          onChangeText={setOtherSkills}
-          placeholder="Enter other skills"
-        />
-      </View>
-
-      <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -315,75 +287,95 @@ const MemberSignup = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa', 
     padding: 20,
+  },
+  messageBox: {
+    backgroundColor: '#ffffff', 
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    alignItems: 'center',
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#343a40', 
+    textAlign: 'center',
+  },
+  container: {
+    flexGrow: 1,
+    padding: 16,
     backgroundColor: '#fff',
   },
   heading: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 16,
     textAlign: 'center',
   },
   formGroup: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   label: {
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
+    height: 40,
     borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 16,
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 8,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   locationButton: {
-    marginLeft: 10,
-    backgroundColor: '#007bff',
-    borderRadius: 5,
-    padding: 5,
+    marginLeft: 8,
+    backgroundColor: '#007BFF',
+    padding: 8,
+    borderRadius: 4,
   },
   picker: {
-    borderWidth: 1,
+    height: 40,
     borderColor: '#ccc',
-    borderRadius: 5,
-  },
-  skillsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    borderWidth: 1,
+    borderRadius: 4,
   },
   skillButton: {
+    padding: 8,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#007bff',
-    borderRadius: 5,
-    padding: 5,
-    margin: 5,
+    borderColor: '#ccc',
+    marginBottom: 8,
+  },
+  skillButtonSelected: {
+    backgroundColor: '#007BFF',
   },
   skillButtonText: {
-    color: '#007bff',
+    textAlign: 'center',
   },
-  selectedSkillButton: {
-    backgroundColor: '#007bff',
-  },
-  selectedSkillButtonText: {
-    color: '#fff',
+  skillButtonTextSelected: {
+    color: 'white',
   },
   submitButton: {
-    backgroundColor: '#28a745',
-    borderRadius: 5,
-    padding: 15,
+    backgroundColor: '#007BFF',
+    padding: 16,
+    borderRadius: 4,
     alignItems: 'center',
   },
   submitButtonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 
