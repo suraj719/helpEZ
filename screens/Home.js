@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { useFonts } from 'expo-font';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
+
 import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
@@ -12,6 +13,7 @@ import Incidents from './Incidents';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
 import { getLocationName } from './reverseGeocode';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 
 const Home = () => {
   const [fontsLoaded] = useFonts({
@@ -24,34 +26,67 @@ const Home = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const [newNotifications, setNewNotifications] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [userName, setUserName] = useState('');
   const languageSwitchRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [incidents, setIncidents] = useState([]); // Added incidents state
 
+  const fetchUserImage = async (userName) => {
+    try {
+      const db = getFirestore(app);
+      const profilesRef = collection(db, "profiles");
+      const q = query(profilesRef, where("name", "==", userName));
+      const querySnapshot = await getDocs(q);
+  
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        const data = doc.data();
+        if (data.profileImage) {
+          setProfileImageUrl(data.profileImage);
+        } else {
+          // Fallback image if no profileImage is found
+          setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
+        }
+      } else {
+        console.log('No matching user found');
+        // Fallback image if no user document is found
+        setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
+      }
+    } catch (error) {
+      console.error('Error fetching user image:', error);
+      // Fallback image on error
+      setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
+    }
+  };
+  
+  
+
   useEffect(() => {
-    // Fetch user name from AsyncStorage
-    const fetchUserName = async () => {
+    const fetchUserData = async () => {
       try {
         const name = await AsyncStorage.getItem('name');
         if (name !== null) {
           setUserName(name);
+          fetchUserImage(name); // Fetch user image based on the user name
         }
       } catch (error) {
-        console.error('Error fetching user name:', error);
+        console.error('Error fetching user data:', error);
       }
     };
-    fetchUserName();
+    fetchUserData();
   }, []);
-
+  
   const db = getFirestore(app);
 
-  // Function to fetch incidents from Firestore and compare with stored incidents
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchIncidents();
-    }, [])
-  );
+  // // Fetch data when the component is focused
+  // useFocusEffect(fetchUserData);
+  // // Function to fetch incidents from Firestore and compare with stored incidents
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     fetchIncidents();
+  //   }, [])
+  // );
 
   const fetchIncidents = async () => {
     const snapshot = await getDocs(collection(db, "incidents"));
@@ -133,16 +168,17 @@ const Home = () => {
         <View style={styles.profile}>
           <ImageBackground
             style={styles.profileImage}
-            source={{ uri: 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png' }}
+            source={{ uri: profileImageUrl || 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png' }}
           />
           <View style={styles.profileText}>
-          <Text style={styles.title}>
-          {t('hello')}, {userName ? userName : t('user')}
-        </Text>
+            <Text style={styles.title}>
+              {t('hello')}, {userName ? userName : t('user')}
+            </Text>
             <Text style={styles.status}>{t('You are in a safe area.')}</Text>
           </View>
         </View>
       </View>
+
 
       <Text style={styles.sectionTitle}>{t('Quick Access')}</Text>
       <View style={styles.quickAccessSection}>
