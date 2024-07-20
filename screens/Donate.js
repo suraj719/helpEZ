@@ -52,7 +52,6 @@ const Donor = () => {
 
   useEffect(() => {
     fetchPhoneNumber();
-    fetchRequests();
   }, []);
 
   useFocusEffect(
@@ -66,9 +65,27 @@ const Donor = () => {
       const storedPhoneNumber = await AsyncStorage.getItem('phoneNumber');
       if (storedPhoneNumber) {
         setPhoneNumber(storedPhoneNumber);
+        checkIfDonor(storedPhoneNumber);
       }
     } catch (error) {
       console.error('Error fetching phoneNumber from AsyncStorage: ', error);
+    }
+  };
+
+  const checkIfDonor = async (phoneNumber) => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'users'));
+      const userDoc = querySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber);
+
+      if (userDoc) {
+        setIsDonor(userDoc.data().isDonor);
+        console.log(userDoc.data().isDonor);
+      } else {
+        setIsDonor(false);
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      setIsDonor(false);
     }
   };
 
@@ -87,7 +104,6 @@ const Donor = () => {
           category: data.category || 'Uncategorized',
         };
       });
-     // console.log('Fetched Requests:', requestsData); // Debug log
       setRequests(requestsData);
       extractUniqueCategories(requestsData);
     } catch (error) {
@@ -156,7 +172,6 @@ const Donor = () => {
 
   const renderRequestItem = ({ item }) => {
     if (!item || !item.category) {
-     // console.error('Invalid request item:', item);
       return null;
     }
     return (
@@ -216,8 +231,6 @@ const Donor = () => {
       )}
     </TouchableOpacity>
   );
-  
-  
 
   return (
     <View style={styles.container}>
@@ -229,8 +242,8 @@ const Donor = () => {
           <Text style={styles.boxText}>Start Your Donation</Text>
         </TouchableOpacity>
       ) : (
-        <View style={styles.donorMemberContainer}>
-          <Text style={styles.donorMemberText}>You are a Donor Member</Text>
+        <View>
+          {/* <Text style={styles.donorMemberText}>You are a Donor Member</Text> */}
         </View>
       )}
 
@@ -257,43 +270,63 @@ const Donor = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
   },
   box: {
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    margin: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#dddddd',
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   iconContainer: {
-    marginRight: 16,
+    borderWidth: 1,
+    borderColor: '#f7b0ab',
+    backgroundColor: '#fcdedc',
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+
   },
   icon: {
-    padding: 4,
-    borderRadius: 50,
-    backgroundColor: '#e0e0e0',
+    alignSelf: 'center',
   },
   boxText: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
+    color: '#333',
   },
   donorMemberContainer: {
-    padding: 16,
+    padding: 20,
     backgroundColor: '#d4edda',
-    borderRadius: 8,
-    margin: 16,
-    borderWidth: 1,
-    borderColor: '#c3e6cb',
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   donorMemberText: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#155724',
+    textAlign: 'center',
   },
+
   categoryCard: {
     padding: 16,
     backgroundColor: '#ffffff',
