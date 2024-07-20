@@ -11,6 +11,7 @@ import Toast from 'react-native-toast-message';
 import Incidents from './Incidents';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
+import { getLocationName } from './reverseGeocode';
 
 const Home = () => {
   const [fontsLoaded] = useFonts({
@@ -26,6 +27,7 @@ const Home = () => {
   const [userName, setUserName] = useState('');
   const languageSwitchRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [incidents, setIncidents] = useState([]); // Added incidents state
 
   useEffect(() => {
     // Fetch user name from AsyncStorage
@@ -47,22 +49,31 @@ const Home = () => {
   // Function to fetch incidents from Firestore and compare with stored incidents
   useFocusEffect(
     React.useCallback(() => {
-      const fetchIncidents = async () => {
-        const snapshot = await getDocs(collection(db, "incidents"));
-        const storedIncidents = await AsyncStorage.getItem('storedIncidents');
-        const incidentIds = snapshot.docs.map(doc => doc.id);
-        
-        if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
-          setNewNotifications(true);
-          await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
-          showToast(); // Show toast when new incidents are detected
-        } else {
-          setNewNotifications(false);
-        }
-      };
       fetchIncidents();
     }, [])
   );
+
+  const fetchIncidents = async () => {
+    const snapshot = await getDocs(collection(db, "incidents"));
+    const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Shuffle and select 3 random incidents
+    const shuffled = allIncidents.sort(() => 0.5 - Math.random());
+    const topThree = shuffled.slice(0, 3);
+    
+    setIncidents(topThree);
+
+    const storedIncidents = await AsyncStorage.getItem('storedIncidents');
+    const incidentIds = snapshot.docs.map(doc => doc.id);
+    
+    if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
+      setNewNotifications(true);
+      await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
+      showToast(); // Show toast when new incidents are detected
+    } else {
+      setNewNotifications(false);
+    }
+  };
 
   // Function to show toast message for new incidents
   const showToast = () => {
@@ -94,7 +105,11 @@ const Home = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>HelpEZ</Text>
+      <LanguageSwitch
+          switchLanguage={switchLanguage}
+          selectedLanguage={selectedLanguage}
+        />
+        <Text style={styles.headerTitle}>{t('HelpEZ')}</Text>
         <View style={styles.headerButton}>
         <View>
         <TouchableOpacity
@@ -124,36 +139,45 @@ const Home = () => {
           <Text style={styles.title}>
           {t('hello')}, {userName ? userName : t('user')}
         </Text>
-            <Text style={styles.status}>You are in a safe area.</Text>
+            <Text style={styles.status}>{t('You are in a safe area.')}</Text>
           </View>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Quick Access</Text>
+      <Text style={styles.sectionTitle}>{t('Quick Access')}</Text>
       <View style={styles.quickAccessSection}>
         <QuickAccessCard
-          title="Report Incident"
+          title={t('Report Incident')}
           imageUrl="https://cdn.usegalileo.ai/stability/16d1a4dc-e978-4f52-bc09-9df8bcee6adc.png"
           onPress={() => navigation.navigate('Incidents')}
         />
         <QuickAccessCard
-          title="Request Help"
+          title={t('Request Help')}
           imageUrl="https://cdn.usegalileo.ai/sdxl10/ff21b330-4886-4c44-ac3d-44fdcdc78bb1.png"
           onPress={() => navigation.navigate('Requests')}
         />
         <QuickAccessCard
-          title="Volunteer Signup"
+          title={t('Volunteer Signup')}
           imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
           onPress={() => navigation.navigate('VolunteerSignup')}
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Recent Incidents</Text>
-      <IncidentCard title="Red flag warning" time="1 hour ago" location="San Francisco Bay Area" />
-      <IncidentCard title="Heatwave warning" time="5 hours ago" location="Los Angeles" />
-      <IncidentCard title="Tsunami alert" time="12 hours ago" location="Hawaii" />
+      <Text style={styles.sectionTitle}>{t('Recent Incidents')}</Text>
+    {incidents.length === 0 ? (
+      <ActivityIndicator size="large" color="#0000ff" />
+    ) : (
+      incidents.map((incident) => (
+        <IncidentCard
+          key={incident.id}
+          title={incident.title || 'Untitled'}
+          location={incident.location || { latitude: 0, longitude: 0 }}
+          onPress={() => navigation.navigate('IncidentDetails', { incident })}
+        />
+      ))
+    )}
 
-      <Text style={styles.sectionTitle}>Resources</Text>
+      <Text style={styles.sectionTitle}>{t('Resources')}</Text>
       <View style={styles.resourceSection}>
         <ImageBackground
           style={styles.resourceImage}
@@ -181,18 +205,32 @@ const QuickAccessCard = ({ title, imageUrl, onPress }) => {
 };
 
 
-const IncidentCard = ({ title, time, location }) => {
+const IncidentCard = ({ title, location, onPress }) => {
+  const [locationName, setLocationName] = useState('');
+
+  useEffect(() => {
+    const fetchLocationName = async () => {
+      const name = await getLocationName(location.latitude, location.longitude);
+      setLocationName(name);
+    };
+
+    fetchLocationName();
+  }, [location.latitude, location.longitude]);
+
   return (
-    <View style={styles.incidentCard}>
-      <View style={styles.incidentCardText}>
-        <Text style={styles.incidentTitle}>{title}</Text>
-        <Text style={styles.incidentTime}>{time}</Text>
-        <Text style={styles.incidentLocation}>{location}</Text>
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.incidentCard}>
+        <View style={styles.incidentCardText}>
+          <Text style={styles.incidentTitle}>{title || 'Untitled'}</Text>
+          <Text style={styles.incidentLocation}>{locationName || 'Fetching location...'}</Text>
+        </View>
+        <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
       </View>
-      <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
-    </View>
+    </TouchableOpacity>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   notificationButton: {

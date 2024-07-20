@@ -64,5 +64,14 @@
   "Failed to submit volunteer details": "स्वयंसेवक विवरण प्रस्तुत करने में विफल रहा",
   "Location Not Found": "स्थान नहीं मिला",
   "Unable to fetch location details": "स्थान विवरण प्राप्त करने में असमर्थ",
-  "User document not found": "उपयोगकर्ता दस्तावेज़ नहीं मिला"
+  "User document not found": "उपयोगकर्ता दस्तावेज़ नहीं मिला",
+  "Quick Access": "त्वरित पहुँच",
+  "Report Incident": "घटना की सूचना दें",
+  "Request Help": "मदद अनुरोध करें",
+  "Volunteer Signup": "स्वयंसेवक पंजीकरण",
+  "Recent Incidents": "हाल की घटनाएँ",
+  "Resources": "संसाधन",
+  "Fetching location...": "स्थान प्राप्त कर रहा है...",
+  "New Incidents Detected!": "नई घटनाएँ पहचानी गईं!",
+  "Check the Notifications tab for details.": "विवरण के लिए अधिसूचनाएँ टैब जांचें।"
 }

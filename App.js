@@ -31,7 +31,7 @@ import ReportIncident from "./screens/ReportIncident";
 import RequestResources from "./screens/RequestResources";
 import Family from "./screens/Family";
 import ChatScreen from "./screens/ChatScreen";
-import VolunteerSignup from "./screens/VolunteerSignup";
+import MemberSignup from "./screens/MemberSignup";
 import Home from "./screens/Home";
 import Notifications from "./screens/Notifications";
 import ResourceRouteScreen from "./screens/ResourceRouteScreen";
@@ -153,8 +153,8 @@ const App = () => {
                 <Stack.Screen name="Family" component={Family} />
                 <Stack.Screen name="ChatScreen" component={ChatScreen} />
                 <Stack.Screen
-                  name="VolunteerSignup"
-                  component={VolunteerSignup}
+                  name="MemberSignup"
+                  component={MemberSignup}
                 />
                 <Stack.Screen name={t("Home")} component={Home} />
                 <Stack.Screen name="Notifications" component={Notifications} />

@@ -64,5 +64,14 @@
   "Failed to submit volunteer details": "Failed to submit volunteer details",
   "Location Not Found": "Location Not Found",
   "Unable to fetch location details": "Unable to fetch location details",
-  "User document not found": "User document not found"
+  "User document not found": "User document not found",
+  "Quick Access": "Quick Access",
+  "Report Incident": "Report Incident",
+  "Request Help": "Request Help",
+  "Volunteer Signup": "Volunteer Signup",
+  "Recent Incidents": "Recent Incidents",
+  "Resources": "Resources",
+  "Fetching location...": "Fetching location...",
+  "New Incidents Detected!": "New Incidents Detected!",
+  "Check the Notifications tab for details.": "Check the Notifications tab for details."
 }
