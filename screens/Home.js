@@ -105,7 +105,11 @@ const Home = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>HelpEZ</Text>
+      <LanguageSwitch
+          switchLanguage={switchLanguage}
+          selectedLanguage={selectedLanguage}
+        />
+        <Text style={styles.headerTitle}>{t('HelpEZ')}</Text>
         <View style={styles.headerButton}>
         <View>
         <TouchableOpacity
@@ -135,31 +139,31 @@ const Home = () => {
           <Text style={styles.title}>
           {t('hello')}, {userName ? userName : t('user')}
         </Text>
-            <Text style={styles.status}>You are in a safe area.</Text>
+            <Text style={styles.status}>{t('You are in a safe area.')}</Text>
           </View>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Quick Access</Text>
+      <Text style={styles.sectionTitle}>{t('Quick Access')}</Text>
       <View style={styles.quickAccessSection}>
         <QuickAccessCard
-          title="Report Incident"
+          title={t('Report Incident')}
           imageUrl="https://cdn.usegalileo.ai/stability/16d1a4dc-e978-4f52-bc09-9df8bcee6adc.png"
           onPress={() => navigation.navigate('Incidents')}
         />
         <QuickAccessCard
-          title="Request Help"
+          title={t('Request Help')}
           imageUrl="https://cdn.usegalileo.ai/sdxl10/ff21b330-4886-4c44-ac3d-44fdcdc78bb1.png"
           onPress={() => navigation.navigate('Requests')}
         />
         <QuickAccessCard
-          title="Volunteer Signup"
+          title={t('Volunteer Signup')}
           imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
           onPress={() => navigation.navigate('VolunteerSignup')}
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Recent Incidents</Text>
+      <Text style={styles.sectionTitle}>{t('Recent Incidents')}</Text>
     {incidents.length === 0 ? (
       <ActivityIndicator size="large" color="#0000ff" />
     ) : (
@@ -172,8 +176,8 @@ const Home = () => {
         />
       ))
     )}
-    
-      <Text style={styles.sectionTitle}>Resources</Text>
+
+      <Text style={styles.sectionTitle}>{t('Resources')}</Text>
       <View style={styles.resourceSection}>
         <ImageBackground
           style={styles.resourceImage}
