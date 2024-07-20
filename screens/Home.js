@@ -11,6 +11,7 @@ import Toast from 'react-native-toast-message';
 import Incidents from './Incidents';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
+import { getLocationName } from './reverseGeocode';
 
 const Home = () => {
   const [fontsLoaded] = useFonts({
@@ -26,6 +27,7 @@ const Home = () => {
   const [userName, setUserName] = useState('');
   const languageSwitchRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [incidents, setIncidents] = useState([]); // Added incidents state
 
   useEffect(() => {
     // Fetch user name from AsyncStorage
@@ -47,22 +49,31 @@ const Home = () => {
   // Function to fetch incidents from Firestore and compare with stored incidents
   useFocusEffect(
     React.useCallback(() => {
-      const fetchIncidents = async () => {
-        const snapshot = await getDocs(collection(db, "incidents"));
-        const storedIncidents = await AsyncStorage.getItem('storedIncidents');
-        const incidentIds = snapshot.docs.map(doc => doc.id);
-        
-        if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
-          setNewNotifications(true);
-          await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
-          showToast(); // Show toast when new incidents are detected
-        } else {
-          setNewNotifications(false);
-        }
-      };
       fetchIncidents();
     }, [])
   );
+
+  const fetchIncidents = async () => {
+    const snapshot = await getDocs(collection(db, "incidents"));
+    const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Shuffle and select 3 random incidents
+    const shuffled = allIncidents.sort(() => 0.5 - Math.random());
+    const topThree = shuffled.slice(0, 3);
+    
+    setIncidents(topThree);
+
+    const storedIncidents = await AsyncStorage.getItem('storedIncidents');
+    const incidentIds = snapshot.docs.map(doc => doc.id);
+    
+    if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
+      setNewNotifications(true);
+      await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
+      showToast(); // Show toast when new incidents are detected
+    } else {
+      setNewNotifications(false);
+    }
+  };
 
   // Function to show toast message for new incidents
   const showToast = () => {
@@ -149,10 +160,19 @@ const Home = () => {
       </View>
 
       <Text style={styles.sectionTitle}>Recent Incidents</Text>
-      <IncidentCard title="Red flag warning" time="1 hour ago" location="San Francisco Bay Area" />
-      <IncidentCard title="Heatwave warning" time="5 hours ago" location="Los Angeles" />
-      <IncidentCard title="Tsunami alert" time="12 hours ago" location="Hawaii" />
-
+    {incidents.length === 0 ? (
+      <ActivityIndicator size="large" color="#0000ff" />
+    ) : (
+      incidents.map((incident) => (
+        <IncidentCard
+          key={incident.id}
+          title={incident.title || 'Untitled'}
+          location={incident.location || { latitude: 0, longitude: 0 }}
+          onPress={() => navigation.navigate('IncidentDetails', { incident })}
+        />
+      ))
+    )}
+    
       <Text style={styles.sectionTitle}>Resources</Text>
       <View style={styles.resourceSection}>
         <ImageBackground
@@ -181,18 +201,32 @@ const QuickAccessCard = ({ title, imageUrl, onPress }) => {
 };
 
 
-const IncidentCard = ({ title, time, location }) => {
+const IncidentCard = ({ title, location, onPress }) => {
+  const [locationName, setLocationName] = useState('');
+
+  useEffect(() => {
+    const fetchLocationName = async () => {
+      const name = await getLocationName(location.latitude, location.longitude);
+      setLocationName(name);
+    };
+
+    fetchLocationName();
+  }, [location.latitude, location.longitude]);
+
   return (
-    <View style={styles.incidentCard}>
-      <View style={styles.incidentCardText}>
-        <Text style={styles.incidentTitle}>{title}</Text>
-        <Text style={styles.incidentTime}>{time}</Text>
-        <Text style={styles.incidentLocation}>{location}</Text>
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.incidentCard}>
+        <View style={styles.incidentCardText}>
+          <Text style={styles.incidentTitle}>{title || 'Untitled'}</Text>
+          <Text style={styles.incidentLocation}>{locationName || 'Fetching location...'}</Text>
+        </View>
+        <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
       </View>
-      <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
-    </View>
+    </TouchableOpacity>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   notificationButton: {
