@@ -31,13 +31,19 @@ import ReportIncident from "./screens/ReportIncident";
 import RequestResources from "./screens/RequestResources";
 import Family from "./screens/Family";
 import ChatScreen from "./screens/ChatScreen";
-import VolunteerSignup from "./screens/VolunteerSignup";
+import MemberSignup from "./screens/MemberSignup";
 import Home from "./screens/Home";
 import Notifications from "./screens/Notifications";
 import ResourceRouteScreen from "./screens/ResourceRouteScreen";
 import GalileoDesign from "./screens/GalileoDesign";
 import RegisterDetails from "./screens/RegisterDetails";
 import i18n from "./screens/i18n";
+// import CommunityScreen from './screens/CommunityScreen';
+// import CreatePost from './screens/CreatePost';
+// import PostDetails from './screens/PostDetails';
+import CommunityScreen from "./screens/CommunityScreen";
+import CreatePost from "./screens/CreatePost";
+import PostDetails from "./screens/PostDetails";
 import Payments from "./screens/Payments";
 import DonateDetails from "./screens/DonateDetails";
 import DonateForm from "./screens/DonateForm";
@@ -131,6 +137,9 @@ const App = () => {
                   name="RegisterDetails"
                   component={RegisterDetails}
                 />
+                <Stack.Screen name="Community" component={CommunityScreen} />
+<Stack.Screen name="CreatePost" component={CreatePost} />
+<Stack.Screen name="PostDetails" component={PostDetails} />
                 <Stack.Screen name="Dashboard" component={Dashboard} />
                 <Stack.Screen
                   name="ReportIncident"
@@ -147,8 +156,8 @@ const App = () => {
                 <Stack.Screen name="Family" component={Family} />
                 <Stack.Screen name="ChatScreen" component={ChatScreen} />
                 <Stack.Screen
-                  name="VolunteerSignup"
-                  component={VolunteerSignup}
+                  name="MemberSignup"
+                  component={MemberSignup}
                 />
                 <Stack.Screen name="Payments" component={Payments} />
                 <Stack.Screen name="DonateForm" component={DonateForm} />

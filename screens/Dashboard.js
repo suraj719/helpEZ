@@ -22,12 +22,13 @@ import Logout from "./Logout";
 import Incidents from "./Incidents";
 import Requests from "./Requests";
 import Family from "./Family";
-import VolunteerSignup from "./VolunteerSignup";
+import MemberSignup from "./MemberSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 import FlutterLink from "./FlutterLink";
+import CommunityScreen from "./CommunityScreen";
 import Donate from "./Donate"; // Import Donate
 
 const Drawer = createDrawerNavigator();
@@ -144,8 +145,8 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen 
-          name={t('VolunteerSignup')} 
-          component={VolunteerSignup}
+          name={t('MemberSignup')} 
+          component={MemberSignup}
           options={{
             drawerIcon: ({ color }) => (
               <Icon name="account-plus-outline" size={22} color={color} />
@@ -180,6 +181,15 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
+  name={t('Community')}
+  component={CommunityScreen}
+  options={{
+    drawerIcon: ({ color }) => (
+      <Icon name="account-group" size={22} color={color} />
+    ),
+  }}
+/>
+        <Drawer.Screen
           name={t('Analytics')}
           component={Analytics}
           options={{
@@ -188,6 +198,7 @@ const Dashboard = () => {
             ),
           }}
         />
+
          <Drawer.Screen
           name={t('Profile')}
           component={ProfileScreen}

@@ -45,7 +45,7 @@
     "expo-status-bar": "~1.12.1",
     "expo-stripe": "^1.0.0",
     "express": "^4.19.2",
-    "firebase": "^10.12.2",
+    "firebase": "^10.12.4",
     "geolib": "^3.3.4",
     "i18next": "^23.11.5",
     "intl-pluralrules": "^2.0.1",

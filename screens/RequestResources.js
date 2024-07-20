@@ -31,6 +31,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from 'react-i18next';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+
 export default function RequestResources() {
   const { t } = useTranslation();
   const storage = getStorage(app);
@@ -48,6 +49,7 @@ export default function RequestResources() {
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState([]);
   const [items, setItems] = useState([{ itemName: '', itemQuantity: '',satisfied: '0' }]);
+
 
   const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
   const genAI = new GoogleGenerativeAI(apiKey);
