@@ -34,6 +34,7 @@ export default function RequestResources() {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [region, setRegion] = useState(null);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     (async () => {
       await fetchUserLocation();
@@ -90,6 +91,7 @@ export default function RequestResources() {
       contact: await AsyncStorage.getItem("phoneNumber"),
       requestDescription,
       neededBy: formattedDate,
+      sendAlert: false,
     };
     setLoading(true);
     try {

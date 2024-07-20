@@ -12,6 +12,7 @@ import {
   createDrawerNavigator,
   DrawerItemList,
 } from "@react-navigation/drawer";
+import { ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';  // Import useTranslation
 import Nearby from "./Nearby";
@@ -22,11 +23,10 @@ import Incidents from "./Incidents";
 import Requests from "./Requests";
 import Family from "./Family";
 import VolunteerSignup from "./VolunteerSignup";
-import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
+import MedicineInfoScreen from "./MedicineInfoScreen";
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
-import FlutterLink from "./FlutterLink";
 
 const Drawer = createDrawerNavigator();
 
@@ -52,8 +52,9 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
         <Image source={require("../assets/drawer.png")} style={styles.logo} />
         <Text style={styles.appName}>HelpEZ</Text>
       </View>
-      <DrawerItemList {...props} />
-      <View style={styles.spacer} />
+      <ScrollView style={styles.scrollView}>
+        <DrawerItemList {...props} />
+      </ScrollView>
       <View style={styles.userInfo}>
         <Image source={require("../assets/avatar.png")} style={styles.avatar} />
         <View>
@@ -150,7 +151,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('ResourcesTracking')}
+          name="ResourcesTracking"
           component={ResourcesTrackingScreen}
           options={{
             drawerIcon: ({ color }) => (
@@ -229,12 +230,17 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     paddingBottom: 18,
     backgroundColor: '#e6e6e6',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
   },
   avatar: {
     width: 50,
@@ -251,6 +257,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "gray",
   },
+  
 });
 
 export default Dashboard;

@@ -9,10 +9,19 @@ import {
   RefreshControl,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, onSnapshot, doc } from "firebase/firestore";
 import app from "../utils/firebase";
 import { useTranslation } from 'react-i18next';
+import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 export default function Incidents() {
   const { t } = useTranslation();
@@ -22,6 +31,7 @@ export default function Incidents() {
   const navigation = useNavigation();
   const db = getFirestore(app);
   const [refreshing, setRefreshing] = useState(false);
+
   const fetchIncidents = async () => {
     setLoading(true);
     const snapshot = await getDocs(collection(db, "incidents"));
@@ -33,14 +43,56 @@ export default function Incidents() {
     setIncidents(data);
     setLoading(false);
   };
+
   useFocusEffect(
     useCallback(() => {
       fetchIncidents();
     }, [])
   );
+
   useEffect(() => {
     fetchIncidents();
   }, []);
+
+  useEffect(() => {
+    let unsubscribe;
+
+    const setupNotificationListener = async () => {
+      const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+console.log(phoneNumber);
+      if (phoneNumber) {
+        const userRef = doc(db, "users", phoneNumber);
+        unsubscribe = onSnapshot(userRef, async (docSnapshot) => {
+          const userData = docSnapshot.data();
+          if (userData && userData.isAssigned) {
+            await showNotification(
+              "New Volunteer Assignment",
+              `You've been assigned to: ${userData.assignedIncident.title}`
+            );
+          }
+        });
+      }
+    };
+
+    setupNotificationListener();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  const showNotification = async (title, body) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title,
+        body: body,
+      },
+      trigger: null,
+    });
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setTimeout(() => {
@@ -48,6 +100,7 @@ export default function Incidents() {
       setRefreshing(false);
     }, 100);
   }, []);
+
   const renderEventItem = ({ item }) => (
     <TouchableOpacity
       activeOpacity={0.7}
