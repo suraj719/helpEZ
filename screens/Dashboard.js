@@ -5,6 +5,7 @@ import {
   View,
   Text,
   Image,
+  ScrollView,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ import ResourcesTrackingScreen from "./ResourcesTrackingScreen";
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 import FlutterLink from "./FlutterLink";
+import Donate from "./Donate"; // Import Donate
 
 const Drawer = createDrawerNavigator();
 
@@ -47,6 +49,7 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
   }, []);
 
   return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
     <View style={styles.drawerContent}>
       <View style={styles.drawerHeader}>
         <Image source={require("../assets/drawer.png")} style={styles.logo} />
@@ -62,6 +65,7 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
         </View>
       </View>
     </View>
+    </ScrollView>
   );
 };
 
@@ -94,7 +98,6 @@ const Dashboard = () => {
             ),
           }}
         />
-
         <Drawer.Screen
           name={t('Nearby')}
           component={Nearby}
@@ -158,7 +161,6 @@ const Dashboard = () => {
             ),
           }}
         />
-
         <Drawer.Screen
           name={t('MedicineInfo')}
           component={MedicineInfoScreen}
@@ -195,11 +197,19 @@ const Dashboard = () => {
             ),
           }}
         />
+        <Drawer.Screen
+          name={t('Donate')}
+          component={Donate}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="heart-outline" size={22} color={color} />
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </SafeAreaView>
   );
 };
-
 
 const styles = StyleSheet.create({
   safeArea: {

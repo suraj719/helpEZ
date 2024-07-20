@@ -38,6 +38,9 @@ import ResourceRouteScreen from "./screens/ResourceRouteScreen";
 import GalileoDesign from "./screens/GalileoDesign";
 import RegisterDetails from "./screens/RegisterDetails";
 import i18n from "./screens/i18n";
+import Payments from "./screens/Payments";
+import DonateDetails from "./screens/DonateDetails";
+import DonateForm from "./screens/DonateForm";
 
 const Stack = createStackNavigator();
 
@@ -147,6 +150,9 @@ const App = () => {
                   name="VolunteerSignup"
                   component={VolunteerSignup}
                 />
+                <Stack.Screen name="Payments" component={Payments} />
+                <Stack.Screen name="DonateForm" component={DonateForm} />
+                <Stack.Screen name="DonateDetails" component={DonateDetails} />
                 <Stack.Screen name={t("Home")} component={Home} />
                 <Stack.Screen name="Notifications" component={Notifications} />
                 <Stack.Screen
