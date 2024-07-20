@@ -38,6 +38,12 @@ import ResourceRouteScreen from "./screens/ResourceRouteScreen";
 import GalileoDesign from "./screens/GalileoDesign";
 import RegisterDetails from "./screens/RegisterDetails";
 import i18n from "./screens/i18n";
+// import CommunityScreen from './screens/CommunityScreen';
+// import CreatePost from './screens/CreatePost';
+// import PostDetails from './screens/PostDetails';
+import CommunityScreen from "./screens/CommunityScreen";
+import CreatePost from "./screens/CreatePost";
+import PostDetails from "./screens/PostDetails";
 
 const Stack = createStackNavigator();
 
@@ -128,6 +134,9 @@ const App = () => {
                   name="RegisterDetails"
                   component={RegisterDetails}
                 />
+                <Stack.Screen name="Community" component={CommunityScreen} />
+<Stack.Screen name="CreatePost" component={CreatePost} />
+<Stack.Screen name="PostDetails" component={PostDetails} />
                 <Stack.Screen name="Dashboard" component={Dashboard} />
                 <Stack.Screen
                   name="ReportIncident"
