@@ -9,12 +9,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
-  collection,
-  getDocs,
-  getFirestore,
-  query,
-  where,
-  onSnapshot,
+  collection, getDoc, getDocs, getFirestore, doc, onSnapshot, query, where 
 } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -38,6 +33,7 @@ export default function Requests() {
   const db = getFirestore(app);
   const [refreshing, setRefreshing] = useState(false);
   const [expoPushToken, setExpoPushToken] = useState('');
+  const [sendAlert, setSendAlert] = useState(false);
   const notificationListener = useRef();
   const responseListener = useRef();
 
@@ -72,36 +68,73 @@ export default function Requests() {
   );
 
   useEffect(() => {
-    fetchRequests();
-
-    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
-
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      // Handle received notification
-      console.log(notification);
-    });
-
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      // Handle notification response
-      console.log(response);
-    });
-
-    const unsubscribe = onSnapshot(query(collection(db, "requests"), where("sendAlert", "==", true)), (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "modified") {
-          const request = change.doc.data();
-          schedulePushNotification(request);
+    let unsubscribe;
+    let previousSend = null;
+  
+    const setupNotifications = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        setExpoPushToken(token);
+        console.log("token:", token);
+  
+        const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+  
+        // Fetch the user document based on phoneNumber
+        const querySnapshot = await getDocs(collection(db, 'requests'));
+        const requestDoc = querySnapshot.docs.find(doc => doc.data().contact === phoneNumber);
+  
+        if (requestDoc) {
+          const requestRef = doc(db, 'requests', requestDoc.id);
+  
+          // Set up Firestore listener for the user document
+          unsubscribe = onSnapshot(requestRef, async (docSnapshot) => {
+            if (docSnapshot.exists()) {
+              const requestData = docSnapshot.data();
+              console.log("Request data:", requestData);
+  
+              const currentAlert = requestData.sendAlert || false;
+  
+              if (previousSend !== null && currentAlert !== previousSend) {
+                setSendAlert(currentAlert);
+                console.log("isSend" + currentAlert);
+  
+                if (currentAlert) {
+                  await schedulePushNotification(
+                    "Request Alert",
+                    `Your request about ${requestData.requestTitle} is been published.`
+                  );
+                }
+              }
+  
+              previousSend = currentAlert;
+            }
+          });
+        } else {
+          console.log("No user found with the given phone number");
         }
-      });
-    });
-
+  
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+          setNotification(notification);
+        });
+  
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+          console.log("Notification response:", response);
+        });
+      } catch (error) {
+        console.error("Error in setupNotifications:", error);
+      }
+    };
+  
+    setupNotifications();
+  
     return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
       Notifications.removeNotificationSubscription(notificationListener.current);
       Notifications.removeNotificationSubscription(responseListener.current);
-      unsubscribe();
     };
   }, []);
-  
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -111,11 +144,11 @@ export default function Requests() {
     }, 100);
   }, []);
 
-  async function schedulePushNotification(request) {
+  async function schedulePushNotification(title, body) {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: `Alert: ${request.requestTitle}`,
-        body: `${request.requestDescription}\nNeeded by: ${request.neededBy}`,
+        title: title,
+        body: body,
       },
       trigger: { seconds: 2 },
     });
@@ -136,6 +169,7 @@ export default function Requests() {
         return;
       }
       token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
     } else {
       alert('Must use physical device for Push Notifications');
     }
