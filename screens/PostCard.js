@@ -11,13 +11,13 @@ import {
   Button
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, updateDoc, arrayUnion, arrayRemove, increment, serverTimestamp, getDoc, getDocs, query, where, collection } from 'firebase/firestore';
-import { firestore } from '../utils/firebase'; // Adjust this import based on your file structure
+import { doc, updateDoc, arrayUnion, arrayRemove,query,where, increment, serverTimestamp, getDoc,collection,getDocs } from 'firebase/firestore';
+import { firestore } from '../utils/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PostCard = ({ postId, post }) => {
-  const [likes, setLikes] = useState(post.likes || []);
-  const [comments, setComments] = useState(post.comments || []);
+  const [likes, setLikes] = useState([]);
+  const [comments, setComments] = useState([]);
   const [showAllComments, setShowAllComments] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -26,27 +26,25 @@ const PostCard = ({ postId, post }) => {
 
   useEffect(() => {
     const fetchPhoneNumber = async () => {
-      const phoneNumber = await AsyncStorage.getItem('phoneNumber');
-      setPhoneNumber(phoneNumber);
-      fetchUsername(phoneNumber);
+      try {
+        const phoneNumber = await AsyncStorage.getItem('phoneNumber');
+        setPhoneNumber(phoneNumber);
+        if (phoneNumber) {
+          fetchUsername(phoneNumber);
+        }
+      } catch (error) {
+        console.error('Error fetching phone number:', error);
+      }
     };
 
     const fetchUsername = async (phoneNumber) => {
       try {
-        // Create a reference to the 'users' collection
         const usersCollectionRef = collection(firestore, 'users');
-        
-        // Create a query to find the document where the phoneNumber field matches the provided phone number
         const userQuery = query(usersCollectionRef, where('phoneNumber', '==', phoneNumber));
-        
-        // Execute the query
         const querySnapshot = await getDocs(userQuery);
-        
+
         if (!querySnapshot.empty) {
-          // Assuming there is only one document with the given phone number
           const userDoc = querySnapshot.docs[0].data();
-          
-          // Set the username from the user data or default to 'Unknown'
           setUsername(userDoc.name || 'Unknown');
         } else {
           console.log('No user found with the provided phone number.');
@@ -62,14 +60,19 @@ const PostCard = ({ postId, post }) => {
 
   useEffect(() => {
     const fetchPost = async () => {
-      const postDoc = doc(firestore, 'posts', postId);
-      const postData = await getDoc(postDoc);
-      if (postData.exists()) {
-        const data = postData.data();
-        setLikes(data.likes || []);
-        setComments(data.comments || []);
+      try {
+        const postDoc = doc(firestore, 'posts', postId);
+        const postData = await getDoc(postDoc);
+        if (postData.exists()) {
+          const data = postData.data();
+          setLikes(data.likes || []);
+          setComments(data.comments || []);
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error);
       }
     };
+
     fetchPost();
   }, [postId]);
 
@@ -77,16 +80,21 @@ const PostCard = ({ postId, post }) => {
     try {
       const postRef = doc(firestore, 'posts', postId);
 
+      if (!phoneNumber) {
+        console.error('Phone number is not available.');
+        return;
+      }
+
       if (likes.includes(phoneNumber)) {
         await updateDoc(postRef, {
           likes: arrayRemove(phoneNumber),
-          likeCount: increment(-1) // Decrease the like count
+          likeCount: increment(-1)
         });
         setLikes(prevLikes => prevLikes.filter(like => like !== phoneNumber));
       } else {
         await updateDoc(postRef, {
           likes: arrayUnion(phoneNumber),
-          likeCount: increment(1) // Increase the like count
+          likeCount: increment(1)
         });
         setLikes(prevLikes => [...prevLikes, phoneNumber]);
       }
@@ -99,14 +107,20 @@ const PostCard = ({ postId, post }) => {
     try {
       if (newComment.trim()) {
         const postRef = doc(firestore, 'posts', postId);
+  
+        // Create a new comment object with timestamp
         const newCommentObj = {
-          userId: phoneNumber,
+          userId: username,
           comment: newComment,
-          timestamp: serverTimestamp() // Add timestamp
+          // timestamp: serverTimestamp()
         };
+  
+        // Add the comment object to the comments array
         await updateDoc(postRef, {
           comments: arrayUnion(newCommentObj)
         });
+  
+        // Update local state
         setComments(prevComments => [...prevComments, newCommentObj]);
         setNewComment('');
         setModalVisible(false);
@@ -115,12 +129,13 @@ const PostCard = ({ postId, post }) => {
       console.error('Error handling comment:', error);
     }
   };
+  
 
   return (
     <View style={styles.card}>
       <View style={styles.userInfo}>
         <Image
-          source={{ uri: post.userAvatar || 'https://via.placeholder.com/40' }} // Placeholder if avatar is missing
+          source={{ uri: post.userAvatar || 'https://via.placeholder.com/40' }}
           style={styles.avatar}
         />
         <View>
@@ -187,7 +202,7 @@ const PostCard = ({ postId, post }) => {
               onChangeText={setNewComment}
             />
             <Button title="Post Comment" onPress={handleComment} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} color="red" />
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
           </View>
         </View>
       </Modal>
@@ -197,14 +212,15 @@ const PostCard = ({ postId, post }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF',
     padding: 16,
     marginVertical: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
   userInfo: {
     flexDirection: 'row',
@@ -218,53 +234,53 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   username: {
-    fontSize: 16,
     fontWeight: 'bold',
+    fontSize: 16,
   },
   timestamp: {
+    color: '#888',
     fontSize: 12,
-    color: '#6B6B6B',
   },
   content: {
     fontSize: 14,
-    marginVertical: 8,
+    marginBottom: 8,
   },
   image: {
     width: '100%',
     height: 200,
-    borderRadius: 12,
+    borderRadius: 8,
+    marginBottom: 8,
   },
   actions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
+    marginBottom: 8,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 16,
   },
   actionText: {
-    fontSize: 14,
     marginLeft: 4,
+    fontSize: 14,
     color: '#6B6B6B',
   },
   commentsContainer: {
     marginTop: 8,
   },
   comment: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   commentUser: {
     fontWeight: 'bold',
-    marginRight: 4,
   },
   commentText: {
     fontSize: 14,
   },
   viewAllComments: {
     color: '#007BFF',
+    fontSize: 14,
+    textAlign: 'center',
     marginTop: 8,
   },
   modalContainer: {
@@ -275,18 +291,17 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 8,
   },
   input: {
-    width: '100%',
-    borderColor: '#CCCCCC',
+    height: 40,
+    borderColor: '#CCC',
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 16,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    marginBottom: 8,
   },
 });
 

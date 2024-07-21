@@ -44,6 +44,7 @@ import i18n from "./screens/i18n";
 import CommunityScreen from "./screens/CommunityScreen";
 import CreatePost from "./screens/CreatePost";
 import PostDetails from "./screens/PostDetails";
+import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createStackNavigator();
 
@@ -137,6 +138,7 @@ const App = () => {
                 <Stack.Screen name="Community" component={CommunityScreen} />
 <Stack.Screen name="CreatePost" component={CreatePost} />
 <Stack.Screen name="PostDetails" component={PostDetails} />
+<Stack.Screen name="ProfileScreen" component={ProfileScreen} />
                 <Stack.Screen name="Dashboard" component={Dashboard} />
                 <Stack.Screen
                   name="ReportIncident"

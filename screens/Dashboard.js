@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
+  TouchableOpacity,
   View,
   Text,
   Image,
@@ -28,6 +29,7 @@ import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 import FlutterLink from "./FlutterLink";
 import CommunityScreen from "./CommunityScreen";
+import { useNavigation } from '@react-navigation/native';
 
 const Drawer = createDrawerNavigator();
 
@@ -46,6 +48,11 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
 
     fetchUserData();
   }, []);
+  const navigation = useNavigation();
+
+  const handleProfileNavigation = () => {
+    navigation.navigate('ProfileScreen'); // Ensure 'ProfileScreen' is the name of your profile screen in the navigator
+  };
 
   return (
     <View style={styles.drawerContent}>
@@ -55,13 +62,13 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
       </View>
       <DrawerItemList {...props} />
       <View style={styles.spacer} />
-      <View style={styles.userInfo}>
-        <Image source={require("../assets/avatar.png")} style={styles.avatar} />
-        <View>
-          <Text style={styles.userName}>{userName}</Text>
-          <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
-        </View>
+      <TouchableOpacity onPress={handleProfileNavigation} style={styles.userInfo}>
+      <Image source={require("../assets/avatar.png")} style={styles.avatar} />
+      <View>
+        <Text style={styles.userName}>{userName}</Text>
+        <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
       </View>
+    </TouchableOpacity>
     </View>
   );
 };
@@ -197,7 +204,7 @@ const Dashboard = () => {
           }}
         />
 
-         <Drawer.Screen
+         {/* <Drawer.Screen
           name={t('Profile')}
           component={ProfileScreen}
           options={{
@@ -205,7 +212,7 @@ const Dashboard = () => {
               <Icon name="account-circle-outline" size={22} color={color} />
             ),
           }}
-        />
+        /> */}
       </Drawer.Navigator>
     </SafeAreaView>
   );

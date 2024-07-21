@@ -11,6 +11,11 @@ const BottomNavBar = () => {
 const handlePress = () => {
   navigation.navigate("CreatePost"); // Navigate to the desired screen
 };
+
+const handleProfilePress = () => {
+  navigation.navigate("ProfileScreen"); // Navigate to the desired screen
+};
+
   return (
     <View style={styles.navbar}>
       <TouchableOpacity style={styles.navButton}>
@@ -25,7 +30,7 @@ const handlePress = () => {
       <TouchableOpacity style={styles.navButton}>
         <Ionicons name="notifications" size={24} color="#6B6B6B" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.navButton}>
+      <TouchableOpacity style={styles.navButton} onPress={handleProfilePress}>
         <Ionicons name="person" size={24} color="#6B6B6B" />
       </TouchableOpacity>
     </View>
