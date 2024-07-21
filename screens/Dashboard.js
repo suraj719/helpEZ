@@ -22,8 +22,8 @@ import Logout from "./Logout";
 import Incidents from "./Incidents";
 import Requests from "./Requests";
 import Family from "./Family";
-import VolunteerSignup from "./VolunteerSignup";
-import MedicineInfoScreen from "./MedicineInfoScreen";
+import MemberSignup from "./MemberSignup";
+import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
@@ -142,8 +142,8 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen 
-          name={t('VolunteerSignup')} 
-          component={VolunteerSignup}
+          name={t('MemberSignup')} 
+          component={MemberSignup}
           options={{
             drawerIcon: ({ color }) => (
               <Icon name="account-plus-outline" size={22} color={color} />

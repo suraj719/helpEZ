@@ -19,6 +19,8 @@ import { addDoc, collection, getFirestore } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from 'react-i18next';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 
 export default function RequestResources() {
   const { t } = useTranslation();
@@ -29,11 +31,14 @@ export default function RequestResources() {
   const [category, setCategory] = useState("");
   const [severity, setSeverity] = useState("Low");
   const [requestTitle, setrequestTitle] = useState("");
-  const [requestDescription, setAdditionalInfo] = useState("");
+  const [description, setAdditionalInfo] = useState("");
   const [neededBy, setNeededBy] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [region, setRegion] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
+  const genAI = new GoogleGenerativeAI(apiKey);
 
   useEffect(() => {
     (async () => {
@@ -74,6 +79,103 @@ export default function RequestResources() {
       longitudeDelta: 0.0421,
     });
   };
+   //Model for classifying incidents and requests
+   const classifyText = async (description, type) => {
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const generationConfig = {
+        temperature: 1,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: "text/plain",
+      };
+
+      const chatSession = model.startChat({
+        generationConfig,
+        history: [
+          {
+            role: "user",
+            parts: [
+              { text: `You're a seasoned classifier, trained to identify and categorize various ${type}s based on their descriptions. Your task is to provide accurate classifications to help streamline response efforts. Provide a single-word category for each ${type} description.` },
+            ],
+          },
+          {
+            role: "model",
+            parts: [
+              { text: `Understood. I'll provide the single-word classification for each ${type} you describe. Bring on the descriptions!` },
+            ],
+          },
+          {
+            "role": "model",
+            "parts": [
+              { text: `You're right to ask!  Here are the fixed set of categories I'm currently using to classify incidents and requests:\n\n**For Incidents:**\n\n* Natural\n* Accident\n* Medical\n* Violent\n* Environmental\n* Technological\n* Social\n* Transportation\n* Animal\n* Miscellaneous\n\n**For Requests:**\n\n* Medical\n* Food Resources\n* Clothing\n* Technical Support\n* Rescue and Safety\n* Shelter and Housing\n* Transportation\n* Hygiene and Sanitation\n\nI'm open to expanding these categories as we go, but for now, these are the ones I'm using.  Let me know if you'd like to add or adjust these categories as we move forward! \n` },
+            ],
+          },
+          {
+            role: "user",
+            parts: [
+              { text: 
+                   `Request Categories and Training Prompts
+Medical:
+
+Prompt: "Classify this request as a Medical request if the description involves the need for medical attention, supplies, or health-related assistance."
+Example: "Urgent need for medical supplies for injured victims."
+
+Food Resources:
+
+Prompt: "Classify this request as a Food Resources request if the description involves the need for food, water, or nutrition-related assistance."
+Example: "Requesting food and clean water for a community affected by the disaster."
+
+Clothing:
+
+Prompt: "Classify this request as a Clothing request if the description involves the need for clothes, blankets, or similar items."
+Example: "Need warm clothing for families displaced by the flood."
+
+Technical Support:
+
+Prompt: "Classify this request as a Technical Support request if the description involves the need for technical assistance, equipment, or services."
+Example: "Requesting technical support to restore communication lines."
+
+Rescue and Safety:
+
+Prompt: "Classify this request as a Rescue and Safety request if the description involves rescue operations, safety measures, or evacuation assistance."
+Example: "Requesting evacuation assistance due to flooding."
+
+Shelter and Housing:
+
+Prompt: "Classify this request as a Shelter and Housing request if the description involves the need for temporary shelter, housing assistance, or relocation support."
+Example: "Need temporary shelter for a family displaced by a fire."
+
+Transportation:
+
+Prompt: "Classify this request as a Transportation request if the description involves the need for transportation services, vehicle support, or travel assistance."
+Example: "Requesting transportation to a medical facility."
+
+Hygiene and Sanitation:
+
+Prompt: "Classify this request as a Hygiene and Sanitation request if the description involves the need for hygiene products, sanitation facilities, or cleaning supplies."
+Example: "Need sanitation supplies for a temporary shelter."
+` },
+            ],
+          },
+        ],
+      });
+
+      const result = await chatSession.sendMessage(description);
+      const category = result.response?.text?.();
+
+      if (!category) {
+        throw new Error("No category returned from Generative AI model");
+      }
+
+      return category.trim();
+    } catch (error) {
+      console.error("Error classifying text: ", error);
+      return "Unknown";
+    }
+  };
+
   const submitRequest = async () => {
     if (!requestTitle || !neededBy) {
       Toast.show({
@@ -83,13 +185,14 @@ export default function RequestResources() {
       return;
     }
     const formattedDate = neededBy.toISOString().split("T")[0];
+    const category = await classifyText(description, "requests");
     const reportData = {
       location,
       severity,
       category,
       requestTitle,
       contact: await AsyncStorage.getItem("phoneNumber"),
-      requestDescription,
+      description,
       neededBy: formattedDate,
       sendAlert: false,
     };
@@ -160,7 +263,7 @@ export default function RequestResources() {
         <Text className="mb-2">Additional Information</Text>
         <TextInput
           className="bg-white p-2 rounded mb-4"
-          value={requestDescription}
+          value={description}
           onChangeText={setAdditionalInfo}
           placeholder="Enter any additional information"
         />
