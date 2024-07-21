@@ -29,7 +29,7 @@ export default function Chatbot() {
         setMessages([
           {
             _id: 1,
-            text: `Hello, I am ${chatFace.name}, How can I help you?`,
+            text: `Hello, I am HelpEZ Bot, How can I help you?`,
             createdAt: new Date(),
             user: {
               _id: 2,
