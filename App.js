@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "./UserContext";
 import UserGuideScreen from './screens/UserGuideScreen';
 import GuideDetail from "./screens/GuideDetail";
+import ChatBot from './screens/ChatBot';
 import {
   useFonts,
   Roboto_400Regular,
@@ -139,6 +140,7 @@ const App = () => {
                   name="RegisterDetails"
                   component={RegisterDetails}
                 />
+                <Stack.Screen name="ChatBot" component={ChatBot} />
                 <Stack.Screen name="UserGuide" component={UserGuideScreen} />
                 <Stack.Screen name="GuideDetail" component={GuideDetail} /> 
                 <Stack.Screen name="Community" component={CommunityScreen} />

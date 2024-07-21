@@ -221,6 +221,12 @@ const Home = () => {
           source={{ uri: 'https://cdn.usegalileo.ai/maps/837c0b68-3005-4200-b222-e94625e368ee.png' }}
         />
       </View>
+      <TouchableOpacity
+        style={styles.chatbotButton}
+        onPress={() => navigation.navigate('ChatBot')}
+      >
+        <MaterialIcons name="chat" size={40} color="#fff" />
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -333,7 +339,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    position: 'relative', // Ensure the container is relative for absolute positioning
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 80, // Ensure there’s enough space at the bottom to avoid overlap with the chatbot button
   },
   loaderContainer: {
     flex: 1,
@@ -464,6 +474,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+  },
+  chatbotButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#007bff',
+    borderRadius: 50,
+    padding: 10,
+    elevation: 5, // Adds shadow for Android
+    shadowColor: '#000', // Shadow color for iOS
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset for iOS
+    shadowOpacity: 0.2, // Shadow opacity for iOS
+    shadowRadius: 4, // Shadow radius for iOS
   },
   
 });
