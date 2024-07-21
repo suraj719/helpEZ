@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StyleSheet,
+  TouchableOpacity,
   View,
   Text,
   Image,
@@ -27,8 +28,8 @@ import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScr
 import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
-import FlutterLink from "./FlutterLink";
 import CommunityScreen from "./CommunityScreen";
+import { useNavigation } from '@react-navigation/native';
 import Donate from "./Donate"; // Import Donate
 
 const Drawer = createDrawerNavigator();
@@ -48,6 +49,11 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
 
     fetchUserData();
   }, []);
+  const navigation = useNavigation();
+
+  const handleProfileNavigation = () => {
+    navigation.navigate('ProfileScreen'); // Ensure 'ProfileScreen' is the name of your profile screen in the navigator
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -56,15 +62,17 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
         <Image source={require("../assets/drawer.png")} style={styles.logo} />
         <Text style={styles.appName}>HelpEZ</Text>
       </View>
-      <DrawerItemList {...props} />
+      <ScrollView style={styles.scrollView}>
+        <DrawerItemList {...props} />
+      </ScrollView>
       <View style={styles.spacer} />
-      <View style={styles.userInfo}>
-        <Image source={require("../assets/avatar.png")} style={styles.avatar} />
-        <View>
-          <Text style={styles.userName}>{userName}</Text>
-          <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
-        </View>
+      <TouchableOpacity onPress={handleProfileNavigation} style={styles.userInfo}>
+      <Image source={require("../assets/avatar.png")} style={styles.avatar} />
+      <View>
+        <Text style={styles.userName}>{userName}</Text>
+        <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
       </View>
+    </TouchableOpacity>
     </View>
     </ScrollView>
   );
@@ -154,7 +162,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('ResourcesTracking')}
+          name="ResourcesTracking"
           component={ResourcesTrackingScreen}
           options={{
             drawerIcon: ({ color }) => (
@@ -199,7 +207,7 @@ const Dashboard = () => {
           }}
         />
 
-         <Drawer.Screen
+         {/* <Drawer.Screen
           name={t('Profile')}
           component={ProfileScreen}
           options={{
@@ -207,7 +215,7 @@ const Dashboard = () => {
               <Icon name="account-circle-outline" size={22} color={color} />
             ),
           }}
-        />
+        /> */}
         <Drawer.Screen
           name={t('Donate')}
           component={Donate}
@@ -250,12 +258,17 @@ const styles = StyleSheet.create({
   spacer: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     paddingBottom: 18,
     backgroundColor: '#e6e6e6',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
   },
   avatar: {
     width: 50,
@@ -272,6 +285,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "gray",
   },
+  
 });
 
 export default Dashboard;

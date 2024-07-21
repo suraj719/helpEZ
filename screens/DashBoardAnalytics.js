@@ -8,7 +8,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from "react-i18next";
 
-const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
+const apiKey = "AIzaSyD3NVNO2jbuQOSB8Dopzh2avyZQ_jo2aPw";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export default function Analytics() {

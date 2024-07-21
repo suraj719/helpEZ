@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   FlatList,
@@ -12,12 +12,22 @@ import {
   Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { collection, getDocs, getFirestore, doc, updateDoc } from "firebase/firestore";
-import app from "../utils/firebase";
+import { collection, getDoc, getDocs, getFirestore, doc, updateDoc, onSnapshot, query, where } from "firebase/firestore";
+import { app, firestore } from "../utils/firebase";
+import { useTranslation } from 'react-i18next';
+import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTranslation } from "react-i18next";
-import { getDoc } from "firebase/firestore";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import * as Device from 'expo-device';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 
 export default function Incidents() {
   const { t } = useTranslation();
@@ -28,6 +38,13 @@ export default function Incidents() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [disabledButtons, setDisabledButtons] = useState([]);
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [notification, setNotification] = useState(false);
+  const [isAssigned, setIsAssigned] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  const db = getFirestore(app);
 
   const categories = [
     "All",
@@ -38,7 +55,6 @@ export default function Incidents() {
     "Technological",
     "Miscellaneous",
   ];
-  const db = getFirestore(app);
 
   const fetchIncidents = async () => {
     setLoading(true);
@@ -61,6 +77,134 @@ export default function Incidents() {
   useEffect(() => {
     fetchIncidents();
   }, []);
+  useEffect(() => {
+    let unsubscribe;
+    let previousIsAssigned = null;
+  
+    const setupNotifications = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        setExpoPushToken(token);
+        console.log("token:", token);
+  
+        const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+  
+        // Fetch the user document based on phoneNumber
+        const querySnapshot = await getDocs(collection(db, 'users'));
+        const userDoc = querySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber);
+  
+        if (userDoc) {
+          const userRef = doc(db, 'users', userDoc.id);
+  
+          // Set up Firestore listener for the user document
+          unsubscribe = onSnapshot(userRef, async (docSnapshot) => {
+            if (docSnapshot.exists()) {
+              const userData = docSnapshot.data();
+              console.log("User data:", userData);
+  
+              const currentIsAssigned = userData.isAssigned || false;
+  
+              if (previousIsAssigned !== null && currentIsAssigned !== previousIsAssigned) {
+                setIsAssigned(currentIsAssigned);
+                console.log("isassigned" + currentIsAssigned);
+  
+                if (currentIsAssigned) {
+                  await schedulePushNotification(
+                    "New Volunteer Assignment",
+                    `You've been assigned to: ${userData.assignedIncident?.title || 'an incident'}`
+                  );
+                } else {
+                  await schedulePushNotification(
+                    "Your volunteer status",
+                    `You've been removed from volunteering for: ${userData.assignedIncident?.title || 'an incident'}`
+                  );
+                }
+              }
+  
+              previousIsAssigned = currentIsAssigned;
+            }
+          });
+        } else {
+          console.log("No user found with the given phone number");
+        }
+  
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+          setNotification(notification);
+        });
+  
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+          console.log("Notification response:", response);
+        });
+      } catch (error) {
+        console.error("Error in setupNotifications:", error);
+      }
+    };
+  
+    setupNotifications();
+  
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
+
+  const scheduleStaticNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Test Notification",
+        body: "This is a test notification with static content.",
+      },
+      trigger: { seconds: 2 },
+    });
+    Alert.alert("Notification Scheduled", "You should receive a notification in 2 seconds.");
+  };
+
+  async function schedulePushNotification(title, body) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title,
+        body: body,
+      },
+      trigger: { seconds: 2 },
+    });
+    Alert.alert("Notification Scheduled", "You should receive a notification in 5 seconds.");
+  }
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
+    } else {
+      alert('Must use physical device for Push Notifications');
+    }
+
+    if (Device.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+
+    return token;
+  }
+
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -87,6 +231,7 @@ export default function Incidents() {
         return "#6b7280";
     }
   };
+
 
   const renderEventItem = ({ item }) => (
     <View style={styles.cardContainer}>
@@ -218,6 +363,14 @@ export default function Incidents() {
           <Icon name="plus-circle" size={28} color="#007bff" />
         </TouchableOpacity>
       </View>
+
+      {/* <TouchableOpacity
+      style={styles.testNotificationButton}
+      onPress={scheduleStaticNotification}
+    >
+      <Text style={styles.testNotificationButtonText}>Test Notification</Text>
+    </TouchableOpacity> */}
+
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#000" />
@@ -243,7 +396,6 @@ export default function Incidents() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -360,5 +512,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     height: 80,
+  },
+  testNotificationButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  testNotificationButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

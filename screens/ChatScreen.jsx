@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GiftedChat, Bubble, Send, Composer } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, Send, Composer, InputToolbar } from 'react-native-gifted-chat';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, PermissionsAndroid } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import * as Network from 'expo-network';
 import Toast from 'react-native-toast-message';
 import { BleManager } from 'react-native-ble-plx';
 import * as Linking from 'expo-linking';
+import { StatusBar } from 'react-native';
 
 const ChatScreen = ({ route }) => {
   const { t } = useTranslation();
@@ -198,10 +199,10 @@ const redirectToFlutterApp = async () => {
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor: 'black',
+            backgroundColor: '#53d769',
           },
           left: {
-            backgroundColor: 'lightgrey',
+            backgroundColor: '#147efb',
           },
         }}
         textStyle={{
@@ -209,9 +210,19 @@ const redirectToFlutterApp = async () => {
             color: 'white',
           },
           left: {
-            color: 'black',
+            color: 'white',
           },
         }}
+      />
+    );
+  };
+
+  const renderInputToolbar = (props) => {
+    return (
+      <InputToolbar
+        {...props}
+        containerStyle={styles.inputToolbar}
+        primaryStyle={styles.inputPrimaryContainer}
       />
     );
   };
@@ -220,20 +231,15 @@ const redirectToFlutterApp = async () => {
     return (
       <Composer
         {...props}
-        textInputStyle={{
-          borderRadius: 20,
-          paddingHorizontal: 12,
-          paddingTop: 8,
-          paddingBottom: 8,
-          marginLeft: 0,
-        }}
+        textInputStyle={styles.input}
+        placeholderTextColor="#888"
       />
     );
   };
 
   const renderSend = (props) => {
     return (
-      <Send {...props}>
+      <Send {...props} containerStyle={styles.sendContainer}>
         <View style={styles.sendButton}>
           <Ionicons name="send" size={24} color="black" />
         </View>
@@ -244,9 +250,10 @@ const redirectToFlutterApp = async () => {
   return (
     <View style={{ flex: 1 }}>
       {/* Custom header */}
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} style={{padding:4}} color="black" />
         </TouchableOpacity>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>{memberName}</Text>
@@ -262,6 +269,7 @@ const redirectToFlutterApp = async () => {
           name: memberName,
         }}
         renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
         renderComposer={renderComposer}
         renderSend={renderSend}
         alwaysShowSend
@@ -276,27 +284,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: 'white',
     padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
   backButton: {
     marginRight: 10,
   },
+  headerTextContainer: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 18,
-    color: 'white',
+    color: 'black',
     fontWeight: 'bold',
   },
   headerSubtitle: {
     fontSize: 14,
     color: 'gray',
   },
-  sendButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-    marginBottom: 5,
-  },
+  // sendButton: {
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   marginRight: 10,
+  //   marginBottom: 5,
+  // },
   onlineButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -309,6 +322,40 @@ const styles = StyleSheet.create({
   },
   onlineButtonText: {
     fontSize: 14,
+  },
+  inputToolbar: {
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    backgroundColor: '#F8F8F8',
+    paddingTop: 6,
+    paddingHorizontal: 10,
+    paddingBottom: 6,
+  },
+  inputPrimaryContainer: {
+    alignItems: 'center',
+  },
+  input: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    marginRight: 10,
+    fontSize: 16,
+  },
+  sendContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+    elevation:0
+  },
+  sendButton: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

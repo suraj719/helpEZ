@@ -51,7 +51,7 @@ export default function RequestResources() {
   const [items, setItems] = useState([{ itemName: '', itemQuantity: '',satisfied: '0' }]);
 
 
-  const apiKey = "AIzaSyAcZr3HgQhrwfX2M9U8XnTdWpnV_7fiMf8";
+  const apiKey = "AIzaSyDYphFc-Tj4dvmY_Wj_kjfI_zQOYOwC3f4";
   const genAI = new GoogleGenerativeAI(apiKey);
 
   useEffect(() => {
@@ -296,12 +296,14 @@ Example: "Need sanitation supplies for a temporary shelter."
       contact: await AsyncStorage.getItem("phoneNumber"),
       description,
       neededBy: formattedDate,
+      sendAlert: false,
       items,
       images: imageUrls,
     };
 
     const reportData2 = {
       items,
+      sendAlert: false,
     };
 
     setLoading(true);

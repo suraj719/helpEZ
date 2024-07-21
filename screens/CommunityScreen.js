@@ -50,18 +50,12 @@ const CommunityScreen = ({ navigation }) => {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => <PostCard postId={item.id} post={item} />}
         contentContainerStyle={styles.postsList}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={fetchPosts} />
         }
       />
-      <TouchableOpacity
-        style={styles.createPostButton}
-        onPress={() => navigation.navigate('CreatePost')}
-      >
-        <Text style={styles.createPostButtonText}>Create Post</Text>
-      </TouchableOpacity>
       <BottomNavBar />
     </SafeAreaView>
   );
@@ -74,22 +68,6 @@ const styles = StyleSheet.create({
   },
   postsList: {
     paddingHorizontal: 4,
-  },
-  createPostButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#007BFF',
-    padding: 15,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-  },
-  createPostButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
 });
 

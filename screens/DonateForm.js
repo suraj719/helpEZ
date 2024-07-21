@@ -125,6 +125,7 @@ const DonateForm = () => {
     const handleSubmit = async () => {
         const formattedDate = pickupDetails.date.toISOString().split('T')[0];
         const formattedTime = pickupDetails.time.toTimeString().split(' ')[0];
+        console.log(pickupDetails);
         try {
             if (dropOff) {
                 Alert.alert('Thank you!', 'Please visit our nearest warehouse to drop off your items.');
@@ -196,7 +197,7 @@ const DonateForm = () => {
                                     value={location}
                                     onChangeText={setLocation}
                                     placeholder="Enter your pickup location"
-                                    editable={false}
+                                    editable={true}
                                 />
                                 <TouchableOpacity onPress={handleLocationFetch} style={styles.locationButton}>
                                     <Ionicons name="location" size={24} color="white" />
@@ -243,33 +244,24 @@ const DonateForm = () => {
                 </TouchableOpacity>
 
                 {/* Warehouse Modal */}
-                {/* <Modal
-                    visible={showWarehouseModal}
+                {/*
+                <Modal
                     animationType="slide"
-                    transparent={true}
+                    transparent={false}
+                    visible={showWarehouseModal}
+                    onRequestClose={() => setShowWarehouseModal(false)}
                 >
                     <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Select Nearest Warehouse</Text>
-                            <FlatList
-                                data={nearbyWarehouses}
-                                keyExtractor={(item) => item.id}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity
-                                        style={styles.modalItem}
-                                        onPress={() => handleWarehouseSelect(item)}
-                                    >
-                                        <Text style={styles.modalItemText}>{item.name}</Text>
-                                    </TouchableOpacity>
-                                )}
-                            />
-                            <TouchableOpacity
-                                style={styles.modalCloseButton}
-                                onPress={() => setShowWarehouseModal(true)}
-                            >
-                                <Text style={styles.modalCloseButtonText}>Close</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <Text style={styles.modalTitle}>Select Nearest Warehouse</Text>
+                        <FlatList
+                            data={nearbyWarehouses}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity style={styles.warehouseItem} onPress={() => handleWarehouseSelect(item)}>
+                                    <Text style={styles.warehouseName}>{item.name}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
                     </View>
                 </Modal> */}
             </View>
@@ -280,10 +272,12 @@ const DonateForm = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#f8f8f8',
+        backgroundColor: '#F3F4F6',
     },
     backButton: {
         padding: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     backButtonContent: {
         flexDirection: 'row',
@@ -297,22 +291,21 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
+        textAlign: 'center',
     },
     optionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 15,
-        backgroundColor: '#007bff',
+        backgroundColor: '#4A90E2',
+        padding: 10,
         borderRadius: 5,
         marginBottom: 10,
     },
     selectedOption: {
-        backgroundColor: '#0056b3',
+        backgroundColor: '#007BFF',
     },
     optionText: {
         color: '#fff',
-        fontWeight: 'bold',
         marginLeft: 10,
     },
     pickupForm: {
@@ -331,85 +324,72 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        padding: 10,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: '#ddd',
         borderRadius: 5,
+        padding: 10,
+        marginRight: 10,
     },
     locationButton: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#4A90E2',
         padding: 10,
         borderRadius: 5,
-        marginLeft: 10,
     },
     dateButton: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#E1E1E1',
         padding: 10,
-        backgroundColor: '#e0e0e0',
         borderRadius: 5,
-        marginTop: 10,
+        marginBottom: 10,
     },
     dateButtonText: {
         marginLeft: 10,
+        fontSize: 16,
+    },
+    icon: {
+        marginRight: 10,
     },
     timeButton: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#E1E1E1',
         padding: 10,
-        backgroundColor: '#e0e0e0',
         borderRadius: 5,
-        marginTop: 10,
+        marginBottom: 10,
     },
     timeButtonText: {
         marginLeft: 10,
+        fontSize: 16,
     },
     submitButton: {
+        backgroundColor: '#4A90E2',
         padding: 15,
-        backgroundColor: '#28a745',
         borderRadius: 5,
-        marginTop: 20,
+        alignItems: 'center',
     },
     submitButtonText: {
         color: '#fff',
-        fontWeight: 'bold',
-        textAlign: 'center',
+        fontSize: 18,
     },
     modalContainer: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        backgroundColor: '#fff',
         padding: 20,
-        borderRadius: 10,
+        backgroundColor: '#fff',
     },
     modalTitle: {
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 10,
+        marginBottom: 20,
+        textAlign: 'center',
     },
-    modalItem: {
-        padding: 10,
+    warehouseItem: {
+        padding: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomColor: '#ddd',
     },
-    modalItemText: {
-        fontSize: 16,
-    },
-    modalCloseButton: {
-        marginTop: 10,
-        backgroundColor: '#007bff',
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    modalCloseButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
+    warehouseName: {
+        fontSize: 18,
     },
 });
 
