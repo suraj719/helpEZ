@@ -162,7 +162,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name="ResourcesTracking"
+          name="Resources Tracking"
           component={ResourcesTrackingScreen}
           options={{
             drawerIcon: ({ color }) => (

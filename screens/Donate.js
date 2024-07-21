@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
 
   categoryCard: {
     padding: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fcdedc',
     borderRadius: 8,
     margin: 16,
     borderWidth: 1,
