@@ -6,13 +6,9 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import * as Location from 'expo-location';
 import axios from 'axios';
+import { collection, addDoc } from 'firebase/firestore';
+import { firestore } from '../utils/firebase'; 
 
-const warehouses = [
-  { id: '1', name: 'Warehouse 1', latitude: 37.7749, longitude: -122.4194 },
-  { id: '2', name: 'Warehouse 2', latitude: 37.8049, longitude: -122.2711 },
-  { id: '3', name: 'Warehouse 3', latitude: 37.7849, longitude: -122.3994 },
-  // Add more warehouse locations or fetch from an API
-];
 
 const DonateForm = () => {
     const navigation = useNavigation();
@@ -72,8 +68,8 @@ const DonateForm = () => {
             setNearbyWarehouses(nearbyWarehouses);
             setShowWarehouseModal(true);
         } catch (error) {
-            console.error('Error fetching location:', error);
-            Alert.alert('Error', 'Failed to fetch location');
+           // console.error('Error fetching location:', error);
+         //   Alert.alert('Error', 'Failed to fetch location');
         }
     };
 
@@ -110,11 +106,11 @@ const DonateForm = () => {
                 let areaName = `${village}, ${state}`;
                 setLocation(areaName);
             } else {
-                Alert.alert('Location Not Found', 'Unable to fetch location details');
+              //  Alert.alert('Location Not Found', 'Unable to fetch location details');
             }
         } catch (error) {
             console.error('Error fetching location:', error);
-            Alert.alert('Error', 'Failed to fetch location');
+          //  Alert.alert('Error', 'Failed to fetch location');
         }
     };
 
@@ -122,17 +118,31 @@ const DonateForm = () => {
         setLocation(warehouse.name);
         setShowWarehouseModal(false);
     };
+    const handleWarehouse=()=>{
+        navigation.navigate("DropOffScreen");
+    };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const formattedDate = pickupDetails.date.toISOString().split('T')[0];
         const formattedTime = pickupDetails.time.toTimeString().split(' ')[0];
-
-        if (dropOff) {
-            Alert.alert('Thank you!', 'Please visit our nearest warehouse to drop off your items.');
-        } else if (pickupDetails.address && formattedDate && formattedTime) {
-            Alert.alert('Pickup Scheduled', `Your pickup has been scheduled on ${formattedDate} at ${formattedTime}.`);
-        } else {
-            Alert.alert('Error', 'Please fill in all pickup details.');
+        try {
+            if (dropOff) {
+                Alert.alert('Thank you!', 'Please visit our nearest warehouse to drop off your items.');
+            } else if (location && formattedDate && formattedTime) {
+                await addDoc(collection(firestore, 'pickupRequests'), {
+                    address: location,
+                    date: formattedDate,
+                    time: formattedTime,
+                    location: location,
+                });
+                Alert.alert('Pickup Scheduled', `Your pickup has been scheduled on ${formattedDate} at ${formattedTime}.`);
+                navigation.goBack();
+            } else {
+                Alert.alert('Error', 'Please fill in all pickup details.');
+            }
+        } catch (error) {
+            console.error('Error submitting pickup request:', error);
+            Alert.alert('Error', 'Failed to schedule pickup.');
         }
     };
 
@@ -153,6 +163,7 @@ const DonateForm = () => {
                 <TouchableOpacity
                     style={[styles.optionButton, dropOff && styles.selectedOption]}
                     onPress={() => {
+                        handleWarehouse();
                         setDropOff(true);
                         setPickupDetails(prev => ({
                             ...prev,
@@ -232,7 +243,7 @@ const DonateForm = () => {
                 </TouchableOpacity>
 
                 {/* Warehouse Modal */}
-                <Modal
+                {/* <Modal
                     visible={showWarehouseModal}
                     animationType="slide"
                     transparent={true}
@@ -254,13 +265,13 @@ const DonateForm = () => {
                             />
                             <TouchableOpacity
                                 style={styles.modalCloseButton}
-                                onPress={() => setShowWarehouseModal(false)}
+                                onPress={() => setShowWarehouseModal(true)}
                             >
                                 <Text style={styles.modalCloseButtonText}>Close</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-                </Modal>
+                </Modal> */}
             </View>
         </SafeAreaView>
     );

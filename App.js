@@ -50,6 +50,7 @@ import PostDetails from "./screens/PostDetails";
 import Payments from "./screens/Payments";
 import DonateDetails from "./screens/DonateDetails";
 import DonateForm from "./screens/DonateForm";
+import DropOffScreen from "./screens/DropOffScreen";
 
 const Stack = createStackNavigator();
 
@@ -141,11 +142,12 @@ const App = () => {
                   component={RegisterDetails}
                 />
                 <Stack.Screen name="ChatBot" component={ChatBot} />
+                <Stack.Screen name="DropOffScreen" component={DropOffScreen} />
                 <Stack.Screen name="UserGuide" component={UserGuideScreen} />
-                <Stack.Screen name="GuideDetail" component={GuideDetail} /> 
+                <Stack.Screen name="GuideDetail" component={GuideDetail} />
                 <Stack.Screen name="Community" component={CommunityScreen} />
-<Stack.Screen name="CreatePost" component={CreatePost} />
-<Stack.Screen name="PostDetails" component={PostDetails} />
+                <Stack.Screen name="CreatePost" component={CreatePost} />
+                <Stack.Screen name="PostDetails" component={PostDetails} />
                 <Stack.Screen name="Dashboard" component={Dashboard} />
                 <Stack.Screen
                   name="ReportIncident"
