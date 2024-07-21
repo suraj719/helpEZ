@@ -364,12 +364,12 @@ export default function Incidents() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
       style={styles.testNotificationButton}
       onPress={scheduleStaticNotification}
     >
       <Text style={styles.testNotificationButtonText}>Test Notification</Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
 
       {loading ? (
         <View style={styles.loader}>
