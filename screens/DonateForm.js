@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, SafeAreaView, Platform, Modal, FlatList } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -6,8 +6,10 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import * as Location from 'expo-location';
 import axios from 'axios';
-import { collection, addDoc } from 'firebase/firestore';
-import { firestore } from '../utils/firebase'; // Make sure to correctly import your firestore instance
+import { collection, getDocs,addDoc ,updateDoc,query,where} from 'firebase/firestore';
+import { firestore } from '../utils/firebase'; // Ensure correct import
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const warehouses = [
   { id: '1', name: 'Warehouse 1', latitude: 37.7749, longitude: -122.4194 },
@@ -21,8 +23,6 @@ const DonateForm = () => {
     const route = useRoute();
     const [location, setLocation] = useState("");
     const [currentLocation, setCurrentLocation] = useState(null);
-    const { requestId } = route.params;
-
     const [pickupDetails, setPickupDetails] = useState({
         address: '',
         date: new Date(),
@@ -33,6 +33,43 @@ const DonateForm = () => {
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [showWarehouseModal, setShowWarehouseModal] = useState(false);
     const [nearbyWarehouses, setNearbyWarehouses] = useState([]);
+    const { donationQuantities,category } = route.params; // Get donation quantities from route params
+    const [phoneNumber, setPhoneNumber] = useState('');
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const fetchPhoneNumber = async () => {
+      try {
+        const phoneNumber = await AsyncStorage.getItem('phoneNumber');
+        setPhoneNumber(phoneNumber);
+        if (phoneNumber) {
+          fetchUsername(phoneNumber);
+        }
+      } catch (error) {
+        console.error('Error fetching phone number:', error);
+      }
+    };
+
+    const fetchUsername = async (phoneNumber) => {
+      try {
+        const usersCollectionRef = collection(firestore, 'users');
+        const userQuery = query(usersCollectionRef, where('phoneNumber', '==', phoneNumber));
+        const querySnapshot = await getDocs(userQuery);
+
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0].data();
+          setUsername(userDoc.name || 'Unknown');
+        } else {
+          console.log('No user found with the provided phone number.');
+          setUsername('Unknown');
+        }
+      } catch (error) {
+        console.error('Error fetching username:', error);
+      }
+    };
+
+    fetchPhoneNumber();
+  }, []);
 
     const handleDateChange = (event, selectedDate) => {
         setShowDatePicker(false);
@@ -132,12 +169,17 @@ const DonateForm = () => {
         try {
             if (dropOff) {
                 Alert.alert('Thank you!', 'Please visit our nearest warehouse to drop off your items.');
+                // Optionally handle drop-off logic here
             } else if (location && formattedDate && formattedTime) {
                 await addDoc(collection(firestore, 'pickupRequests'), {
+                    username,
+                    phoneNumber,
+                    category,
                     address: location,
                     date: formattedDate,
                     time: formattedTime,
                     location: location,
+                    donationQuantities, // Save donation quantities
                 });
                 Alert.alert('Pickup Scheduled', `Your pickup has been scheduled on ${formattedDate} at ${formattedTime}.`);
                 navigation.goBack();
@@ -246,22 +288,29 @@ const DonateForm = () => {
                 </TouchableOpacity>
 
                 <Modal
-                    animationType="slide"
-                    transparent={false}
                     visible={showWarehouseModal}
-                    onRequestClose={() => setShowWarehouseModal(false)}
+                    transparent={true}
+                    animationType="slide"
                 >
                     <View style={styles.modalContainer}>
-                        <Text style={styles.modalTitle}>Select Nearest Warehouse</Text>
                         <FlatList
                             data={nearbyWarehouses}
-                            keyExtractor={(item) => item.id}
+                            keyExtractor={item => item.id}
                             renderItem={({ item }) => (
-                                <TouchableOpacity style={styles.warehouseItem} onPress={() => handleWarehouseSelect(item)}>
+                                <TouchableOpacity
+                                    style={styles.warehouseItem}
+                                    onPress={() => handleWarehouseSelect(item)}
+                                >
                                     <Text style={styles.warehouseName}>{item.name}</Text>
                                 </TouchableOpacity>
                             )}
                         />
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setShowWarehouseModal(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Close</Text>
+                        </TouchableOpacity>
                     </View>
                 </Modal>
             </View>
@@ -272,12 +321,11 @@ const DonateForm = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#f7f7f7',
     },
     backButton: {
         padding: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
+        marginBottom: 10,
     },
     backButtonContent: {
         flexDirection: 'row',
@@ -285,26 +333,26 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        padding: 20,
+        padding: 16,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
-        textAlign: 'center',
     },
     optionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#4A90E2',
-        padding: 10,
-        borderRadius: 5,
+        backgroundColor: '#007bff',
+        padding: 15,
+        borderRadius: 10,
         marginBottom: 10,
     },
     selectedOption: {
-        backgroundColor: '#007BFF',
+        backgroundColor: '#0056b3',
     },
     optionText: {
+        fontSize: 18,
         color: '#fff',
         marginLeft: 10,
     },
@@ -316,6 +364,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 16,
+        fontWeight: 'bold',
         marginBottom: 5,
     },
     locationContainer: {
@@ -325,71 +374,79 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
+        borderColor: '#ccc',
         padding: 10,
-        marginRight: 10,
+        borderRadius: 5,
     },
     locationButton: {
-        backgroundColor: '#4A90E2',
+        backgroundColor: '#007bff',
         padding: 10,
         borderRadius: 5,
+        marginLeft: 10,
     },
     dateButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E1E1E1',
+        backgroundColor: '#fff',
         padding: 10,
         borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#ccc',
         marginBottom: 10,
-    },
-    dateButtonText: {
-        marginLeft: 10,
-        fontSize: 16,
-    },
-    icon: {
-        marginRight: 10,
     },
     timeButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E1E1E1',
+        backgroundColor: '#fff',
         padding: 10,
         borderRadius: 5,
-        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+    },
+    icon: {
+        marginRight: 10,
+    },
+    dateButtonText: {
+        fontSize: 16,
     },
     timeButtonText: {
-        marginLeft: 10,
         fontSize: 16,
     },
     submitButton: {
-        backgroundColor: '#4A90E2',
+        backgroundColor: '#28a745',
         padding: 15,
-        borderRadius: 5,
+        borderRadius: 10,
         alignItems: 'center',
     },
     submitButtonText: {
-        color: '#fff',
         fontSize: 18,
+        color: '#fff',
+        fontWeight: 'bold',
     },
     modalContainer: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#fff',
-    },
-    modalTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
     },
     warehouseItem: {
+        backgroundColor: '#fff',
         padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        borderRadius: 10,
+        marginBottom: 10,
+        width: '90%',
     },
     warehouseName: {
         fontSize: 18,
+    },
+    closeButton: {
+        backgroundColor: '#007bff',
+        padding: 15,
+        borderRadius: 10,
+    },
+    closeButtonText: {
+        fontSize: 18,
+        color: '#fff',
     },
 });
 
