@@ -120,49 +120,50 @@ const DonateDetails = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <View style={styles.backButtonContent}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="chevron-back" size={24} color="black" />
           <Text>Back</Text>
-        </View>
-      </TouchableOpacity>
-      <View style={styles.container}>
+        </TouchableOpacity>
         <Text style={styles.title}>Request Details</Text>
 
-        <Text style={styles.title}>{category} Needs</Text>
-        
-          {itemList.length > 0 ? (
-            <FlatList
-              data={itemList}
-              keyExtractor={(item) => item.name}
-              renderItem={renderItem}
-            />
-          ) : (
-            <Text style={styles.noItemsText}>No items needed for this category.</Text>
-          )}
-        
+        <Text style={styles.categoryTitle}>{category} Needs</Text>
+        {itemList.map((item) => (
+          <View style={styles.itemContainer} key={item.name}>
+            <View style={styles.itemContent}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemSubtext}>{item.quantity} units needed</Text>
+            </View>
+            <View style={styles.progressBar}>
+              <View style={[styles.progress, { width: `${(item.quantity / totalQuantity) * 100}%` }]} />
+              <Text style={styles.progressText}>{Math.round((item.quantity / totalQuantity) * 100)}%</Text>
+            </View>
+          </View>
+        ))}
 
-        <View style={styles.needsBox}>
-          <FontAwesome5 name="donate" size={24} color="black" style={styles.needsBoxIcon} />
-          <View style={styles.needsBoxContent}>
-            <Text style={styles.needsBoxTitle}>Present Needs</Text>
-            <Text style={styles.needsBoxText}>
-              Total Quantities Needed: {totalQuantity}
-            </Text>
+        <Text style={styles.sectionTitle}>Present Needs</Text>
+        <Text style={styles.totalQuantity}>Total quantity needed: {totalQuantity}</Text>
+        <View style={styles.progressContainer}>
+          <Text style={styles.progressLabel}>Progress</Text>
+          <Text style={styles.progressCount}>0/{totalQuantity}</Text>
+          <View style={styles.fullProgressBar}>
+            <View style={[styles.fullProgress, { width: '0%' }]} />
           </View>
         </View>
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button1} onPress={handleDonate}>
-          <Text style={styles.buttonText}>Donate Now</Text>
+
+        <TouchableOpacity onPress={handleDonate} style={styles.donateButton}>
+          <FontAwesome5 name="donate" size={24} color="white" />
+          <Text style={styles.donateButtonText}>Donate Now</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleShare}>
-          <Text style={styles.buttonText1}>Share</Text>
+
+        <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
+          <Ionicons name="share-social" size={24} color="black" />
+          <Text style={styles.shareButtonText}>Share</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -170,100 +171,123 @@ const DonateDetails = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
+  },
+  container: {
     padding: 16,
   },
   backButton: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    zIndex: 1,
-  },
-  backButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  container: {
-    marginTop: 30,
-    paddingHorizontal: 20,
-    flex: 1,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    color: '#181111',
+    marginBottom: 16,
   },
-  itemCard: {
-    backgroundColor: '#f2f2f2',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-  itemCardTitle: {
-    fontSize: 16,
+  categoryTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#181111',
+    marginBottom: 8,
   },
-  itemCardText: {
-    fontSize: 14,
-  },
-  noItemsText: {
-    fontSize: 16,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  needsBox: {
-    padding: 20,
-    backgroundColor: '#e0f7fa',
-    borderRadius: 8,
-    marginVertical: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  needsBoxIcon: {
-    marginRight: 15,
-  },
-  needsBoxContent: {
-    flex: 1,
-  },
-  needsBoxTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  needsBoxText: {
-    fontSize: 16,
-  },
-  buttonContainer: {
+  itemContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-  },
-  button: {
-    backgroundColor: '#ffcccb',
-    padding: 15,
-    borderRadius: 8,
     alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 5,
+    paddingVertical: 8,
   },
-  button1: {
-    backgroundColor: '#f53838',
-    padding: 15,
-    borderRadius: 8,
+  itemContent: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#181111',
+  },
+  itemSubtext: {
+    fontSize: 14,
+    color: '#896161',
+  },
+  progressBar: {
+    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 5,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  progress: {
+    height: 8,
+    backgroundColor: '#181111',
+    borderRadius: 4,
   },
-  buttonText1: {
-    color: '#000',
-    fontSize: 16,
+  progressText: {
+    fontSize: 14,
+    color: '#181111',
+    marginLeft: 8,
+  },
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#181111',
+    marginVertical: 16,
+  },
+  totalQuantity: {
+    fontSize: 16,
+    color: '#181111',
+    marginBottom: 16,
+  },
+  progressContainer: {
+    marginBottom: 16,
+  },
+  progressLabel: {
+    fontSize: 16,
+    color: '#181111',
+  },
+  progressCount: {
+    fontSize: 14,
+    color: '#181111',
+  },
+  fullProgressBar: {
+    height: 8,
+    backgroundColor: '#e6dbdb',
+    borderRadius: 4,
+    marginTop: 4,
+  },
+  fullProgress: {
+    height: 8,
+    backgroundColor: '#181111',
+    borderRadius: 4,
+  },
+  donateButton: {
+    backgroundColor: '#ee2b2b',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  donateButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  shareButton: {
+    backgroundColor: '#f4f0f0',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareButtonText: {
+    color: '#181111',
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 });
 
 export default DonateDetails;
+  
