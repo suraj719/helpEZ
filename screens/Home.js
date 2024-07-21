@@ -68,45 +68,41 @@ const Home = () => {
         const name = await AsyncStorage.getItem('name');
         if (name !== null) {
           setUserName(name);
-          fetchUserImage(name); // Fetch user image based on the user name
+          fetchUserImage(name);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
     fetchUserData();
+    fetchIncidents(); // Fetch incidents when the component mounts
   }, []);
   
   const db = getFirestore(app);
 
-  // // Fetch data when the component is focused
-  // useFocusEffect(fetchUserData);
-  // // Function to fetch incidents from Firestore and compare with stored incidents
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     fetchIncidents();
-  //   }, [])
-  // );
-
   const fetchIncidents = async () => {
-    const snapshot = await getDocs(collection(db, "incidents"));
-    const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      const snapshot = await getDocs(collection(db, "incidents"));
+      const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Shuffle and select 3 random incidents
-    const shuffled = allIncidents.sort(() => 0.5 - Math.random());
-    const topThree = shuffled.slice(0, 3);
-    
-    setIncidents(topThree);
+      // Shuffle and select 3 random incidents
+      const shuffled = allIncidents.sort(() => 0.5 - Math.random());
+      const topThree = shuffled.slice(0, 3);
+      
+      setIncidents(topThree);
 
-    const storedIncidents = await AsyncStorage.getItem('storedIncidents');
-    const incidentIds = snapshot.docs.map(doc => doc.id);
-    
-    if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
-      setNewNotifications(true);
-      await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
-      showToast(); // Show toast when new incidents are detected
-    } else {
-      setNewNotifications(false);
+      const storedIncidents = await AsyncStorage.getItem('storedIncidents');
+      const incidentIds = snapshot.docs.map(doc => doc.id);
+      
+      if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
+        setNewNotifications(true);
+        await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
+        showToast();
+      } else {
+        setNewNotifications(false);
+      }
+    } catch (error) {
+      console.error('Error fetching incidents:', error);
     }
   };
 
@@ -197,7 +193,13 @@ const Home = () => {
           imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
           onPress={() => navigation.navigate('VolunteerSignup')}
         />
+        <QuickAccessCard
+          title={t('User Guide')}
+          imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
+          onPress={() => navigation.navigate('UserGuide')}
+        />
       </View>
+      
 
       <Text style={styles.sectionTitle}>{t('Recent Incidents')}</Text>
     {incidents.length === 0 ? (

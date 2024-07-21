@@ -6,6 +6,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "./UserContext";
+import UserGuideScreen from './screens/UserGuideScreen';
+import GuideDetail from "./screens/GuideDetail";
 import {
   useFonts,
   Roboto_400Regular,
@@ -137,6 +139,8 @@ const App = () => {
                   name="RegisterDetails"
                   component={RegisterDetails}
                 />
+                <Stack.Screen name="UserGuide" component={UserGuideScreen} />
+                <Stack.Screen name="GuideDetail" component={GuideDetail} /> 
                 <Stack.Screen name="Community" component={CommunityScreen} />
 <Stack.Screen name="CreatePost" component={CreatePost} />
 <Stack.Screen name="PostDetails" component={PostDetails} />
