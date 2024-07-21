@@ -19,8 +19,8 @@ const ResourceRouteScreen = ({ route }) => {
     const markerRef = useRef();
 
     const [state, setState] = useState({
-        curLoc: { latitude: 18.3197, longitude: 78.3506 },
-        destinationCords: route.params.destinationCords || {}, // Get destination coordinates from navigation params
+        curLoc: route.params.originCords,
+        destinationCords: route.params.destCords || {},
         isLoading: false,
         coordinate: new AnimatedRegion({
             latitude: 18.3197, longitude: 78.3506,

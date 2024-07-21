@@ -6,9 +6,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "./UserContext";
-import UserGuideScreen from './screens/UserGuideScreen';
+import UserGuideScreen from "./screens/UserGuideScreen";
 import GuideDetail from "./screens/GuideDetail";
-import ChatBot from './screens/ChatBot';
+import ChatBot from "./screens/ChatBot";
 import {
   useFonts,
   Roboto_400Regular,
@@ -51,6 +51,9 @@ import Payments from "./screens/Payments";
 import DonateDetails from "./screens/DonateDetails";
 import DonateForm from "./screens/DonateForm";
 import ProfileScreen from "./screens/ProfileScreen";
+import DropOffScreen from "./screens/DropOffScreen";
+import RequestDetails from './screens/RequestDetails';
+
 
 const Stack = createStackNavigator();
 
@@ -138,16 +141,22 @@ const App = () => {
                 <Stack.Screen name="GalileoDesign" component={GalileoDesign} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen
-                  name="RegisterDetails"
-                  component={RegisterDetails}
+                  name="RequestDetails"
+                  component={RequestDetails}
+                />
+                <Stack.Screen
+                  name="ResourceRouteScreen"
+                  component={ResourceRouteScreen}
                 />
                 <Stack.Screen name="ChatBot" component={ChatBot} />
+                <Stack.Screen name="DropOffScreen" component={DropOffScreen} />
                 <Stack.Screen name="UserGuide" component={UserGuideScreen} />
-                <Stack.Screen name="GuideDetail" component={GuideDetail} /> 
+                <Stack.Screen name="GuideDetail" component={GuideDetail} />
                 <Stack.Screen name="Community" component={CommunityScreen} />
-<Stack.Screen name="CreatePost" component={CreatePost} />
-<Stack.Screen name="PostDetails" component={PostDetails} />
-<Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+                <Stack.Screen name="CreatePost" component={CreatePost} />
+                <Stack.Screen name="PostDetails" component={PostDetails} />
+                <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+
                 <Stack.Screen name="Dashboard" component={Dashboard} />
                 <Stack.Screen
                   name="ReportIncident"
@@ -163,19 +172,12 @@ const App = () => {
                 />
                 <Stack.Screen name="Family" component={Family} />
                 <Stack.Screen name="ChatScreen" component={ChatScreen} />
-                <Stack.Screen
-                  name="MemberSignup"
-                  component={MemberSignup}
-                />
+                <Stack.Screen name="MemberSignup" component={MemberSignup} />
                 <Stack.Screen name="Payments" component={Payments} />
                 <Stack.Screen name="DonateForm" component={DonateForm} />
                 <Stack.Screen name="DonateDetails" component={DonateDetails} />
                 <Stack.Screen name={t("Home")} component={Home} />
                 <Stack.Screen name="Notifications" component={Notifications} />
-                <Stack.Screen
-                  name="ResourceRouteScreen"
-                  component={ResourceRouteScreen}
-                />
               </Stack.Navigator>
             )}
             <Toast visibilityTime={2000} swipeable={true} position="bottom" />

@@ -111,8 +111,8 @@ const DonateForm = () => {
             setNearbyWarehouses(nearbyWarehouses);
             setShowWarehouseModal(true);
         } catch (error) {
-            console.error('Error fetching location:', error);
-            Alert.alert('Error', 'Failed to fetch location');
+           // console.error('Error fetching location:', error);
+         //   Alert.alert('Error', 'Failed to fetch location');
         }
     };
 
@@ -149,17 +149,20 @@ const DonateForm = () => {
                 let areaName = `${village}, ${state}`;
                 setLocation(areaName);
             } else {
-                Alert.alert('Location Not Found', 'Unable to fetch location details');
+              //  Alert.alert('Location Not Found', 'Unable to fetch location details');
             }
         } catch (error) {
             console.error('Error fetching location:', error);
-            Alert.alert('Error', 'Failed to fetch location');
+          //  Alert.alert('Error', 'Failed to fetch location');
         }
     };
 
     const handleWarehouseSelect = (warehouse) => {
         setLocation(warehouse.name);
         setShowWarehouseModal(false);
+    };
+    const handleWarehouse=()=>{
+        navigation.navigate("DropOffScreen");
     };
 
     const handleSubmit = async () => {
@@ -209,6 +212,7 @@ const DonateForm = () => {
                 <TouchableOpacity
                     style={[styles.optionButton, dropOff && styles.selectedOption]}
                     onPress={() => {
+                        handleWarehouse();
                         setDropOff(true);
                         setPickupDetails(prev => ({
                             ...prev,
@@ -287,6 +291,8 @@ const DonateForm = () => {
                     <Text style={styles.submitButtonText}>Submit</Text>
                 </TouchableOpacity>
 
+                {/* Warehouse Modal */}
+                {/*
                 <Modal
                     visible={showWarehouseModal}
                     transparent={true}
@@ -312,7 +318,7 @@ const DonateForm = () => {
                             <Text style={styles.closeButtonText}>Close</Text>
                         </TouchableOpacity>
                     </View>
-                </Modal>
+                </Modal> */}
             </View>
         </SafeAreaView>
     );
@@ -321,7 +327,7 @@ const DonateForm = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#f7f7f7',
+        backgroundColor: '#f8f8f8',
     },
     backButton: {
         padding: 10,
@@ -343,9 +349,10 @@ const styles = StyleSheet.create({
     optionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#007bff',
+        justifyContent: 'center',
         padding: 15,
-        borderRadius: 10,
+        backgroundColor: '#007bff',
+        borderRadius: 5,
         marginBottom: 10,
     },
     selectedOption: {
@@ -354,6 +361,7 @@ const styles = StyleSheet.create({
     optionText: {
         fontSize: 18,
         color: '#fff',
+        fontWeight: 'bold',
         marginLeft: 10,
     },
     pickupForm: {
@@ -373,6 +381,7 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
+        padding: 10,
         borderWidth: 1,
         borderColor: '#ccc',
         padding: 10,
@@ -380,8 +389,10 @@ const styles = StyleSheet.create({
     },
     locationButton: {
         backgroundColor: '#007bff',
+        backgroundColor: '#007bff',
         padding: 10,
         borderRadius: 5,
+        marginLeft: 10,
         marginLeft: 10,
     },
     dateButton: {
@@ -389,16 +400,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#fff',
         padding: 10,
+        backgroundColor: '#e0e0e0',
         borderRadius: 5,
         borderWidth: 1,
         borderColor: '#ccc',
         marginBottom: 10,
+        marginTop: 10,
+    },
+    dateButtonText: {
+        marginLeft: 10,
     },
     timeButton: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#fff',
         padding: 10,
+        backgroundColor: '#e0e0e0',
         borderRadius: 5,
         borderWidth: 1,
         borderColor: '#ccc',
@@ -410,10 +427,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     timeButtonText: {
-        fontSize: 16,
+        marginLeft: 10,
     },
     submitButton: {
-        backgroundColor: '#28a745',
         padding: 15,
         borderRadius: 10,
         alignItems: 'center',
@@ -422,22 +438,42 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#fff',
         fontWeight: 'bold',
+        textAlign: 'center',
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    warehouseItem: {
+    modalContent: {
+        width: '80%',
         backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    modalCloseButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    closeButton: {
+        backgroundColor: '#007bff',
         padding: 15,
         borderRadius: 10,
-        marginBottom: 10,
-        width: '90%',
     },
-    warehouseName: {
+    closeButtonText: {
         fontSize: 18,
+        color: '#fff',
     },
     closeButton: {
         backgroundColor: '#007bff',
