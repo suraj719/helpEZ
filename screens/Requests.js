@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   FlatList,
@@ -9,23 +9,33 @@ import {
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
-  collection,
-  getDocs,
-  getFirestore,
-  query,
-  where,
+  collection, getDoc, getDocs, getFirestore, doc, onSnapshot, query, where 
 } from "firebase/firestore";
 import app from "../utils/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from 'react-i18next';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function Requests() {
   const { t } = useTranslation();
-  const navigate = useNavigation();
+  const navigation = useNavigation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const db = getFirestore(app);
   const [refreshing, setRefreshing] = useState(false);
+  const [expoPushToken, setExpoPushToken] = useState('');
+  const [sendAlert, setSendAlert] = useState(false);
+  const notificationListener = useRef();
+  const responseListener = useRef();
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -33,7 +43,7 @@ export default function Requests() {
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
       if (phoneNumber) {
         const q = query(
-          collection(getFirestore(app), "requests"),
+          collection(db, "requests"),
           where("contact", "==", phoneNumber)
         );
         const snapshot = await getDocs(q);
@@ -58,7 +68,72 @@ export default function Requests() {
   );
 
   useEffect(() => {
-    fetchRequests();
+    let unsubscribe;
+    let previousSend = null;
+  
+    const setupNotifications = async () => {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        setExpoPushToken(token);
+        console.log("token:", token);
+  
+        const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+  
+        // Fetch the user document based on phoneNumber
+        const querySnapshot = await getDocs(collection(db, 'requests'));
+        const requestDoc = querySnapshot.docs.find(doc => doc.data().contact === phoneNumber);
+  
+        if (requestDoc) {
+          const requestRef = doc(db, 'requests', requestDoc.id);
+  
+          // Set up Firestore listener for the user document
+          unsubscribe = onSnapshot(requestRef, async (docSnapshot) => {
+            if (docSnapshot.exists()) {
+              const requestData = docSnapshot.data();
+              console.log("Request data:", requestData);
+  
+              const currentAlert = requestData.sendAlert || false;
+  
+              if (previousSend !== null && currentAlert !== previousSend) {
+                setSendAlert(currentAlert);
+                console.log("isSend" + currentAlert);
+  
+                if (currentAlert) {
+                  await schedulePushNotification(
+                    "Request Alert",
+                    `Your request about ${requestData.requestTitle} is been published.`
+                  );
+                }
+              }
+  
+              previousSend = currentAlert;
+            }
+          });
+        } else {
+          console.log("No user found with the given phone number");
+        }
+  
+        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+          setNotification(notification);
+        });
+  
+        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+          console.log("Notification response:", response);
+        });
+      } catch (error) {
+        console.error("Error in setupNotifications:", error);
+      }
+    };
+  
+    setupNotifications();
+  
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
   }, []);
 
   const onRefresh = useCallback(() => {
@@ -68,10 +143,53 @@ export default function Requests() {
       setRefreshing(false);
     }, 100);
   }, []);
+
+  async function schedulePushNotification(title, body) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: title,
+        body: body,
+      },
+      trigger: { seconds: 2 },
+    });
+  }
+
+  async function registerForPushNotificationsAsync() {
+    let token;
+
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
+    } else {
+      alert('Must use physical device for Push Notifications');
+    }
+
+    if (Device.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+
+    return token;
+  }
+
   const renderRequestItem = ({ item }) => (
     <TouchableOpacity
       activeOpacity={0.7}
-      //   onPress={() => navigate.navigate("RequestDetails", { request: item })}
+      //   onPress={() => navigation.navigate("RequestDetails", { request: item })}
       className="bg-white m-2 rounded-lg shadow-md overflow-hidden"
     >
       <View className="p-4">
@@ -90,6 +208,9 @@ export default function Requests() {
           Location: {item.location.latitude}, {item.location.longitude}
         </Text>
         <Text className="text-sm text-gray-500">Severity: {item.severity}</Text>
+        {item.alertSent && (
+          <Text className="text-sm text-green-500 mt-2">Alert Sent</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -99,7 +220,7 @@ export default function Requests() {
       <TouchableOpacity
         activeOpacity={0.7}
         className="bg-gray-900 p-4 rounded m-4 items-center"
-        onPress={() => navigate.navigate("RequestResources")}
+        onPress={() => navigation.navigate("RequestResources")}
       >
         <Text className="text-white font-bold text-lg">Add a Request</Text>
       </TouchableOpacity>

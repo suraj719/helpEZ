@@ -4,44 +4,31 @@ import { useNavigation } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import * as ImagePicker from 'expo-image-picker';
 import { firestore } from '../utils/firebase'; // Adjust the path as needed
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+const generateRandomUserId = () => {
+  return 'user_' + Math.random().toString(36).substr(2, 9);
+};
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-
   const [bio, setBio] = useState("I'm a nurse and I love to help people. I've been working in the healthcare industry for 3 years.");
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState('https://cdn.usegalileo.ai/stability/563e97b1-3c37-4960-af0c-ed843bb03196.png');
   const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState(generateRandomUserId());
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const userId = 'user_id'; // Replace with the actual user ID or identifier
-        const docRef = doc(firestore, 'profiles', userId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setProfileImage(data.profileImage || 'default_image_url'); // Set default image if not found
-          setBio(data.bio || 'Default bio'); // Set default bio if not found
-        }
-      } catch (error) {
-        console.error("Error fetching profile: ", error);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  useEffect(() => {
-    // Fetch user name from AsyncStorage
     const fetchUserName = async () => {
       try {
         const name = await AsyncStorage.getItem('name');
         if (name !== null) {
+          console.log('Fetched user name from AsyncStorage:', name);
           setUserName(name);
+          // Fetch profile by user name
+          fetchProfileByName(name);
         }
       } catch (error) {
         console.error('Error fetching user name:', error);
@@ -50,21 +37,47 @@ export default function ProfileScreen() {
     fetchUserName();
   }, []);
 
+  const fetchProfileByName = async (name) => {
+    try {
+      const profilesRef = collection(firestore, 'profiles');
+      const q = query(profilesRef, where('name', '==', name));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          setProfileImage(data.profileImage || 'default_image_url');
+          setBio(data.bio || 'Default bio');
+          console.log('Fetched profile from Firestore:', data);
+        });
+      } else {
+        console.log('No such document!');
+        setProfileImage('default_image_url');
+        setBio('Default bio');
+      }
+    } catch (error) {
+      console.error("Error fetching profile: ", error);
+    }
+  };
+
   const handleSave = async () => {
     try {
-      const userId = 'user_id'; // Replace with the actual user ID or identifier
+      console.log("Saving profile with name:", userName);
+      console.log("Saving profile with bio:", bio);
+
       const docRef = doc(firestore, 'profiles', userId);
       await setDoc(docRef, {
-        name: 'Maria', // Replace with dynamic name if necessary
-        profileImage: profileImage, // URI of the profile image
+        name: userName,
+        profileImage: profileImage,
         bio: bio,
       }, { merge: true });
 
+      console.log("Profile created/updated successfully!");
       setIsEditing(false);
-      Alert.alert("Profile updated successfully!");
+      Alert.alert("Profile saved successfully!");
     } catch (error) {
       console.error("Error updating profile: ", error);
-      Alert.alert("Failed to update profile.");
+      Alert.alert("Failed to save profile.");
     }
   };
 
@@ -77,10 +90,35 @@ export default function ProfileScreen() {
     });
 
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      const imageUri = result.assets[0].uri;
+      console.log("Image URI:", imageUri);
+
+      const storage = getStorage();
+      const fileName = imageUri.split('/').pop();
+      const storageRef = ref(storage, `profileImages/${fileName}`);
+
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      await uploadBytes(storageRef, blob);
+
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log("Download URL:", downloadURL);
+
+      setProfileImage(downloadURL);
+
+      try {
+        const docRef = doc(firestore, 'profiles', userId);
+        await setDoc(docRef, {
+          profileImage: downloadURL,
+          name: userName,
+          bio: bio
+        }, { merge: true });
+        console.log("Profile image URL updated in Firestore");
+      } catch (error) {
+        console.error("Error updating profile image URL in Firestore: ", error);
+      }
     }
   };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.profileContainer}>
@@ -95,7 +133,6 @@ export default function ProfileScreen() {
           <Text style={styles.profileJoined}>Joined in 2020</Text>
         </View>
       </View>
-
       <View style={styles.tagsContainer}>
         {['Volunteer', 'Community', 'Healthcare', 'Firefighter'].map((tag) => (
           <View key={tag} style={styles.tag}>

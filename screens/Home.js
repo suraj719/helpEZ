@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { useFonts } from 'expo-font';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
+
 import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
@@ -12,6 +13,11 @@ import Incidents from './Incidents';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
 import { getLocationName } from './reverseGeocode';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { Dimensions } from 'react-native';
+
+
+const { width, height } = Dimensions.get('window');
 
 const Home = () => {
   const [fontsLoaded] = useFonts({
@@ -24,54 +30,78 @@ const Home = () => {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const [newNotifications, setNewNotifications] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [userName, setUserName] = useState('');
   const languageSwitchRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [incidents, setIncidents] = useState([]); // Added incidents state
 
+  const fetchUserImage = useCallback(async (userName) => {
+    try {
+      const db = getFirestore();
+      const profilesRef = collection(db, 'profiles');
+      const q = query(profilesRef, where('name', '==', userName));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        const data = doc.data();
+        if (data.profileImage) {
+          setProfileImageUrl(data.profileImage);
+        } else {
+          setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
+        }
+      } else {
+        setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
+      }
+    } catch (error) {
+      console.error('Error fetching user image:', error);
+      setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
+    }
+  }, []);
+
   useEffect(() => {
-    // Fetch user name from AsyncStorage
-    const fetchUserName = async () => {
+    const fetchUserData = async () => {
       try {
         const name = await AsyncStorage.getItem('name');
         if (name !== null) {
           setUserName(name);
+          fetchUserImage(name);
         }
       } catch (error) {
-        console.error('Error fetching user name:', error);
+        console.error('Error fetching user data:', error);
       }
     };
-    fetchUserName();
-  }, []);
 
+    fetchUserData();
+    fetchIncidents();
+  }, [fetchUserImage]);
+  
   const db = getFirestore(app);
 
-  // Function to fetch incidents from Firestore and compare with stored incidents
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchIncidents();
-    }, [])
-  );
-
   const fetchIncidents = async () => {
-    const snapshot = await getDocs(collection(db, "incidents"));
-    const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      const snapshot = await getDocs(collection(db, "incidents"));
+      const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Shuffle and select 3 random incidents
-    const shuffled = allIncidents.sort(() => 0.5 - Math.random());
-    const topThree = shuffled.slice(0, 3);
-    
-    setIncidents(topThree);
+      // Shuffle and select 3 random incidents
+      const shuffled = allIncidents.sort(() => 0.5 - Math.random());
+      const topThree = shuffled.slice(0, 3);
+      
+      setIncidents(topThree);
 
-    const storedIncidents = await AsyncStorage.getItem('storedIncidents');
-    const incidentIds = snapshot.docs.map(doc => doc.id);
-    
-    if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
-      setNewNotifications(true);
-      await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
-      showToast(); // Show toast when new incidents are detected
-    } else {
-      setNewNotifications(false);
+      const storedIncidents = await AsyncStorage.getItem('storedIncidents');
+      const incidentIds = snapshot.docs.map(doc => doc.id);
+      
+      if (!storedIncidents || JSON.stringify(incidentIds) !== storedIncidents) {
+        setNewNotifications(true);
+        await AsyncStorage.setItem('storedIncidents', JSON.stringify(incidentIds));
+        showToast();
+      } else {
+        setNewNotifications(false);
+      }
+    } catch (error) {
+      console.error('Error fetching incidents:', error);
     }
   };
 
@@ -133,16 +163,17 @@ const Home = () => {
         <View style={styles.profile}>
           <ImageBackground
             style={styles.profileImage}
-            source={{ uri: 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png' }}
+            source={{ uri: profileImageUrl || 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png' }}
           />
           <View style={styles.profileText}>
-          <Text style={styles.title}>
-          {t('hello')}, {userName ? userName : t('user')}
-        </Text>
+            <Text style={styles.title}>
+              {t('hello')}, {userName ? userName : t('user')}
+            </Text>
             <Text style={styles.status}>{t('You are in a safe area.')}</Text>
           </View>
         </View>
       </View>
+
 
       <Text style={styles.sectionTitle}>{t('Quick Access')}</Text>
       <View style={styles.quickAccessSection}>
@@ -161,7 +192,13 @@ const Home = () => {
           imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
           onPress={() => navigation.navigate('VolunteerSignup')}
         />
+        <QuickAccessCard
+          title={t('User Guide')}
+          imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
+          onPress={() => navigation.navigate('UserGuide')}
+        />
       </View>
+      
 
       <Text style={styles.sectionTitle}>{t('Recent Incidents')}</Text>
     {incidents.length === 0 ? (
@@ -184,6 +221,12 @@ const Home = () => {
           source={{ uri: 'https://cdn.usegalileo.ai/maps/837c0b68-3005-4200-b222-e94625e368ee.png' }}
         />
       </View>
+      <TouchableOpacity
+        style={styles.chatbotButton}
+        onPress={() => navigation.navigate('ChatBot')}
+      >
+        <MaterialIcons name="chat" size={40} color="#fff" />
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -296,7 +339,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    position: 'relative', // Ensure the container is relative for absolute positioning
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 80, // Ensure there’s enough space at the bottom to avoid overlap with the chatbot button
   },
   loaderContainer: {
     flex: 1,
@@ -335,17 +382,30 @@ const styles = StyleSheet.create({
     width: 128,
     height: 128,
     borderRadius: 64,
+    borderWidth: 4,
+    borderColor: '#FFFFFF', // Adjust border color as needed
+    shadowColor: '#000', // Shadow color
+    shadowOffset: { width: 0, height: 4 }, // Shadow offset
+    shadowOpacity: 0.3, // Shadow opacity
+    shadowRadius: 8, // Shadow radius
+    elevation: 5, // For Android shadow effect
+    resizeMode: 'cover', // Ensure image covers the area
   },
   profileText: {
     marginLeft: 16,
+    flex: 1, // Allow text container to expand
+    flexWrap: 'wrap', // Allow text to wrap onto the next line
   },
-  greeting: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  title: {
+    fontSize: 30, // Adjusted font size for better fit
+    color: "black",
+    fontFamily: "RobotoBold",
+    flexShrink: 1, // Allows text to shrink if necessary
   },
   status: {
     color: '#6B6B6B',
   },
+
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
@@ -414,6 +474,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
+  },
+  chatbotButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#007bff',
+    borderRadius: 50,
+    padding: 10,
+    elevation: 5, // Adds shadow for Android
+    shadowColor: '#000', // Shadow color for iOS
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset for iOS
+    shadowOpacity: 0.2, // Shadow opacity for iOS
+    shadowRadius: 4, // Shadow radius for iOS
   },
   
 });
