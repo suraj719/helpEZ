@@ -14,6 +14,10 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
 import { getLocationName } from './reverseGeocode';
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import { Dimensions } from 'react-native';
+
+
+const { width, height } = Dimensions.get('window');
 
 const Home = () => {
   const [fontsLoaded] = useFonts({
@@ -32,35 +36,29 @@ const Home = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [incidents, setIncidents] = useState([]); // Added incidents state
 
-  const fetchUserImage = async (userName) => {
+  const fetchUserImage = useCallback(async (userName) => {
     try {
-      const db = getFirestore(app);
-      const profilesRef = collection(db, "profiles");
-      const q = query(profilesRef, where("name", "==", userName));
+      const db = getFirestore();
+      const profilesRef = collection(db, 'profiles');
+      const q = query(profilesRef, where('name', '==', userName));
       const querySnapshot = await getDocs(q);
-  
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         const data = doc.data();
         if (data.profileImage) {
           setProfileImageUrl(data.profileImage);
         } else {
-          // Fallback image if no profileImage is found
           setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
         }
       } else {
-        console.log('No matching user found');
-        // Fallback image if no user document is found
         setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
       }
     } catch (error) {
       console.error('Error fetching user image:', error);
-      // Fallback image on error
       setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
     }
-  };
-  
-  
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -74,9 +72,10 @@ const Home = () => {
         console.error('Error fetching user data:', error);
       }
     };
+
     fetchUserData();
-    fetchIncidents(); // Fetch incidents when the component mounts
-  }, []);
+    fetchIncidents();
+  }, [fetchUserImage]);
   
   const db = getFirestore(app);
 
@@ -373,17 +372,30 @@ const styles = StyleSheet.create({
     width: 128,
     height: 128,
     borderRadius: 64,
+    borderWidth: 4,
+    borderColor: '#FFFFFF', // Adjust border color as needed
+    shadowColor: '#000', // Shadow color
+    shadowOffset: { width: 0, height: 4 }, // Shadow offset
+    shadowOpacity: 0.3, // Shadow opacity
+    shadowRadius: 8, // Shadow radius
+    elevation: 5, // For Android shadow effect
+    resizeMode: 'cover', // Ensure image covers the area
   },
   profileText: {
     marginLeft: 16,
+    flex: 1, // Allow text container to expand
+    flexWrap: 'wrap', // Allow text to wrap onto the next line
   },
-  greeting: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  title: {
+    fontSize: 30, // Adjusted font size for better fit
+    color: "black",
+    fontFamily: "RobotoBold",
+    flexShrink: 1, // Allows text to shrink if necessary
   },
   status: {
     color: '#6B6B6B',
   },
+
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
