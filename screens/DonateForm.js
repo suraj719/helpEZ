@@ -272,12 +272,10 @@ const DonateForm = () => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#f8f8f8',
     },
     backButton: {
         padding: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
     },
     backButtonContent: {
         flexDirection: 'row',
@@ -291,21 +289,22 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
-        textAlign: 'center',
     },
     optionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#4A90E2',
-        padding: 10,
+        justifyContent: 'center',
+        padding: 15,
+        backgroundColor: '#007bff',
         borderRadius: 5,
         marginBottom: 10,
     },
     selectedOption: {
-        backgroundColor: '#007BFF',
+        backgroundColor: '#0056b3',
     },
     optionText: {
         color: '#fff',
+        fontWeight: 'bold',
         marginLeft: 10,
     },
     pickupForm: {
@@ -324,72 +323,85 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
         padding: 10,
-        marginRight: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
     },
     locationButton: {
-        backgroundColor: '#4A90E2',
+        backgroundColor: '#007bff',
         padding: 10,
         borderRadius: 5,
+        marginLeft: 10,
     },
     dateButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E1E1E1',
         padding: 10,
+        backgroundColor: '#e0e0e0',
         borderRadius: 5,
-        marginBottom: 10,
+        marginTop: 10,
     },
     dateButtonText: {
         marginLeft: 10,
-        fontSize: 16,
-    },
-    icon: {
-        marginRight: 10,
     },
     timeButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E1E1E1',
         padding: 10,
+        backgroundColor: '#e0e0e0',
         borderRadius: 5,
-        marginBottom: 10,
+        marginTop: 10,
     },
     timeButtonText: {
         marginLeft: 10,
-        fontSize: 16,
     },
     submitButton: {
-        backgroundColor: '#4A90E2',
         padding: 15,
+        backgroundColor: '#28a745',
         borderRadius: 5,
-        alignItems: 'center',
+        marginTop: 20,
     },
     submitButtonText: {
         color: '#fff',
-        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
     modalContainer: {
         flex: 1,
-        padding: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
         backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
     },
     modalTitle: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+        marginBottom: 10,
     },
-    warehouseItem: {
-        padding: 15,
+    modalItem: {
+        padding: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        borderBottomColor: '#ccc',
     },
-    warehouseName: {
-        fontSize: 18,
+    modalItemText: {
+        fontSize: 16,
+    },
+    modalCloseButton: {
+        marginTop: 10,
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
+    modalCloseButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
 
