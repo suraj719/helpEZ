@@ -28,7 +28,7 @@ const ResourcesTrackingScreen = () => {
   const handleResourceCardPress = (resource) => {
     navigation.navigate('ResourceRouteScreen', {
       curLoc: { latitude: 18.3197, longitude: 78.3506 },
-      destinationCords: { latitude: 17.3850, longitude: 78.4867 }
+      destCords: { latitude: 17.3850, longitude: 78.4867 }
     });
   };
 
