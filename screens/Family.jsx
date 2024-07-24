@@ -335,7 +335,7 @@ const Family = () => {
           </TouchableOpacity>
         </>
       )}
-      <Text style={styles.title}>Family Members</Text>
+      <Text style={styles.title}>{t('Family Members')}</Text>
       <FlatList
         data={familyMembers}
         keyExtractor={(item, index) => index.toString()}
@@ -381,7 +381,7 @@ const Family = () => {
         }}
       >
         <View style={styles.modalView}>
-          <Text style={styles.modalText}>Add Family Member</Text>
+          <Text style={styles.modalText}>{t('Add Family Member')}</Text>
           <TextInput
             style={styles.input}
             placeholder="Name"
@@ -396,13 +396,13 @@ const Family = () => {
             keyboardType="phone-pad"
           />
           <TouchableOpacity style={styles.button} onPress={handleAddMember}>
-            <Text style={styles.buttonText}>Add Member</Text>
+            <Text style={styles.buttonText}>{t('Add Member')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.cancelButton]}
             onPress={() => setModalVisible(false)}
           >
-            <Text style={styles.buttonText}>Cancel</Text>
+            <Text style={styles.buttonText}>{t('Cancel')}</Text>
           </TouchableOpacity>
         </View>
       </Modal>
