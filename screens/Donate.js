@@ -239,7 +239,7 @@ const Donor = () => {
           <View style={styles.iconContainer}>
             <AntDesign name="arrowright" size={22} color="black" style={styles.icon} />
           </View>
-          <Text style={styles.boxText}>Start Your Donation</Text>
+          <Text style={styles.boxText}>Subscribe for Further Notification.</Text>
         </TouchableOpacity>
       ) : (
         <View>
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   boxText: {
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#333',
   },
