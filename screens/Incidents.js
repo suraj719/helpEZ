@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     right: 0, // Align it to the right side of the screen
     backgroundColor: 'white',
     borderColor: 'grey',
-    borderWidth: 1,
+    borderRadius: '70%',
     padding: 10,
     borderRadius: 5,
     flexDirection: 'row',
