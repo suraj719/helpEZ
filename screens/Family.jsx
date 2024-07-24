@@ -31,7 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from "@react-navigation/native";
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const Family = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
@@ -44,7 +44,7 @@ const Family = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
 
   const mapRef = useRef(null);
-  const snapPoints = useMemo(() => [80, '50%', '90%'], []);
+  const snapPoints = useMemo(() => [80, '50%', '80%'], []);
   //  const { width, height } = Dimensions.get('window');
 
   useEffect(() => {
@@ -461,12 +461,14 @@ const styles = StyleSheet.create({
     // width: Dimensions.get('window').width , // Slightly smaller than full width
     // height: Dimensions.get('window').height / 2.5,
     width: width, // Full width of the screen
-    height: height,
+    flex: 1,
+    height: 500,
+    bottom: 100,
     borderRadius: 40, // Curved corners
     borderWidth: 2,
     borderColor: '#ddd',
     shadowColor: '#000', // Shadow for better depth
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5, // For Android shadow
