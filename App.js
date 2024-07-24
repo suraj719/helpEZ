@@ -138,6 +138,7 @@ const App = () => {
               >
                 <Stack.Screen name="GalileoDesign" component={GalileoDesign} />
                 <Stack.Screen name="Register" component={Register} />
+                <Stack.Screen name="RegisterDetails" component={RegisterDetails} />
                 <Stack.Screen
                   name="RequestDetails"
                   component={RequestDetails}

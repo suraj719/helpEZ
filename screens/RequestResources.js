@@ -167,16 +167,15 @@ Transportation:
 
 Prompt: "Classify this request as a Transportation request if the description involves the need for transportation services, vehicle support, or travel assistance."
 Example: "Requesting transportation to a medical facility."
-
-Hygiene and Sanitation:
-
-Prompt: "Classify this request as a Hygiene and Sanitation request if the description involves the need for hygiene products, sanitation facilities, or cleaning supplies."
-Example: "Need sanitation supplies for a temporary shelter."
 ` },
             ],
           },
         ],
       });
+
+//       Hygiene and Sanitation:
+// Prompt: "Classify this request as a Hygiene and Sanitation request if the description involves the need for hygiene products, sanitation facilities, or cleaning supplies."
+// Example: "Need sanitation supplies for a temporary shelter."
 
       const result = await chatSession.sendMessage(description);
       const category = result.response?.text?.();

@@ -294,8 +294,7 @@ Prompt: "Classify this incident as a social issue if the description involves pr
 Example: "Mass protests erupted in the capital demanding political reforms and social justice."
 Transportation Issues:
 
-Prompt: "Classify this incident as a transportation issue if the description involves accidents, delays, or disruptions in transportation services."
-Example: "A subway train derailment caused delays during rush hour, affecting thousands of commuters."
+
 Animal Incidents:
 
 Prompt: "Classify this incident as an animal incident if the description involves incidents related to wildlife, pets, or animal attacks."
@@ -310,6 +309,9 @@ Example: "A large-scale public event caused traffic congestion and noise disturb
           },
         ],
       });
+
+//       Prompt: "Classify this incident as a transportation issue if the description involves accidents, delays, or disruptions in transportation services."
+// Example: "A subway train derailment caused delays during rush hour, affecting thousands of commuters."
 
       const result = await chatSession.sendMessage(description);
       const category = result.response?.text?.();
