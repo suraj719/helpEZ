@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, ScrollView, Text } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ export default function Nearby() {
   const [showRandomMarkers, setShowRandomMarkers] = useState(false);
   const [volunteerMarkers, setVolunteerMarkers] = useState([]);
   const [showVolunteerMarkers, setShowVolunteerMarkers] = useState(false); // State for showing volunteer markers
+  const [selectedButton, setSelectedButton] = useState(null);
 
   const mapRef = useRef(null);
   const usersCollection = collection(firestore, 'users');
@@ -162,6 +163,17 @@ export default function Nearby() {
     }
   };
 
+  const handleButtonPress = (type) => {
+    setSelectedButton(type);
+    if (type === 'hospitals') toggleNearbyHospitals();
+    if (type === 'medicals') toggleNearbyMedicals();
+    if (type === 'food') toggleNearbyFood();
+    if (type === 'police') toggleNearbyPoliceStations();
+    if (type === 'stays') toggleRandomMarkers();
+    if (type === 'volunteers') toggleVolunteerMarkers();
+  };
+  
+
   const toggleNearbyPoliceStations = async () => {
     if (showNearbyPlaces) {
       setShowNearbyPlaces(false);
@@ -294,31 +306,52 @@ export default function Nearby() {
           <Ionicons name="locate" size={24} color="white" />
         </TouchableOpacity>
       </View>
-      <ScrollView
-  style={styles.buttonContainer}
-  contentContainerStyle={{ alignItems: 'center' }}
-  horizontal
-  showsHorizontalScrollIndicator={false}
->
-  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyHospitals}>
-    <Ionicons name="medkit" size={24} color="white" />
+      <ScrollView style={styles.buttonContainer} horizontal showsHorizontalScrollIndicator={false}>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'hospitals' && styles.selectedButton]}
+    onPress={() => handleButtonPress('hospitals')}
+  >
+    <Ionicons name="medkit" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Hospitals')}</Text>
   </TouchableOpacity>
-  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyMedicals}>
-    <Ionicons name="medical" size={24} color="white" />
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'medicals' && styles.selectedButton]}
+    onPress={() => handleButtonPress('medicals')}
+  >
+    <Ionicons name="business" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Medicals')}</Text>
   </TouchableOpacity>
-  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyFood}>
-    <Ionicons name="restaurant" size={24} color="white" />
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'food' && styles.selectedButton]}
+    onPress={() => handleButtonPress('food')}
+  >
+    <Ionicons name="restaurant" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Food')}</Text>
   </TouchableOpacity>
-  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyPoliceStations}>
-    <Ionicons name="shield" size={24} color="white" />
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'police' && styles.selectedButton]}
+    onPress={() => handleButtonPress('police')}
+  >
+    <Ionicons name="shield" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Police Stations')}</Text>
   </TouchableOpacity>
-  <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
-    <Ionicons name="pin" size={24} color="white" />
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'stays' && styles.selectedButton]}
+    onPress={() => handleButtonPress('stays')}
+  >
+    <Ionicons name="star" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Stays')}</Text>
   </TouchableOpacity>
-  <TouchableOpacity style={styles.rectangleButton} onPress={toggleVolunteerMarkers}>
-    <Ionicons name="person-circle-outline" size={24} color="white" />
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'volunteers' && styles.selectedButton]}
+    onPress={() => handleButtonPress('volunteers')}
+  >
+    <Ionicons name="people" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Volunteers')}</Text>
   </TouchableOpacity>
 </ScrollView>
+
+
 
     </View>
   );
@@ -339,7 +372,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#000000',
     borderRadius: 25,
     width: 50,
     height: 50,
@@ -357,19 +390,27 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     maxHeight: 100,
+    left: 5,
   },
   rectangleButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingHorizontal: 22,
-    paddingVertical: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#000000',
+    borderRadius: 20,
+    marginLeft: 5,
+    padding: 10, // Adjust padding as needed
+    flexDirection: 'row', // Arrange icon and text horizontally
+    alignItems: 'center', // Center items vertically
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
     elevation: 5,
     marginHorizontal: 5,
+  },
+  buttonText: {
+    color: 'white',
+    marginLeft: 5,
+   }, // Add margin to separate icon and text
+   selectedButton: {
+    backgroundColor: '#007bff', // Highlight color
   },
 });

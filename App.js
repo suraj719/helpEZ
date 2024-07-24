@@ -51,7 +51,7 @@ import ProfileScreen from "./screens/ProfileScreen";
 import DropOffScreen from "./screens/DropOffScreen";
 import RequestDetails from './screens/RequestDetails';
 import DonateMoney from './screens/DonateMoney'
-
+import ShakeDetector from './screens/ShakeDetector';
 
 const Stack = createStackNavigator();
 
@@ -181,6 +181,7 @@ const App = () => {
               </Stack.Navigator>
             )}
             <Toast visibilityTime={2000} swipeable={true} position="bottom" />
+            <ShakeDetector />
           </SafeAreaView>
         </NavigationContainer>
       </UserProvider>

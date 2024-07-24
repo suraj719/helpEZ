@@ -29,7 +29,7 @@ import ResourcesTrackingScreen from "./ResourcesTrackingScreen";
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 import CommunityScreen from "./CommunityScreen";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation } from '@react-navigation/native';
 import Donate from "./Donate"; // Import Donate
 
 const Drawer = createDrawerNavigator();
@@ -89,9 +89,10 @@ const CustomDrawerContent = (props) => {
 };
 
 const Dashboard = () => {
-  const { t } = useTranslation(); // Initialize useTranslation hook
+  const { t } = useTranslation();  // Initialize useTranslation hook
   return (
     <SafeAreaView style={styles.safeArea}>
+    
       <Drawer.Navigator
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
@@ -181,24 +182,23 @@ const Dashboard = () => {
           }}
         /> */}
         <Drawer.Screen
-          name={t("Donate")}
-          component={Donate}
+          name={t('Logout')}
+          component={Logout}
           options={{
             drawerIcon: ({ color }) => (
-              <Icon name="heart-outline" size={22} color={color} />
+              <Icon name="logout" size={22} color={color} />
             ),
           }}
         />
         <Drawer.Screen
-          name={t("Community")}
-          component={CommunityScreen}
-          options={{
-            drawerIcon: ({ color }) => (
-              <Icon name="account-group" size={22} color={color} />
-            ),
-          }}
-        />
-
+  name={t('Community')}
+  component={CommunityScreen}
+  options={{
+    drawerIcon: ({ color }) => (
+      <Icon name="account-group" size={22} color={color} />
+    ),
+  }}
+/>
         <Drawer.Screen
           name={t("Analytics")}
           component={Analytics}
@@ -227,6 +227,15 @@ const Dashboard = () => {
             ),
           }}
         /> */}
+        <Drawer.Screen
+          name={t('Donate')}
+          component={Donate}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="heart-outline" size={22} color={color} />
+            ),
+          }}
+        />
       </Drawer.Navigator>
     </SafeAreaView>
   );
