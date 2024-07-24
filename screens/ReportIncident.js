@@ -327,13 +327,13 @@ Example: "A large-scale public event caused traffic congestion and noise disturb
     }
   };
   const submitReport = async () => {
-    if (!title || !description) {
-      Toast.show({
-        type: "error",
-        text1: "Please fill in all required fields.",
-      });
-      return;
-    }
+    // if (!title || !description) {
+    //   Toast.show({
+    //     type: "error",
+    //     text1: "Please fill in all required fields.",
+    //   });
+    //   return;
+    // }
     console.log("In submit report");
     setLoading(true);
     const imageUrls = await uploadImagesToStorage();
@@ -454,7 +454,7 @@ Example: "A large-scale public event caused traffic congestion and noise disturb
       token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log(token);
     } else {
-      alert("Must use physical device for Push Notifications");
+      // alert("Must use physical device for Push Notifications");
     }
 
     return token;

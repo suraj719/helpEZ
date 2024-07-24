@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,12 +13,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 import Carousel from "react-native-reanimated-carousel";
+import MistralClient from "@mistralai/mistralai";
 
 export default function IncidentDetails({ route }) {
   const navigation = useNavigation();
   const { incident } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [actions, setActions] = useState("");
+  const API_KEY_MISTRAL = "A76fl5FgS8vEmyujewq3TGPUdLJ7QtWF";
 
   const openModal = (image) => {
     setSelectedImage(image);
@@ -29,6 +32,36 @@ export default function IncidentDetails({ route }) {
     setSelectedImage(null);
     setModalVisible(false);
   };
+  const getRecommendedActions = async () => {
+    try {
+      const client = new MistralClient(API_KEY_MISTRAL);
+      const prompt = `
+        Provide detailed recommended actions for the following incident:
+        - Title: ${incident.title}
+        - Description: ${incident.description}
+        - Date: ${incident.date}
+        - Severity: ${incident.severity}
+        - Contact: ${incident.contact || "Not provided"}
+        - Location: Latitude ${incident.location.latitude}, Longitude ${
+        incident.location.longitude
+      }
+        Based on the information provided, what steps should be taken to address the incident effectively?
+      `;
+
+      const aiResponse = await client.chat({
+        model: "mistral-tiny",
+        messages: [{ role: "user", content: prompt }],
+      });
+
+      setActions(aiResponse.choices[0].message.content);
+    } catch (error) {
+      console.log("Error fetching recommendations:", error);
+    }
+  };
+
+  useEffect(() => {
+    getRecommendedActions();
+  }, []);
   const width = Dimensions.get("window").width;
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
@@ -131,9 +164,11 @@ export default function IncidentDetails({ route }) {
         </View>
         <View className="mb-4">
           <Text className="font-bold text-xl mb-2">Recommended Actions</Text>
-          {/* <View className="bg-white p-4 rounded-lg shadow-md"> */}
-          <Text>Secure loose outdoor items. Take in or tie down...</Text>
-          {/* </View> */}
+          <View className="bg-white p-4 rounded-lg shadow-md">
+            <Text className="text-base">
+              {actions || "Fetching recommended actions..."}
+            </Text>
+          </View>
         </View>
 
         <Modal visible={modalVisible} transparent={true}>

@@ -12,15 +12,23 @@ import {
   Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { collection, getDoc, getDocs, getFirestore, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  getDoc,
+  getDocs,
+  getFirestore,
+  doc,
+  updateDoc,
+  onSnapshot,
+} from "firebase/firestore";
 import { app } from "../utils/firebase";
-import { useTranslation } from 'react-i18next';
-import * as Notifications from 'expo-notifications';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from "react-i18next";
+import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import * as Device from 'expo-device';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import * as Device from "expo-device";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -29,7 +37,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
 
 export default function Incidents() {
   const { t } = useTranslation();
@@ -40,7 +47,7 @@ export default function Incidents() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [phoneNumber, setPhoneNumber] = useState(null);
   const [disabledButtons, setDisabledButtons] = useState([]);
-  const [expoPushToken, setExpoPushToken] = useState('');
+  const [expoPushToken, setExpoPushToken] = useState("");
   const [notification, setNotification] = useState(false);
   const [isAssigned, setIsAssigned] = useState(false);
   const notificationListener = useRef();
@@ -92,11 +99,13 @@ export default function Incidents() {
         const phoneNumber = await AsyncStorage.getItem("phoneNumber");
 
         // Fetch the user document based on phoneNumber
-        const querySnapshot = await getDocs(collection(db, 'users'));
-        const userDoc = querySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber);
+        const querySnapshot = await getDocs(collection(db, "users"));
+        const userDoc = querySnapshot.docs.find(
+          (doc) => doc.data().phoneNumber === phoneNumber
+        );
 
         if (userDoc) {
-          const userRef = doc(db, 'users', userDoc.id);
+          const userRef = doc(db, "users", userDoc.id);
 
           // Set up Firestore listener for the user document
           unsubscribe = onSnapshot(userRef, async (docSnapshot) => {
@@ -106,19 +115,26 @@ export default function Incidents() {
 
               const currentIsAssigned = userData.isAssigned || false;
 
-              if (previousIsAssigned !== null && currentIsAssigned !== previousIsAssigned) {
+              if (
+                previousIsAssigned !== null &&
+                currentIsAssigned !== previousIsAssigned
+              ) {
                 setIsAssigned(currentIsAssigned);
                 console.log("isassigned" + currentIsAssigned);
 
                 if (currentIsAssigned) {
                   await schedulePushNotification(
                     "New Volunteer Assignment",
-                    `You've been assigned to: ${userData.assignedIncident?.title || 'an incident'}`
+                    `You've been assigned to: ${
+                      userData.assignedIncident?.title || "an incident"
+                    }`
                   );
                 } else {
                   await schedulePushNotification(
                     "Your volunteer status",
-                    `You've been removed from volunteering for: ${userData.assignedIncident?.title || 'an incident'}`
+                    `You've been removed from volunteering for: ${
+                      userData.assignedIncident?.title || "an incident"
+                    }`
                   );
                 }
               }
@@ -130,13 +146,15 @@ export default function Incidents() {
           console.log("No user found with the given phone number");
         }
 
-        notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-          setNotification(notification);
-        });
+        notificationListener.current =
+          Notifications.addNotificationReceivedListener((notification) => {
+            setNotification(notification);
+          });
 
-        responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-          console.log("Notification response:", response);
-        });
+        responseListener.current =
+          Notifications.addNotificationResponseReceivedListener((response) => {
+            console.log("Notification response:", response);
+          });
       } catch (error) {
         console.error("Error in setupNotifications:", error);
       }
@@ -148,7 +166,9 @@ export default function Incidents() {
       if (unsubscribe) {
         unsubscribe();
       }
-      Notifications.removeNotificationSubscription(notificationListener.current);
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
       Notifications.removeNotificationSubscription(responseListener.current);
     };
   }, []);
@@ -161,7 +181,10 @@ export default function Incidents() {
       },
       trigger: { seconds: 2 },
     });
-    Alert.alert("Notification Scheduled", "You should receive a notification in 2 seconds.");
+    Alert.alert(
+      "Notification Scheduled",
+      "You should receive a notification in 2 seconds."
+    );
   };
 
   async function schedulePushNotification(title, body) {
@@ -172,41 +195,44 @@ export default function Incidents() {
       },
       trigger: { seconds: 2 },
     });
-    Alert.alert("Notification Scheduled", "You should receive a notification in 5 seconds.");
+    Alert.alert(
+      "Notification Scheduled",
+      "You should receive a notification in 5 seconds."
+    );
   }
 
   async function registerForPushNotificationsAsync() {
     let token;
 
     if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      const { status: existingStatus } =
+        await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
+      if (existingStatus !== "granted") {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
-      if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
+      if (finalStatus !== "granted") {
+        alert("Failed to get push token for push notification!");
         return;
       }
       token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log(token);
     } else {
-      alert('Must use physical device for Push Notifications');
+      alert("Must use physical device for Push Notifications");
     }
 
-    if (Device.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
+    if (Device.OS === "android") {
+      Notifications.setNotificationChannelAsync("default", {
+        name: "default",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: "#FF231F7C",
       });
     }
 
     return token;
   }
-
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -253,7 +279,9 @@ export default function Incidents() {
         incidentData.downvotes = 0;
       }
 
-      const userVote = incidentData.votes ? incidentData.votes[phoneNumber] : null;
+      const userVote = incidentData.votes
+        ? incidentData.votes[phoneNumber]
+        : null;
 
       let updatedData = { ...incidentData };
       let newVotes = { ...incidentData.votes, [phoneNumber]: voteType };
@@ -295,13 +323,13 @@ export default function Incidents() {
     }
   };
 
-
-
   const renderEventItem = ({ item }) => (
     <View style={styles.cardContainer}>
       <TouchableOpacity
         activeOpacity={0.7}
-        onPress={() => navigation.navigate("IncidentDetails", { incident: item })}
+        onPress={() =>
+          navigation.navigate("IncidentDetails", { incident: item })
+        }
         style={styles.card}
       >
         {item?.images?.length > 0 ? (
@@ -311,31 +339,44 @@ export default function Incidents() {
               <Text numberOfLines={2} style={styles.description}>
                 {item.description}
               </Text>
-              <Text style={[styles.severity, { color: getSeverityColor(item.severity) }]}>
+              <Text
+                style={[
+                  styles.severity,
+                  { color: getSeverityColor(item.severity) },
+                ]}
+              >
                 Severity: {item.severity}
               </Text>
             </View>
-            <Image
-              source={{ uri: item.images[0] }}
-              style={styles.image}
-            />
+            <Image source={{ uri: item.images[0] }} style={styles.image} />
             <View className="flex-row mt-2 items-center" style={styles.vote}>
               <TouchableOpacity
                 onPress={() => handleVote(item.id, "upvote")}
                 className="flex-row items-center"
               >
-                <MaterialCommunityIcons name="arrow-up-bold-outline" size={24} color="grey" />
-                <Text className="text-grey-500 ml-2">({item.upvotes || 0})</Text>
+                <MaterialCommunityIcons
+                  name="arrow-up-bold-outline"
+                  size={24}
+                  color="grey"
+                />
+                <Text className="text-grey-500 ml-2">
+                  ({item.upvotes || 0})
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => handleVote(item.id, "downvote")}
                 className="flex-row items-center"
               >
-                <MaterialCommunityIcons name="arrow-down-bold-outline" size={24} color="grey" />
-                <Text className="text-grey-500 ml-2">({item.downvotes || 0})</Text>
+                <MaterialCommunityIcons
+                  name="arrow-down-bold-outline"
+                  size={24}
+                  color="grey"
+                />
+                <Text className="text-grey-500 ml-2">
+                  ({item.downvotes || 0})
+                </Text>
               </TouchableOpacity>
             </View>
-
           </View>
         ) : (
           <View style={styles.cardContent}>
@@ -344,14 +385,48 @@ export default function Incidents() {
               <Text numberOfLines={2} style={styles.description}>
                 {item.description}
               </Text>
-              <Text style={[styles.severity, { color: getSeverityColor(item.severity) }]}>
+              <Text
+                style={[
+                  styles.severity,
+                  { color: getSeverityColor(item.severity) },
+                ]}
+              >
                 Severity: {item.severity}
               </Text>
+            </View>
+            <View className="flex-row mt-2 items-center" style={styles.vote}>
+              <TouchableOpacity
+                onPress={() => handleVote(item.id, "upvote")}
+                className="flex-row items-center"
+              >
+                <MaterialCommunityIcons
+                  name="arrow-up-bold-outline"
+                  size={24}
+                  color="grey"
+                />
+                <Text className="text-grey-500 ml-2">
+                  ({item.upvotes || 0})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleVote(item.id, "downvote")}
+                className="flex-row items-center"
+              >
+                <MaterialCommunityIcons
+                  name="arrow-down-bold-outline"
+                  size={24}
+                  color="grey"
+                />
+                <Text className="text-grey-500 ml-2">
+                  ({item.downvotes || 0})
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
       </TouchableOpacity>
       <TouchableOpacity
+        activeOpacity={0.8}
         style={[
           styles.updateButton,
           disabledButtons.includes(item.id) && styles.disabledButton,
@@ -359,7 +434,7 @@ export default function Incidents() {
         onPress={() => handleSignUpToVolunteer(item.id)}
         disabled={disabledButtons.includes(item.id)}
       >
-        <Text style={styles.updateButtonText}>Sign Up to Volunteer</Text>
+        <Text style={styles.updateButtonText}>Sign Up as Volunteer</Text>
       </TouchableOpacity>
     </View>
   );
@@ -388,12 +463,12 @@ export default function Incidents() {
   useEffect(() => {
     const fetchPhoneNumber = async () => {
       try {
-        const phoneNumber = await AsyncStorage.getItem('phoneNumber');
+        const phoneNumber = await AsyncStorage.getItem("phoneNumber");
         if (phoneNumber !== null) {
           setPhoneNumber(phoneNumber);
         }
       } catch (error) {
-        console.error('Error fetching phone number:', error);
+        console.error("Error fetching phone number:", error);
       }
     };
     fetchPhoneNumber();
@@ -402,7 +477,7 @@ export default function Incidents() {
   const handleSignUpToVolunteer = async (incidentId) => {
     try {
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
-      console.log('Retrieved phone number for update:', phoneNumber);
+      console.log("Retrieved phone number for update:", phoneNumber);
 
       if (phoneNumber !== null) {
         const incidentRef = doc(db, "incidents", incidentId);
@@ -413,7 +488,9 @@ export default function Incidents() {
 
         if (!currentVolunteerUsers.includes(phoneNumber)) {
           const updatedVolunteerUsers = [...currentVolunteerUsers, phoneNumber];
-          await updateDoc(incidentRef, { VolunteerUsers: updatedVolunteerUsers });
+          await updateDoc(incidentRef, {
+            VolunteerUsers: updatedVolunteerUsers,
+          });
         }
 
         setDisabledButtons([...disabledButtons, incidentId]);
@@ -437,7 +514,6 @@ export default function Incidents() {
         >
           {categories.map(renderCategoryItem)}
         </ScrollView>
-
       </View>
 
       {loading ? (
@@ -467,7 +543,7 @@ export default function Incidents() {
         onPress={() => navigation.navigate("ReportIncident")}
         style={styles.plusIcon}
       >
-        <Icon name="plus-circle" size={28} color="#007bff" />
+        <Icon name="plus-circle" size={34} color="#000" />
       </TouchableOpacity>
     </View>
   );
@@ -475,16 +551,16 @@ export default function Incidents() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderBottomWidth: 2,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: "#e5e5e5",
   },
   categoryScroll: {
     flexGrow: 0,
@@ -493,59 +569,59 @@ const styles = StyleSheet.create({
   categoryButton: {
     height: 40,
     paddingHorizontal: 10,
-    justifyContent: 'center',
+    justifyContent: "center",
     borderBottomWidth: 4,
-    borderBottomColor: 'transparent',
+    borderBottomColor: "transparent",
   },
   selectedCategoryButton: {
-    borderBottomColor: '#007bff',
+    borderBottomColor: "#007bff",
   },
   categoryText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#888',
+    fontWeight: "bold",
+    color: "#888",
   },
   selectedCategoryText: {
-    color: '#007bff',
+    color: "#007bff",
   },
   cardContainer: {
     marginBottom: 10,
     padding: 10,
     borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 10,
   },
   Icon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -680,
     right: 20,
     zIndex: 10,
   },
   vote: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -10, // Place it at the bottom of the card
     right: 0, // Align it to the right side of the screen
-    backgroundColor: 'white',
-    borderColor: 'grey',
-    borderRadius: '70%',
+    backgroundColor: "white",
+    borderColor: "grey",
+    borderRadius: "70%",
     padding: 10,
     borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center', // Center items vertically
+    flexDirection: "row",
+    alignItems: "center", // Center items vertically
   },
   cardContent: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 10,
     paddingBottom: 10, // Add padding to avoid overlap with vote section
   },
@@ -554,18 +630,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 5,
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 5,
   },
   severity: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   image: {
     width: 90,
@@ -575,22 +651,23 @@ const styles = StyleSheet.create({
     top: -20,
   },
   updateButton: {
-    backgroundColor: 'black',
+    backgroundColor: "black",
     paddingVertical: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10, // Add margin to separate from the card content
   },
   disabledButton: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   updateButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
   plusIcon: {
     position: "absolute",
+    backgroundColor:"white",
     bottom: 20,
     right: 20,
     borderRadius: 50,
@@ -601,19 +678,19 @@ const styles = StyleSheet.create({
   },
   loader: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   flatListContainer: {
     padding: 15,
@@ -622,14 +699,14 @@ const styles = StyleSheet.create({
     height: 80,
   },
   testNotificationButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     padding: 10,
     margin: 10,
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   testNotificationButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
   },
 });

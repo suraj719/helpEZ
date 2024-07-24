@@ -180,15 +180,6 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('Logout')}
-          component={Logout}
-          options={{
-            drawerIcon: ({ color }) => (
-              <Icon name="logout" size={22} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
   name={t('Community')}
   component={CommunityScreen}
   options={{
@@ -222,6 +213,15 @@ const Dashboard = () => {
           options={{
             drawerIcon: ({ color }) => (
               <Icon name="heart-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name={t('Logout')}
+          component={Logout}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="logout" size={22} color={color} />
             ),
           }}
         />

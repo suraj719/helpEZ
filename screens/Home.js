@@ -190,7 +190,7 @@ const Home = () => {
         <QuickAccessCard
           title={t('Volunteer Signup')}
           imageUrl="https://cdn.usegalileo.ai/stability/2da7510c-5bd1-46b8-9dc9-858a1d67bf4f.png"
-          onPress={() => navigation.navigate('VolunteerSignup')}
+          onPress={() => navigation.navigate('MemberSignup')}
         />
         <QuickAccessCard
           title={t('User Guide')}
