@@ -467,7 +467,7 @@ export default function Incidents() {
         onPress={() => navigation.navigate("ReportIncident")}
         style={styles.plusIcon}
       >
-        <Icon name="plus-circle" size={28} color="#007bff" />
+        <Icon name="plus-circle" size={28} color="#ffffff" />
       </TouchableOpacity>
     </View>
   );
@@ -590,12 +590,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   plusIcon: {
+    backgroundColor: "#383838",
     position: "absolute",
     bottom: 20,
     right: 20,
-    borderRadius: 50,
-    width: 50,
-    height: 50,
+    borderRadius: 20,
+    width: 60,
+    height: 60,
     alignItems: "center",
     justifyContent: "center",
   },

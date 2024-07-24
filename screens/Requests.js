@@ -47,6 +47,8 @@ export default function Requests() {
   const notificationListener = useRef();
   const responseListener = useRef();
 
+  // const reversedFilteredRequests = filteredRequests.slice().reverse();
+
   const fetchRequests = async () => {
     setLoading(true);
     try {
@@ -62,7 +64,8 @@ export default function Requests() {
           const id = doc.id;
           return { id, ...vals };
         });
-        setRequests(data);
+        const reversedData = data.reverse();
+        setRequests(reversedData);
       }
     } catch (error) {
       console.error("Error fetching requests:", error);
@@ -122,7 +125,7 @@ export default function Requests() {
             }
           });
         } else {
-          console.log("No user found with the given phone number");
+          console.log("No requests found with the given phone number");
         }
 
         notificationListener.current = Notifications.addNotificationReceivedListener(
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: 10,
+    paddingVertical: 5,
     paddingHorizontal: 16,
   },
   categoryButton: {
