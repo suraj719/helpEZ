@@ -101,23 +101,20 @@ export default function Nearby() {
     if (showRandomMarkers) {
       setShowRandomMarkers(false);
       setRandomMarkers([]);
-      setNearbyPlaces([]);
-      setShowNearbyPlaces(false); // Ensure nearby places are hidden when random markers are toggled off
     } else {
-      try {
-        const shelters = await fetchNearbyPlaces('shelter');
-        const stays = await fetchNearbyPlaces('lodging');
+      const randomLocations = [
+        { latitude: 11.0168, longitude: 76.9558, title: 'Emergency Stay 1' },
+        { latitude: 11.0200, longitude: 76.9660, title: 'Emergency Stay 2' },
+        { latitude: 11.0100, longitude: 76.9500, title: 'Emergency Stay 3' },
+        { latitude: 11.0250, longitude: 76.9700, title: 'Emergency Stay 4' },
+        { latitude: 11.0120, longitude: 76.9580, title: 'Emergency Stay 5' },
+      ];
   
-        setRandomMarkers([]); // Clear any existing random markers
-        setNearbyPlaces([...shelters, ...stays]); // Set nearby places to shelters and stays
-        setShowRandomMarkers(true); // Show random markers (if you have specific random markers to show, handle them here)
-        setShowNearbyPlaces(true); // Show nearby places on the map
-      } catch (error) {
-        console.error('Error fetching shelters and stays:', error);
-        Alert.alert('Error', 'Failed to fetch shelters and stays');
-      }
+      setRandomMarkers(randomLocations);
+      setShowRandomMarkers(true);
     }
   };
+  
   
 
   const toggleNearbyHospitals = async () => {
@@ -186,14 +183,36 @@ export default function Nearby() {
 
   const fetchVolunteerLocations = async () => {
     try {
-      const volunteerSnapshot = await getDocs(query(usersCollection, where("isVolunteer", "==", true)));
-      const volunteerLocations = volunteerSnapshot.docs.map(doc => ({
-        latitude: doc.data().location.latitude,
-        longitude: doc.data().location.longitude,
-        title: doc.data().name,
-      }));
-      // console.log(volunteerLocations)
+      // Adjust the collection reference to 'MemberSignup'
+      const memberSignupCollection = collection(firestore, 'MemberSignup');
+      
+      const volunteerSnapshot = await getDocs(memberSignupCollection);
+      const volunteerLocationsPromises = volunteerSnapshot.docs.map(async (doc) => {
+        const locationAddress = doc.data().location;
+        const name = doc.data().name;
   
+        // Geocode the location address to get latitude and longitude
+        const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+          params: {
+            address: locationAddress,
+            key: 'AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc',
+          },
+        });
+  
+        const { lat, lng } = response.data.results[0].geometry.location;
+  
+        return {
+          latitude: lat,
+          longitude: lng,
+          title: name,
+        };
+      });
+  
+      const volunteerLocations = await Promise.all(volunteerLocationsPromises);
+      
+      // Log the fetched locations
+    //  console.log('Fetched Volunteer Locations:', volunteerLocations);
+      
       setVolunteerMarkers(volunteerLocations);
       setShowVolunteerMarkers(true);
     } catch (error) {
@@ -201,6 +220,7 @@ export default function Nearby() {
       Alert.alert('Error', 'Failed to fetch volunteer locations');
     }
   };
+  
   
   const toggleVolunteerMarkers = async () => {
     if (showVolunteerMarkers) {
@@ -216,57 +236,58 @@ export default function Nearby() {
     <View style={styles.container}>
       {region && (
         <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={region}
-          onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
-        >
-          {currentLocation && (
-            <Marker
-              coordinate={currentLocation}
-              title="Current Location"
-              description="You are here"
-              pinColor="blue"
-            />
-          )}
-
-          {showNearbyPlaces && nearbyPlaces.map((place, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: place.latitude,
-                longitude: place.longitude,
-              }}
-              title={place.title}
-              description={place.description}
-              pinColor="red"
-            />
-          ))}
-
-          {showRandomMarkers && randomMarkers.map((marker, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-              pinColor="green"
-            />
-          ))}
-
-{showVolunteerMarkers && volunteerMarkers.map((marker, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-              pinColor="orange"
-            />
-          ))}
-        </MapView>
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
+      >
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            title="Current Location"
+            description="You are here"
+            pinColor="blue"
+          />
+        )}
+      
+        {showNearbyPlaces && nearbyPlaces.map((place, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: place.latitude,
+              longitude: place.longitude,
+            }}
+            title={place.title}
+            description={place.description}
+            pinColor="red"
+          />
+        ))}
+      
+        {showRandomMarkers && randomMarkers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
+            title={marker.title}
+            pinColor="green"
+          />
+        ))}
+      
+        {showVolunteerMarkers && volunteerMarkers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
+            title={marker.title}
+            pinColor="orange"
+          />
+        ))}
+      </MapView>
+      
       )}
       <View style={[styles.getCurrentLocationButtonContainer, styles.bottomRight]}>
         <TouchableOpacity style={styles.circleButton} onPress={getCurrentLocation}>
@@ -274,30 +295,31 @@ export default function Nearby() {
         </TouchableOpacity>
       </View>
       <ScrollView
-        style={styles.buttonContainer}
-        contentContainerStyle={{ alignItems: 'center' }}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyHospitals}>
-          <Ionicons name="medkit" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyMedicals}>
-          <Ionicons name="medical" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyFood}>
-          <Ionicons name="restaurant" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyPoliceStations}>
-          <Ionicons name="shield" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
-          <Ionicons name="pin" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleVolunteerMarkers}>
-          <Ionicons name="person-circle-outline" size={24} color="white" />
-        </TouchableOpacity>
-      </ScrollView>
+  style={styles.buttonContainer}
+  contentContainerStyle={{ alignItems: 'center' }}
+  horizontal
+  showsHorizontalScrollIndicator={false}
+>
+  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyHospitals}>
+    <Ionicons name="medkit" size={24} color="white" />
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyMedicals}>
+    <Ionicons name="medical" size={24} color="white" />
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyFood}>
+    <Ionicons name="restaurant" size={24} color="white" />
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyPoliceStations}>
+    <Ionicons name="shield" size={24} color="white" />
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
+    <Ionicons name="pin" size={24} color="white" />
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.rectangleButton} onPress={toggleVolunteerMarkers}>
+    <Ionicons name="person-circle-outline" size={24} color="white" />
+  </TouchableOpacity>
+</ScrollView>
+
     </View>
   );
 }
