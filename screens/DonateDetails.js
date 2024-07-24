@@ -88,7 +88,7 @@ const DonateDetails = () => {
       return;
     }
 
-    navigation.navigate('DonateForm', { donationQuantities,category });
+    navigation.navigate('DonateForm', { donationQuantities, category });
   };
 
   const handleInputChange = (itemName, text) => {
@@ -136,6 +136,7 @@ const DonateDetails = () => {
 
         <Text style={styles.categoryTitle}>{category} Needs</Text>
         {itemList.map((item) => (
+
           <View style={styles.itemContainer} key={item.name}>
             <View style={styles.itemContent}>
               <Text style={styles.itemName}>{item.name}</Text>
@@ -221,9 +222,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
   },
-  
+
   progressText: {
-    marginLeft: 8,
+    marginLeft: 18,
     fontSize: 12,
     width: 35,
   },
@@ -272,15 +273,25 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressBar: {
+    // flexDirection: 'row',
+    // alignItems: 'center',
+    // marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
+    borderRadius: 10,
+    backgroundColor: '#ddd',
+    overflow: 'hidden',
   },
   progress: {
     height: 10,
     borderRadius: 5,
     backgroundColor: '#181111',
-    flex: 1,
+
+    // height: 10,
+    // borderRadius: 5,
+    // backgroundColor: '#181111',
+    // flex: 1,
   },
   fullProgressBar: {
     height: 20,
