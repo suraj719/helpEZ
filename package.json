@@ -71,7 +71,8 @@
     "react-native-svg": "15.2.0",
     "react-native-toast-message": "^2.2.0",
     "react-native-vector-icons": "^10.1.0",
-    "twilio": "^5.2.2"
+    "twilio": "^5.2.2",
+    "expo-linear-gradient": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

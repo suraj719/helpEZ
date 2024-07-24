@@ -18,11 +18,10 @@ const DonateMoney = () => {
           "Content-Type": "application/json",
         },
       });
-  
-      // Log the response for debugging
+
       const responseData = await response.json();
       console.log("Server response:", responseData);
-  
+
       const { clientSecret, error } = responseData;
       if (error) {
         console.error("Error fetching client secret:", error);
@@ -32,7 +31,7 @@ const DonateMoney = () => {
       console.error("Error fetching client secret:", e);
     }
   };
-  
+
 
   const handlePayPress = async () => {
     if (!cardDetails?.complete || !email) {
