@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, StyleSheet, Dimensions, TouchableOpacity, Alert, ScrollView, Text } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ export default function Nearby() {
   const [showRandomMarkers, setShowRandomMarkers] = useState(false);
   const [volunteerMarkers, setVolunteerMarkers] = useState([]);
   const [showVolunteerMarkers, setShowVolunteerMarkers] = useState(false); // State for showing volunteer markers
+  const [selectedButton, setSelectedButton] = useState(null);
 
   const mapRef = useRef(null);
   const usersCollection = collection(firestore, 'users');
@@ -101,23 +102,20 @@ export default function Nearby() {
     if (showRandomMarkers) {
       setShowRandomMarkers(false);
       setRandomMarkers([]);
-      setNearbyPlaces([]);
-      setShowNearbyPlaces(false); // Ensure nearby places are hidden when random markers are toggled off
     } else {
-      try {
-        const shelters = await fetchNearbyPlaces('shelter');
-        const stays = await fetchNearbyPlaces('lodging');
+      const randomLocations = [
+        { latitude: 11.0168, longitude: 76.9558, title: 'Emergency Stay 1' },
+        { latitude: 11.0200, longitude: 76.9660, title: 'Emergency Stay 2' },
+        { latitude: 11.0100, longitude: 76.9500, title: 'Emergency Stay 3' },
+        { latitude: 11.0250, longitude: 76.9700, title: 'Emergency Stay 4' },
+        { latitude: 11.0120, longitude: 76.9580, title: 'Emergency Stay 5' },
+      ];
   
-        setRandomMarkers([]); // Clear any existing random markers
-        setNearbyPlaces([...shelters, ...stays]); // Set nearby places to shelters and stays
-        setShowRandomMarkers(true); // Show random markers (if you have specific random markers to show, handle them here)
-        setShowNearbyPlaces(true); // Show nearby places on the map
-      } catch (error) {
-        console.error('Error fetching shelters and stays:', error);
-        Alert.alert('Error', 'Failed to fetch shelters and stays');
-      }
+      setRandomMarkers(randomLocations);
+      setShowRandomMarkers(true);
     }
   };
+  
   
 
   const toggleNearbyHospitals = async () => {
@@ -165,6 +163,17 @@ export default function Nearby() {
     }
   };
 
+  const handleButtonPress = (type) => {
+    setSelectedButton(type);
+    if (type === 'hospitals') toggleNearbyHospitals();
+    if (type === 'medicals') toggleNearbyMedicals();
+    if (type === 'food') toggleNearbyFood();
+    if (type === 'police') toggleNearbyPoliceStations();
+    if (type === 'stays') toggleRandomMarkers();
+    if (type === 'volunteers') toggleVolunteerMarkers();
+  };
+  
+
   const toggleNearbyPoliceStations = async () => {
     if (showNearbyPlaces) {
       setShowNearbyPlaces(false);
@@ -186,14 +195,36 @@ export default function Nearby() {
 
   const fetchVolunteerLocations = async () => {
     try {
-      const volunteerSnapshot = await getDocs(query(usersCollection, where("isVolunteer", "==", true)));
-      const volunteerLocations = volunteerSnapshot.docs.map(doc => ({
-        latitude: doc.data().location.latitude,
-        longitude: doc.data().location.longitude,
-        title: doc.data().name,
-      }));
-      // console.log(volunteerLocations)
+      // Adjust the collection reference to 'MemberSignup'
+      const memberSignupCollection = collection(firestore, 'MemberSignup');
+      
+      const volunteerSnapshot = await getDocs(memberSignupCollection);
+      const volunteerLocationsPromises = volunteerSnapshot.docs.map(async (doc) => {
+        const locationAddress = doc.data().location;
+        const name = doc.data().name;
   
+        // Geocode the location address to get latitude and longitude
+        const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
+          params: {
+            address: locationAddress,
+            key: 'AIzaSyAcRopFCtkeYwaYEQhw1lLF2bbU50RsQgc',
+          },
+        });
+  
+        const { lat, lng } = response.data.results[0].geometry.location;
+  
+        return {
+          latitude: lat,
+          longitude: lng,
+          title: name,
+        };
+      });
+  
+      const volunteerLocations = await Promise.all(volunteerLocationsPromises);
+      
+      // Log the fetched locations
+    //  console.log('Fetched Volunteer Locations:', volunteerLocations);
+      
       setVolunteerMarkers(volunteerLocations);
       setShowVolunteerMarkers(true);
     } catch (error) {
@@ -201,6 +232,7 @@ export default function Nearby() {
       Alert.alert('Error', 'Failed to fetch volunteer locations');
     }
   };
+  
   
   const toggleVolunteerMarkers = async () => {
     if (showVolunteerMarkers) {
@@ -216,88 +248,111 @@ export default function Nearby() {
     <View style={styles.container}>
       {region && (
         <MapView
-          ref={mapRef}
-          style={styles.map}
-          initialRegion={region}
-          onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
-        >
-          {currentLocation && (
-            <Marker
-              coordinate={currentLocation}
-              title="Current Location"
-              description="You are here"
-              pinColor="blue"
-            />
-          )}
-
-          {showNearbyPlaces && nearbyPlaces.map((place, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: place.latitude,
-                longitude: place.longitude,
-              }}
-              title={place.title}
-              description={place.description}
-              pinColor="red"
-            />
-          ))}
-
-          {showRandomMarkers && randomMarkers.map((marker, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-              pinColor="green"
-            />
-          ))}
-
-{showVolunteerMarkers && volunteerMarkers.map((marker, index) => (
-            <Marker
-              key={index}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-              pinColor="orange"
-            />
-          ))}
-        </MapView>
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        onRegionChangeComplete={(newRegion) => setRegion(newRegion)}
+      >
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            title="Current Location"
+            description="You are here"
+            pinColor="blue"
+          />
+        )}
+      
+        {showNearbyPlaces && nearbyPlaces.map((place, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: place.latitude,
+              longitude: place.longitude,
+            }}
+            title={place.title}
+            description={place.description}
+            pinColor="red"
+          />
+        ))}
+      
+        {showRandomMarkers && randomMarkers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
+            title={marker.title}
+            pinColor="green"
+          />
+        ))}
+      
+        {showVolunteerMarkers && volunteerMarkers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
+            title={marker.title}
+            pinColor="orange"
+          />
+        ))}
+      </MapView>
+      
       )}
       <View style={[styles.getCurrentLocationButtonContainer, styles.bottomRight]}>
         <TouchableOpacity style={styles.circleButton} onPress={getCurrentLocation}>
           <Ionicons name="locate" size={24} color="white" />
         </TouchableOpacity>
       </View>
-      <ScrollView
-        style={styles.buttonContainer}
-        contentContainerStyle={{ alignItems: 'center' }}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyHospitals}>
-          <Ionicons name="medkit" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyMedicals}>
-          <Ionicons name="medical" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyFood}>
-          <Ionicons name="restaurant" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleNearbyPoliceStations}>
-          <Ionicons name="shield" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleRandomMarkers}>
-          <Ionicons name="pin" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.rectangleButton} onPress={toggleVolunteerMarkers}>
-          <Ionicons name="person-circle-outline" size={24} color="white" />
-        </TouchableOpacity>
-      </ScrollView>
+      <ScrollView style={styles.buttonContainer} horizontal showsHorizontalScrollIndicator={false}>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'hospitals' && styles.selectedButton]}
+    onPress={() => handleButtonPress('hospitals')}
+  >
+    <Ionicons name="medkit" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Hospitals')}</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'medicals' && styles.selectedButton]}
+    onPress={() => handleButtonPress('medicals')}
+  >
+    <Ionicons name="business" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Medicals')}</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'food' && styles.selectedButton]}
+    onPress={() => handleButtonPress('food')}
+  >
+    <Ionicons name="restaurant" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Food')}</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'police' && styles.selectedButton]}
+    onPress={() => handleButtonPress('police')}
+  >
+    <Ionicons name="shield" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Police Stations')}</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'stays' && styles.selectedButton]}
+    onPress={() => handleButtonPress('stays')}
+  >
+    <Ionicons name="star" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Stays')}</Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    style={[styles.rectangleButton, selectedButton === 'volunteers' && styles.selectedButton]}
+    onPress={() => handleButtonPress('volunteers')}
+  >
+    <Ionicons name="people" size={24} color="white" style={styles.icon} />
+    <Text style={styles.buttonText}>{t('Volunteers')}</Text>
+  </TouchableOpacity>
+</ScrollView>
+
+
+
     </View>
   );
 }
@@ -317,7 +372,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 100,
     right: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#000000',
     borderRadius: 25,
     width: 50,
     height: 50,
@@ -335,19 +390,27 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     maxHeight: 100,
+    left: 5,
   },
   rectangleButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingHorizontal: 22,
-    paddingVertical: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#000000',
+    borderRadius: 20,
+    marginLeft: 5,
+    padding: 10, // Adjust padding as needed
+    flexDirection: 'row', // Arrange icon and text horizontally
+    alignItems: 'center', // Center items vertically
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
     elevation: 5,
     marginHorizontal: 5,
+  },
+  buttonText: {
+    color: 'white',
+    marginLeft: 5,
+   }, // Add margin to separate icon and text
+   selectedButton: {
+    backgroundColor: '#007bff', // Highlight color
   },
 });
