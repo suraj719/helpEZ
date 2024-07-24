@@ -263,6 +263,12 @@ const Donor = () => {
           <Text style={styles.emptyText}>No requests available</Text>
         </View>
       )}
+      <TouchableOpacity
+        style={styles.donateButton}
+        onPress={() => navigation.navigate('DonateMoney')}
+      >
+        <Text style={styles.donateButtonText}>Donate Money</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -410,6 +416,18 @@ const styles = StyleSheet.create({
   loadingContainer: {
     padding: 16,
     alignItems: 'center',
+  },
+  donateButton: {
+    padding: 16,
+    backgroundColor: '#f24459',
+    borderRadius: 8,
+    margin: 16,
+    alignItems: 'center',
+  },
+  donateButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   
 });

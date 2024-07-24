@@ -41,9 +41,6 @@ import ResourceRouteScreen from "./screens/ResourceRouteScreen";
 import GalileoDesign from "./screens/GalileoDesign";
 import RegisterDetails from "./screens/RegisterDetails";
 import i18n from "./screens/i18n";
-// import CommunityScreen from './screens/CommunityScreen';
-// import CreatePost from './screens/CreatePost';
-// import PostDetails from './screens/PostDetails';
 import CommunityScreen from "./screens/CommunityScreen";
 import CreatePost from "./screens/CreatePost";
 import PostDetails from "./screens/PostDetails";
@@ -53,6 +50,7 @@ import DonateForm from "./screens/DonateForm";
 import ProfileScreen from "./screens/ProfileScreen";
 import DropOffScreen from "./screens/DropOffScreen";
 import RequestDetails from './screens/RequestDetails';
+import DonateMoney from './screens/DonateMoney'
 
 
 const Stack = createStackNavigator();
@@ -176,6 +174,7 @@ const App = () => {
                 <Stack.Screen name="Payments" component={Payments} />
                 <Stack.Screen name="DonateForm" component={DonateForm} />
                 <Stack.Screen name="DonateDetails" component={DonateDetails} />
+                <Stack.Screen name="DonateMoney" component={DonateMoney} />
                 <Stack.Screen name={t("Home")} component={Home} />
                 <Stack.Screen name="Notifications" component={Notifications} />
               </Stack.Navigator>

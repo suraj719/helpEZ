@@ -12,13 +12,15 @@ import {
   Alert,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { collection, getDoc, getDocs, getFirestore, doc, updateDoc, onSnapshot, query, where } from "firebase/firestore";
-import { app, firestore } from "../utils/firebase";
+import { collection, getDoc, getDocs, getFirestore, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { app } from "../utils/firebase";
 import { useTranslation } from 'react-i18next';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 import * as Device from 'expo-device';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -80,34 +82,34 @@ export default function Incidents() {
   useEffect(() => {
     let unsubscribe;
     let previousIsAssigned = null;
-  
+
     const setupNotifications = async () => {
       try {
         const token = await registerForPushNotificationsAsync();
         setExpoPushToken(token);
         console.log("token:", token);
-  
+
         const phoneNumber = await AsyncStorage.getItem("phoneNumber");
-  
+
         // Fetch the user document based on phoneNumber
         const querySnapshot = await getDocs(collection(db, 'users'));
         const userDoc = querySnapshot.docs.find(doc => doc.data().phoneNumber === phoneNumber);
-  
+
         if (userDoc) {
           const userRef = doc(db, 'users', userDoc.id);
-  
+
           // Set up Firestore listener for the user document
           unsubscribe = onSnapshot(userRef, async (docSnapshot) => {
             if (docSnapshot.exists()) {
               const userData = docSnapshot.data();
               console.log("User data:", userData);
-  
+
               const currentIsAssigned = userData.isAssigned || false;
-  
+
               if (previousIsAssigned !== null && currentIsAssigned !== previousIsAssigned) {
                 setIsAssigned(currentIsAssigned);
                 console.log("isassigned" + currentIsAssigned);
-  
+
                 if (currentIsAssigned) {
                   await schedulePushNotification(
                     "New Volunteer Assignment",
@@ -120,18 +122,18 @@ export default function Incidents() {
                   );
                 }
               }
-  
+
               previousIsAssigned = currentIsAssigned;
             }
           });
         } else {
           console.log("No user found with the given phone number");
         }
-  
+
         notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
           setNotification(notification);
         });
-  
+
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
           console.log("Notification response:", response);
         });
@@ -139,9 +141,9 @@ export default function Incidents() {
         console.error("Error in setupNotifications:", error);
       }
     };
-  
+
     setupNotifications();
-  
+
     return () => {
       if (unsubscribe) {
         unsubscribe();
@@ -232,6 +234,68 @@ export default function Incidents() {
     }
   };
 
+  const handleVote = async (incidentId, voteType) => {
+    if (!phoneNumber) {
+      console.error("Phone number not found in AsyncStorage");
+      return;
+    }
+
+    const incidentRef = doc(db, "incidents", incidentId);
+    try {
+      const incidentDoc = await getDoc(incidentRef);
+      const incidentData = incidentDoc.data();
+
+      // Initialize upvotes and downvotes if they are undefined
+      if (incidentData.upvotes === undefined) {
+        incidentData.upvotes = 0;
+      }
+      if (incidentData.downvotes === undefined) {
+        incidentData.downvotes = 0;
+      }
+
+      const userVote = incidentData.votes ? incidentData.votes[phoneNumber] : null;
+
+      let updatedData = { ...incidentData };
+      let newVotes = { ...incidentData.votes, [phoneNumber]: voteType };
+
+      if (userVote === voteType) {
+        // If user clicks the same vote type again, remove their vote
+        delete newVotes[phoneNumber];
+        if (voteType === "upvote") {
+          updatedData.upvotes -= 1;
+        } else if (voteType === "downvote") {
+          updatedData.downvotes -= 1;
+        }
+      } else {
+        if (userVote === "upvote") {
+          updatedData.upvotes -= 1;
+        } else if (userVote === "downvote") {
+          updatedData.downvotes -= 1;
+        }
+        if (voteType === "upvote") {
+          updatedData.upvotes += 1;
+        } else if (voteType === "downvote") {
+          updatedData.downvotes += 1;
+        }
+      }
+
+      updatedData.votes = newVotes;
+
+      // Optimistic update: Update incidents state
+      const updatedIncidents = incidents.map((item) =>
+        item.id === incidentId ? { ...item, ...updatedData } : item
+      );
+      setIncidents(updatedIncidents);
+
+      // Update Firestore
+      await updateDoc(incidentRef, updatedData);
+    } catch (error) {
+      console.error("Error updating incident vote:", error);
+      fetchIncidents();
+    }
+  };
+
+
 
   const renderEventItem = ({ item }) => (
     <View style={styles.cardContainer}>
@@ -255,6 +319,23 @@ export default function Incidents() {
               source={{ uri: item.images[0] }}
               style={styles.image}
             />
+            <View className="flex-row mt-2 items-center" style={styles.vote}>
+              <TouchableOpacity
+                onPress={() => handleVote(item.id, "upvote")}
+                className="flex-row items-center"
+              >
+                <MaterialCommunityIcons name="arrow-up-bold-outline" size={24} color="grey" />
+                <Text className="text-grey-500 ml-2">({item.upvotes || 0})</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleVote(item.id, "downvote")}
+                className="flex-row items-center"
+              >
+                <MaterialCommunityIcons name="arrow-down-bold-outline" size={24} color="grey" />
+                <Text className="text-grey-500 ml-2">({item.downvotes || 0})</Text>
+              </TouchableOpacity>
+            </View>
+
           </View>
         ) : (
           <View style={styles.cardContent}>
@@ -322,19 +403,19 @@ export default function Incidents() {
     try {
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
       console.log('Retrieved phone number for update:', phoneNumber);
-  
+
       if (phoneNumber !== null) {
         const incidentRef = doc(db, "incidents", incidentId);
-        
+
         const incidentSnapshot = await getDoc(incidentRef);
         const currentData = incidentSnapshot.data();
         const currentVolunteerUsers = currentData.VolunteerUsers || [];
-  
+
         if (!currentVolunteerUsers.includes(phoneNumber)) {
           const updatedVolunteerUsers = [...currentVolunteerUsers, phoneNumber];
           await updateDoc(incidentRef, { VolunteerUsers: updatedVolunteerUsers });
         }
-  
+
         setDisabledButtons([...disabledButtons, incidentId]);
         fetchIncidents();
         Alert.alert("Success", "You have signed up to volunteer!");
@@ -345,7 +426,7 @@ export default function Incidents() {
       console.error("Error updating incident: ", error);
     }
   };
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -356,20 +437,8 @@ export default function Incidents() {
         >
           {categories.map(renderCategoryItem)}
         </ScrollView>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => navigation.navigate("ReportIncident")}
-        >
-          <Icon name="plus-circle" size={28} color="#007bff" />
-        </TouchableOpacity>
-      </View>
 
-      {/* <TouchableOpacity
-      style={styles.testNotificationButton}
-      onPress={scheduleStaticNotification}
-    >
-      <Text style={styles.testNotificationButtonText}>Test Notification</Text>
-    </TouchableOpacity> */}
+      </View>
 
       {loading ? (
         <View style={styles.loader}>
@@ -393,6 +462,13 @@ export default function Incidents() {
           ListFooterComponent={<View style={styles.footer} />}
         />
       )}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => navigation.navigate("ReportIncident")}
+        style={styles.plusIcon}
+      >
+        <Icon name="plus-circle" size={28} color="#007bff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -434,6 +510,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     marginBottom: 10,
+    padding: 10,
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#fff',
@@ -449,9 +526,28 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
   },
+  Icon: {
+    position: 'absolute',
+    bottom: -680,
+    right: 20,
+    zIndex: 10,
+  },
+  vote: {
+    position: 'absolute',
+    bottom: -10, // Place it at the bottom of the card
+    right: 0, // Align it to the right side of the screen
+    backgroundColor: 'white',
+    borderColor: 'grey',
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 5,
+    flexDirection: 'row',
+    alignItems: 'center', // Center items vertically
+  },
   cardContent: {
     flexDirection: 'row',
     padding: 10,
+    paddingBottom: 10, // Add padding to avoid overlap with vote section
   },
   textContainer: {
     flex: 1,
@@ -472,10 +568,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     borderRadius: 10,
     marginLeft: 10,
+    top: -20,
   },
   updateButton: {
     backgroundColor: 'black',
@@ -483,6 +580,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     alignItems: 'center',
+    marginTop: 10, // Add margin to separate from the card content
   },
   disabledButton: {
     backgroundColor: '#ccc',
@@ -490,6 +588,16 @@ const styles = StyleSheet.create({
   updateButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  plusIcon: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
   },
   loader: {
     flex: 1,
