@@ -38,10 +38,12 @@ export default function Requests() {
   const navigation = useNavigation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const db = getFirestore(app);
   const [refreshing, setRefreshing] = useState(false);
   const [expoPushToken, setExpoPushToken] = useState("");
   const [sendAlert, setSendAlert] = useState(false);
+  const [phone, setPhone] = useState(null);
   const notificationListener = useRef();
   const responseListener = useRef();
 
@@ -49,10 +51,10 @@ export default function Requests() {
     setLoading(true);
     try {
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+      setPhone(phoneNumber);
       if (phoneNumber) {
         const q = query(
-          collection(db, "requests"),
-          where("contact", "==", phoneNumber)
+          collection(db, "requests")
         );
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map((doc) => {
@@ -111,7 +113,7 @@ export default function Requests() {
                 if (currentAlert) {
                   await schedulePushNotification(
                     "Request Alert",
-                    `Your request about ${requestData.requestTitle} is been published.`
+                    `Your request about ${requestData.requestTitle} has been published.`
                   );
                 }
               }
@@ -213,6 +215,32 @@ export default function Requests() {
     }
   };
 
+  const filteredRequests = requests.filter((request) =>
+    selectedCategory === "All"
+      ? true
+      : request.contact === phone
+  );
+
+  const renderCategoryItem = (category) => (
+    <TouchableOpacity
+      key={category}
+      activeOpacity={0.7}
+      style={[
+        styles.categoryButton,
+        selectedCategory === category && styles.selectedCategoryButton,
+      ]}
+      onPress={() => setSelectedCategory(category)}
+    >
+      <Text
+        style={[
+          styles.categoryText,
+          selectedCategory === category && styles.selectedCategoryText,
+        ]}
+      >
+        {category}
+      </Text>
+    </TouchableOpacity>
+  );
   const renderRequestItem = ({ item }) => (
     <TouchableOpacity
       activeOpacity={0.7}
@@ -253,6 +281,11 @@ export default function Requests() {
       >
         <Text style={styles.addButtonText}>Add a Request</Text>
       </TouchableOpacity>
+      <View style={styles.categoryContainer}>
+         {["All", "My Requests"].map((category) =>
+          renderCategoryItem(category)
+        )}
+      </View>
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#000" />
@@ -268,10 +301,10 @@ export default function Requests() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          data={requests}
+          data={filteredRequests}
           renderItem={renderRequestItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={styles.contentContainer}
         />
       )}
     </View>
@@ -281,7 +314,29 @@ export default function Requests() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#fff",
+  },
+  categoryContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  categoryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: "#f3f4f6",
+  },
+  selectedCategoryButton: {
+    backgroundColor: "#000000",
+  },
+  categoryText: {
+    fontSize: 16,
+    color: "#4b5563",
+  },
+  selectedCategoryText: {
+    color: "#fff",
   },
   addButton: {
     backgroundColor: "#000000",
@@ -307,51 +362,52 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: "#666",
+    color: "#4b5563",
   },
-  list: {
-    padding: 8,
+  contentContainer: {
+    padding: 16,
   },
   card: {
-    backgroundColor: "#fff",
-    margin: 8,
-    borderRadius: 10,
-    overflow: "hidden",
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
     elevation: 2,
   },
   cardContent: {
-    padding: 16,
+    justifyContent: "center",
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: "#666",
-    marginVertical: 8,
+    color: "#4b5563",
+    marginBottom: 8,
   },
   info: {
     fontSize: 14,
-    color: "#666",
+    color: "#4b5563",
   },
   deliveryStatus: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
   },
   greenDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: "#10b981",
-    marginRight: 8,
+    marginRight: 4,
   },
   alert: {
     fontSize: 14,
-    color: "#10b981",
+    color: "#e3342f",
     marginTop: 8,
   },
+  selectedCategoryButton: {
+    backgroundColor: "#000000",
+  },
 });
-
