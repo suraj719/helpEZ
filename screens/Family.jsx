@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -29,7 +29,9 @@ import { useTranslation } from 'react-i18next';
 
 // Assume you have imported React Navigation dependencies here
 import { useNavigation } from "@react-navigation/native";
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
+const { width, height } = Dimensions.get('window');
 const Family = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
@@ -42,6 +44,8 @@ const Family = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
 
   const mapRef = useRef(null);
+  const snapPoints = useMemo(() => [80, '50%', '90%'], []);
+  //  const { width, height } = Dimensions.get('window');
 
   useEffect(() => {
     const fetchPhoneNumbers = async () => {
@@ -297,74 +301,82 @@ const Family = () => {
 
   return (
     <View style={styles.container}>
-      {currentLocation && (
-        <>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={{
-              ...currentLocation,
-              latitudeDelta: 0.032,
-              longitudeDelta: 0.021,
-            }}
-          >
-            {familyMembers.map((member, index) => (
-              member.location && member.location.latitude && member.location.longitude ? (
+      <View style={styles.maps}>
+        {currentLocation && (
+          <>
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              initialRegion={{
+                ...currentLocation,
+                latitudeDelta: 0.032,
+                longitudeDelta: 0.021,
+              }}
+            >
+              {familyMembers.map((member, index) => (
+                member.location && member.location.latitude && member.location.longitude ? (
+                  <Marker
+                    key={index}
+                    coordinate={{
+                      latitude: member.location.latitude,
+                      longitude: member.location.longitude,
+                    }}
+                    title={member.name}
+                    description={member.phoneNumber}
+                  />
+                ) : null
+              ))}
               <Marker
-                key={index}
-                coordinate={{
-                  latitude: member.location.latitude,
-                  longitude: member.location.longitude,
-                }}
-                title={member.name}
-                description={member.phoneNumber}
+                coordinate={currentLocation}
+                title="Current Location"
+                pinColor="blue"
               />
-              ) : null
-            ))}
-            <Marker
-              coordinate={currentLocation}
-              title="Current Location"
-              pinColor="blue"
-            />
-          </MapView>
-          <TouchableOpacity
-            style={styles.recenterButton}
-            onPress={handleRecenter}
-          >
-            <FontAwesome6 name="location-crosshairs" size={24} color="black" />
-          </TouchableOpacity>
-        </>
-      )}
-      <Text style={styles.title}>Family Members</Text>
-      <FlatList
-        data={familyMembers}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}
-          onPress={() => handleAnimateToLocation(item.location)}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between",paddingBottom: 4 }}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text>{`${
-                calculateDistance(currentLocation, item.location).value
-              } ${
-                calculateDistance(currentLocation, item.location).unit
-              }`}</Text>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between",paddingBottom: 6 }}>
-            <Text>{item.phoneNumber}</Text>
-            </View>
-            
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between"  }}>
-            <TouchableOpacity onPress={() => deleteFamilyMember(item.phoneNumber)}>
-              <Text style={styles.deleteButton}>Delete</Text>
+            </MapView>
+            <TouchableOpacity
+              style={styles.recenterButton}
+              onPress={handleRecenter}
+            >
+              <FontAwesome6 name="location-crosshairs" size={24} color="black" />
             </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigateToChat(item)} style={{paddingTop:4}}>
-              <AntDesign name="arrowright" size={28} color="black" />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          </>
+
         )}
-      />
+      </View>
+
+      <BottomSheet index={0} snapPoints={snapPoints}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Family Members</Text>
+          <BottomSheetFlatList
+            data={familyMembers}
+            contentContainerStyle={{ gap: 10, padding: 20, }}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.card}
+                onPress={() => handleAnimateToLocation(item.location)}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: 4 }}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text>{`${calculateDistance(currentLocation, item.location).value
+                    } ${calculateDistance(currentLocation, item.location).unit
+                    }`}</Text>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingBottom: 6 }}>
+                  <Text>{item.phoneNumber}</Text>
+                </View>
+
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <TouchableOpacity onPress={() => deleteFamilyMember(item.phoneNumber)}>
+                    <Text style={styles.deleteButton}>Delete</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigateToChat(item)} style={{ paddingTop: 4 }}>
+                    <AntDesign name="arrowright" size={28} color="black" />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </BottomSheet>
+
 
       <TouchableOpacity
         style={styles.fab}
@@ -380,31 +392,53 @@ const Family = () => {
           setModalVisible(!modalVisible);
         }}
       >
-        <View style={styles.modalView}>
-          <Text style={styles.modalText}>Add Family Member</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Name"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            value={familyPhoneNumber}
-            onChangeText={setFamilyPhoneNumber}
-            keyboardType="phone-pad"
-          />
-          <TouchableOpacity style={styles.button} onPress={handleAddMember}>
-            <Text style={styles.buttonText}>Add Member</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
-            onPress={() => setModalVisible(false)}
-          >
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
+
+
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Add Family Member</Text>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Name:</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter name"
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Phone Number:</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter phone number"
+                value={familyPhoneNumber}
+                onChangeText={setFamilyPhoneNumber}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={handleAddMember}>
+                <Text style={styles.buttonText}>Add Member</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={[styles.buttonText, styles.cancelButtonText]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
+
+
+
+
+
+
+
       </Modal>
     </View>
   );
@@ -415,19 +449,125 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#fff",
   },
+
+
+  // map: {
+  //   width: Dimensions.get("window").width,
+  //   height: Dimensions.get("window").height / 2.5,
+  // },
   map: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height / 2.5,
+    // width: Dimensions.get('window').width , // Slightly smaller than full width
+    // height: Dimensions.get('window').height / 2.5,
+    width: width, // Full width of the screen
+    height: height,
+    borderRadius: 40, // Curved corners
+    borderWidth: 2,
+    borderColor: '#ddd',
+    shadowColor: '#000', // Shadow for better depth
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5, // For Android shadow
   },
+  maps: {
+    padding: 10,
+    borderWidth: 0,
+    borderRadius: 20,       // Set the border width
+    borderColor: '#000',     // Set the border color
+    borderStyle: 'solid',    // Choose the border style
+    overflow: 'hidden',
+  },
+
+
+
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 25,
+    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+    width: '80%',
+  },
+  label: {
+    bottom: 10,
+    width: '30%', // Adjust this width as needed
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  input: {
+    width: '70%', // Adjust this width as needed
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingLeft: 10,
+    backgroundColor: '#f0f0f0',
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '90%',
+    marginTop: 20,
+  },
+  button: {
+    backgroundColor: '#00A3E0',
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    width: '45%',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f44336',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  cancelButtonText: {
+    color: 'white',
+  },
+
+
   title: {
     fontSize: 20,
     fontWeight: "bold",
     marginVertical: 10,
+    left: 20,
   },
   card: {
-    backgroundColor: "white",
+    backgroundColor: "#f0f0f0",
     padding: 20,
     marginVertical: 10,
     borderRadius: 10,
@@ -435,7 +575,7 @@ const styles = StyleSheet.create({
   },
   recenterButton: {
     position: "absolute",
-    top: 20,
+    top: 70,
     right: 20,
     backgroundColor: "white",
     borderRadius: 10,
@@ -479,8 +619,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalText: {
-    fontSize: 20,
-    marginBottom: 15,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: "center",
   },
   input: {
@@ -492,7 +633,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   button: {
-    backgroundColor: "blue",
+    backgroundColor: "black",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -505,7 +646,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   cancelButton: {
-    backgroundColor: "red",
+    backgroundColor: "black",
   },
 });
 

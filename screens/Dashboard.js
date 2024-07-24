@@ -30,6 +30,7 @@ import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 import CommunityScreen from "./CommunityScreen";
 import { useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import Donate from "./Donate"; // Import Donate
 
 const Drawer = createDrawerNavigator();
@@ -80,8 +81,10 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
 
 const Dashboard = () => {
   const { t } = useTranslation();  // Initialize useTranslation hook
+  
   return (
     <SafeAreaView style={styles.safeArea}>
+    
       <Drawer.Navigator
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
