@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   where,
   setDoc,
   doc,
+  updateDoc
 } from "firebase/firestore";
 import { firestore } from "../utils/firebase";
 import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
@@ -27,8 +28,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as geolib from "geolib";
 import { useTranslation } from 'react-i18next';
 
-// Assume you have imported React Navigation dependencies here
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
 const { width } = Dimensions.get('window');
@@ -86,12 +86,14 @@ const Family = () => {
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      setCurrentLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-      });
+
+      const newLocation = {
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    };
+    setCurrentLocation(newLocation);
     })();
   }, []);
 
@@ -120,6 +122,72 @@ const Family = () => {
     };
     fetchFamilyMembers();
   }, [userPhoneNumber]);
+
+  const updateUserLocationInFirebase = async (location) => {
+    if (!userPhoneNumber) return;
+
+    try {
+      const userQuery = query(
+        collection(firestore, "users"),
+        where("phoneNumber", "==", userPhoneNumber)
+      );
+      const userSnapshot = await getDocs(userQuery);
+
+      if (!userSnapshot.empty) {
+        const userDoc = userSnapshot.docs[0];
+        await updateDoc(doc(firestore, "users", userDoc.id), {
+          location: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }
+        });
+        console.log('Location updated in Firebase');
+      } else {
+        console.log('User not found in Firebase');
+      }
+    } catch (error) {
+      console.error("Error updating user location in Firebase:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error updating location",
+      });
+    }
+  };
+
+  const fetchAndUpdateLocation = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      Toast.show({
+        type: "error",
+        text1: "Permission to access location was denied",
+      });
+      return;
+    }
+
+    try {
+      let location = await Location.getCurrentPositionAsync({});
+      const newLocation = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      };
+      setCurrentLocation(newLocation);
+      await updateUserLocationInFirebase(newLocation);
+    } catch (error) {
+      console.error("Error fetching or updating location:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error updating location",
+      });
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAndUpdateLocation();
+    }, [userPhoneNumber])
+  );
 
   const handleAddMember = async () => {
     if (!name || !familyPhoneNumber) {

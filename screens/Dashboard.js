@@ -181,7 +181,7 @@ const Dashboard = () => {
             ),
           }}
         /> */}
-        <Drawer.Screen
+        {/* <Drawer.Screen
           name={t('Logout')}
           component={Logout}
           options={{
@@ -189,7 +189,7 @@ const Dashboard = () => {
               <Icon name="logout" size={22} color={color} />
             ),
           }}
-        />
+        /> */}
         <Drawer.Screen
   name={t('Community')}
   component={CommunityScreen}
