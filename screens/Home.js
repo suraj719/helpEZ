@@ -1,23 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ActivityIndicator, ScrollView, Image, Dimensions } from 'react-native';
 import { useFonts } from 'expo-font';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
-
-import app from "../utils/firebase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
-import Incidents from './Incidents';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitch from './LanguageSwitch';
 import { getLocationName } from './reverseGeocode';
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { Dimensions } from 'react-native';
+import app from "../utils/firebase";
 
-
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const Home = () => {
   const [fontsLoaded] = useFonts({
@@ -32,9 +26,8 @@ const Home = () => {
   const [newNotifications, setNewNotifications] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState(null);
   const [userName, setUserName] = useState('');
-  const languageSwitchRef = useRef(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [incidents, setIncidents] = useState([]); // Added incidents state
+  const [incidents, setIncidents] = useState([]); 
 
   const fetchUserImage = useCallback(async (userName) => {
     try {
@@ -46,11 +39,7 @@ const Home = () => {
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         const data = doc.data();
-        if (data.profileImage) {
-          setProfileImageUrl(data.profileImage);
-        } else {
-          setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
-        }
+        setProfileImageUrl(data.profileImage || 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
       } else {
         setProfileImageUrl('https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png');
       }
@@ -84,7 +73,6 @@ const Home = () => {
       const snapshot = await getDocs(collection(db, "incidents"));
       const allIncidents = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // Shuffle and select 3 random incidents
       const shuffled = allIncidents.sort(() => 0.5 - Math.random());
       const topThree = shuffled.slice(0, 3);
       
@@ -105,7 +93,6 @@ const Home = () => {
     }
   };
 
-  // Function to show toast message for new incidents
   const showToast = () => {
     Toast.show({
       type: 'info',
@@ -123,7 +110,6 @@ const Home = () => {
     setSelectedLanguage(lang);
   };
 
-
   if (!fontsLoaded) {
     return (
       <View style={styles.loaderContainer}>
@@ -133,15 +119,10 @@ const Home = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
       <View style={styles.header}>
-      <LanguageSwitch
-          switchLanguage={switchLanguage}
-          selectedLanguage={selectedLanguage}
-        />
+        <LanguageSwitch switchLanguage={switchLanguage} selectedLanguage={selectedLanguage} />
         <Text style={styles.headerTitle}>{t('HelpEZ')}</Text>
-        <View style={styles.headerButton}>
-        <View>
         <TouchableOpacity
           style={styles.notificationButton}
           onPress={() => {
@@ -156,12 +137,10 @@ const Home = () => {
           />
         </TouchableOpacity>
       </View>
-        </View>
-      </View>
 
       <View style={styles.profileSection}>
         <View style={styles.profile}>
-          <ImageBackground
+          <Image
             style={styles.profileImage}
             source={{ uri: profileImageUrl || 'https://cdn.usegalileo.ai/stability/40da8e6a-16f8-4274-80c2-9c349493caaa.png' }}
           />
@@ -173,7 +152,6 @@ const Home = () => {
           </View>
         </View>
       </View>
-
 
       <Text style={styles.sectionTitle}>{t('Quick Access')}</Text>
       <View style={styles.quickAccessSection}>
@@ -198,21 +176,20 @@ const Home = () => {
           onPress={() => navigation.navigate('UserGuide')}
         />
       </View>
-      
 
       <Text style={styles.sectionTitle}>{t('Recent Incidents')}</Text>
-    {incidents.length === 0 ? (
-      <ActivityIndicator size="large" color="#0000ff" />
-    ) : (
-      incidents.map((incident) => (
-        <IncidentCard
-          key={incident.id}
-          title={incident.title || 'Untitled'}
-          location={incident.location || { latitude: 0, longitude: 0 }}
-          onPress={() => navigation.navigate('IncidentDetails', { incident })}
-        />
-      ))
-    )}
+      {incidents.length === 0 ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        incidents.map((incident) => (
+          <IncidentCard
+            key={incident.id}
+            title={incident.title || 'Untitled'}
+            location={incident.location || { latitude: 0, longitude: 0 }}
+            onPress={() => navigation.navigate('IncidentDetails', { incident })}
+          />
+        ))
+      )}
 
       <Text style={styles.sectionTitle}>{t('Resources')}</Text>
       <View style={styles.resourceSection}>
@@ -233,117 +210,44 @@ const Home = () => {
 
 const QuickAccessCard = ({ title, imageUrl, onPress }) => {
   return (
-    <TouchableOpacity onPress={onPress}>
-      <ImageBackground
-        style={styles.quickAccessCard}
-        source={{ uri: imageUrl }}
-        imageStyle={styles.cardImage}
-      >
-        <View style={styles.cardTextContainer}>
-          <Text style={styles.cardText}>{title}</Text>
-        </View>
-      </ImageBackground>
+    <TouchableOpacity style={styles.quickAccessCard} onPress={onPress}>
+      <Image style={styles.quickAccessImage} source={{ uri: imageUrl }} />
+      <Text style={styles.quickAccessText}>{title}</Text>
     </TouchableOpacity>
   );
 };
-
 
 const IncidentCard = ({ title, location, onPress }) => {
-  const [locationName, setLocationName] = useState('');
+  const [locationName, setLocationName] = useState('Fetching location...');
+  const locationRef = useRef(location);
 
   useEffect(() => {
-    const fetchLocationName = async () => {
-      const name = await getLocationName(location.latitude, location.longitude);
-      setLocationName(name);
-    };
-
-    fetchLocationName();
-  }, [location.latitude, location.longitude]);
+    if (location) {
+      getLocationName(location.latitude, location.longitude)
+        .then(name => setLocationName(name))
+        .catch(() => setLocationName('Location not found'));
+    }
+  }, [location]);
 
   return (
-    <TouchableOpacity onPress={onPress}>
-      <View style={styles.incidentCard}>
-        <View style={styles.incidentCardText}>
-          <Text style={styles.incidentTitle}>{title || 'Untitled'}</Text>
-          <Text style={styles.incidentLocation}>{locationName || 'Fetching location...'}</Text>
-        </View>
-        <MaterialIcons name="arrow-forward-ios" size={24} color="black" />
+    <TouchableOpacity style={styles.incidentCard} onPress={onPress}>
+      <View style={styles.incidentCardText}>
+        <Text style={styles.incidentCardTitle}>{title}</Text>
+        <Text style={styles.incidentCardSubtitle}>{locationName}</Text>
       </View>
+      <Ionicons name="chevron-forward" size={24} color="black" />
     </TouchableOpacity>
   );
 };
 
-
-
 const styles = StyleSheet.create({
-  notificationButton: {
-    position: 'absolute',
-    top: 10,
-    right: 20,
-  },
-  header: {
-    flexDirection: "row",
-    marginTop: 40,
-    alignItems: "center",
-    paddingHorizontal: 40,
-  },
-  notificationButton: {
-    marginRight: 20,
-  },
-  languageSwitch: {
-    flexDirection: 'row',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 25,
-    padding: 4,
-  },
-  languageButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  languageButtonSelected: {
-    backgroundColor: '#007bff',
-  },
-  languageButtonText: {
-    color: '#000',
-    fontSize: 16,
-  },
-  languageButtonTextSelected: {
-    color: '#fff',
-  },
-  title: {
-    fontSize: 40,
-    color: "black",
-    fontFamily: "RobotoBold",
-  },
-  languageSwitch: {
-    flexDirection: 'row',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 25,
-    padding: 4,
-  },
-  languageButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  languageButtonSelected: {
-    backgroundColor: '#007bff',
-  },
-  languageButtonText: {
-    color: '#000',
-    fontSize: 16,
-  },
-  languageButtonTextSelected: {
-    color: '#fff',
-  },
   container: {
     flex: 1,
-    position: 'relative', // Ensure the container is relative for absolute positioning
+    padding: 16,
+    backgroundColor: '#f5f5f5',
   },
   scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 80, // Ensure there’s enough space at the bottom to avoid overlap with the chatbot button
+    paddingBottom: 20,
   },
   loaderContainer: {
     flex: 1,
@@ -352,143 +256,123 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-    paddingLeft: 48,
+    fontSize: 24,
+    fontFamily: 'PublicSans-Bold',
   },
-  headerButton: {
-    width: 48,
-    alignItems: 'flex-end',
-  },
-  button: {
+  notificationButton: {
     padding: 8,
   },
   profileSection: {
-    padding: 16,
+    marginTop: 20,
+    marginBottom: 20,
   },
   profile: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   profileImage: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    borderWidth: 4,
-    borderColor: '#FFFFFF', // Adjust border color as needed
-    shadowColor: '#000', // Shadow color
-    shadowOffset: { width: 0, height: 4 }, // Shadow offset
-    shadowOpacity: 0.3, // Shadow opacity
-    shadowRadius: 8, // Shadow radius
-    elevation: 5, // For Android shadow effect
-    resizeMode: 'cover', // Ensure image covers the area
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderColor: '#ccc',
+    borderWidth: 2,
   },
   profileText: {
     marginLeft: 16,
-    flex: 1, // Allow text container to expand
-    flexWrap: 'wrap', // Allow text to wrap onto the next line
   },
   title: {
-    fontSize: 30, // Adjusted font size for better fit
-    color: "black",
-    fontFamily: "RobotoBold",
-    flexShrink: 1, // Allows text to shrink if necessary
+    fontSize: 20,
+    fontFamily: 'NotoSans-Bold',
   },
   status: {
-    color: '#6B6B6B',
+    fontSize: 16,
+    fontFamily: 'NotoSans-Regular',
+    color: '#555',
   },
-
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    paddingLeft: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    fontSize: 18,
+    fontFamily: 'PublicSans-Bold',
+    marginTop: 20,
+    marginBottom: 10,
   },
   quickAccessSection: {
-    padding: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   quickAccessCard: {
-    height: 200,
+    width: (width - 48) / 2,
+    height: 150,
     marginBottom: 16,
-    justifyContent: 'flex-end',
-    borderRadius: 16,
+    borderRadius: 8,
     overflow: 'hidden',
+    backgroundColor: '#fff',
+    elevation: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  cardImage: {
-    borderRadius: 16,
+  quickAccessImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
-  cardTextContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    padding: 16,
-  },
-  cardText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
+  quickAccessText: {
+    position: 'absolute',
+    bottom: 8,
+    left: 8,
+    right: 8,
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'PublicSans-Bold',
   },
   incidentCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 3,
+    marginBottom: 16,
   },
   incidentCardText: {
     flex: 1,
   },
-  incidentTitle: {
+  incidentCardTitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'PublicSans-Bold',
   },
-  incidentTime: {
-    color: '#6B6B6B',
+  incidentCardSubtitle: {
     fontSize: 14,
-  },
-  incidentLocation: {
-    color: '#6B6B6B',
-    fontSize: 14,
+    fontFamily: 'PublicSans-Regular',
+    color: '#555',
   },
   resourceSection: {
-    padding: 16,
+    marginTop: 20,
+    marginBottom: 20,
   },
   resourceImage: {
     width: '100%',
     height: 200,
-    borderRadius: 16,
-  },
-  languageSwitchContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 10,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   chatbotButton: {
     position: 'absolute',
     bottom: 20,
     right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#007bff',
-    borderRadius: 50,
-    padding: 10,
-    elevation: 5, // Adds shadow for Android
-    shadowColor: '#000', // Shadow color for iOS
-    shadowOffset: { width: 0, height: 2 }, // Shadow offset for iOS
-    shadowOpacity: 0.2, // Shadow opacity for iOS
-    shadowRadius: 4, // Shadow radius for iOS
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
   },
-  
 });
 
 export default Home;

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, Platform } from 'react-native';
 import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import { GOOGLE_MAP_KEY } from './googleMapKey';
-import imagePath from './imagePath';
+// import imagePath from './imagePath';
 import MapViewDirections from 'react-native-maps-directions';
 import Loader from './Loader';
 import { locationPermission, getCurrentLocation } from './helperFunction';
@@ -110,7 +110,7 @@ const ResourceRouteScreen = ({ route }) => {
                         longitudeDelta: LONGITUDE_DELTA,
                     }}
                 >
-                    <Marker.Animated
+                    {/* <Marker.Animated
                         ref={markerRef}
                         coordinate={coordinate}
                     >
@@ -123,14 +123,14 @@ const ResourceRouteScreen = ({ route }) => {
                             }}
                             resizeMode="contain"
                         />
-                    </Marker.Animated>
+                    </Marker.Animated> */}
 
-                    {Object.keys(destinationCords).length > 0 && (
+                    {/* {Object.keys(destinationCords).length > 0 && (
                         <Marker
                             coordinate={destinationCords}
                             image={imagePath.icGreenMarker}
                         />
-                    )}
+                    )} */}
 
                     {Object.keys(destinationCords).length > 0 && (
                         <MapViewDirections
@@ -159,7 +159,7 @@ const ResourceRouteScreen = ({ route }) => {
                         />
                     )}
                 </MapView>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     style={{
                         position: 'absolute',
                         bottom: 0,
@@ -168,7 +168,7 @@ const ResourceRouteScreen = ({ route }) => {
                     onPress={onCenter}
                 >
                     <Image source={imagePath.greenIndicator} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
             </View>
             <View style={styles.bottomCard}>
                 <Text></Text>
