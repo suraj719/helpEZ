@@ -61,7 +61,8 @@ export default function ReportIncident() {
   const notificationListener = useRef();
   const responseListener = useRef();
 
-  const apiKey = "AIzaSyDYphFc-Tj4dvmY_Wj_kjfI_zQOYOwC3f4";
+  // const apiKey = "AIzaSyDYphFc-Tj4dvmY_Wj_kjfI_zQOYOwC3f4";
+  const apiKey = "AIzaSyDn3N_hLCJKBJ_V070Yidw2Arnr4PamVEM";
   const genAI = new GoogleGenerativeAI(apiKey);
 
   useEffect(() => {
