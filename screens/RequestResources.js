@@ -51,7 +51,8 @@ export default function RequestResources() {
   const [items, setItems] = useState([{ itemName: '', itemQuantity: '',satisfied: '0' }]);
 
 
-  const apiKey = "AIzaSyDYphFc-Tj4dvmY_Wj_kjfI_zQOYOwC3f4";
+  // const apiKey = "AIzaSyDYphFc-Tj4dvmY_Wj_kjfI_zQOYOwC3f4";
+  const apiKey="AIzaSyAwSrE72pLjm6CDn77eDEp2Z584q1zaCmg";
   const genAI = new GoogleGenerativeAI(apiKey);
 
   useEffect(() => {
