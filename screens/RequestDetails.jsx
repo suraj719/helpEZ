@@ -9,6 +9,18 @@ const RequestDetails = ({ route }) => {
   const { request } = route.params;
   const navigation = useNavigation();
 
+  const renderStatusComponent = () => {
+    if (request.status.toLowerCase() === 'pending') {
+      return (
+        <View style={styles.pendingBlock}>
+          <Text style={styles.pendingText}>Request is not validated</Text>
+        </View>
+      );
+    } else {
+      return <StatusProgressBar currentStatus={request.status} />;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
@@ -18,7 +30,7 @@ const RequestDetails = ({ route }) => {
         <Ionicons name="chevron-back" size={24} color="black" />
         <Text>Back</Text>
       </TouchableOpacity>
-      <StatusProgressBar currentStatus={request.status} />
+      {renderStatusComponent()}
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.detailsContainer}>
@@ -162,6 +174,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  pendingBlock: {
+    backgroundColor: 'red',
+    padding: 15,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    borderRadius: 10,
+  },
+  pendingText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

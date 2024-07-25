@@ -73,5 +73,11 @@
   "Resources": "Resources",
   "Fetching location...": "Fetching location...",
   "New Incidents Detected!": "New Incidents Detected!",
-  "Check the Notifications tab for details.": "Check the Notifications tab for details."
+  "Check the Notifications tab for details.": "Check the Notifications tab for details.",
+  "User Guide": "User Guide",
+  "Family Members" : "Family Members",
+  "Add Family Member": "Add Family Member",
+  "Add Member" : "Add Member",
+  "Cancel": "Cancel",
+  "You are in a safe area.": "You are in a safe area."
 }

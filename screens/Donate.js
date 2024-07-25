@@ -239,7 +239,7 @@ const Donor = () => {
           <View style={styles.iconContainer}>
             <AntDesign name="arrowright" size={22} color="black" style={styles.icon} />
           </View>
-          <Text style={styles.boxText}>Start Your Donation</Text>
+          <Text style={styles.boxText}>Subscribe for Further Notification.</Text>
         </TouchableOpacity>
       ) : (
         <View>
@@ -263,6 +263,12 @@ const Donor = () => {
           <Text style={styles.emptyText}>No requests available</Text>
         </View>
       )}
+      <TouchableOpacity
+        style={styles.donateButton}
+        onPress={() => navigation.navigate('DonateMoney')}
+      >
+        <Text style={styles.donateButtonText}>Donate Money</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -305,7 +311,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   boxText: {
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -410,6 +416,18 @@ const styles = StyleSheet.create({
   loadingContainer: {
     padding: 16,
     alignItems: 'center',
+  },
+  donateButton: {
+    padding: 16,
+    backgroundColor: '#f24459',
+    borderRadius: 8,
+    margin: 16,
+    alignItems: 'center',
+  },
+  donateButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   
 });

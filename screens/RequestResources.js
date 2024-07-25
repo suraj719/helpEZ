@@ -299,6 +299,7 @@ Example: "Requesting transportation to a medical facility."
       sendAlert: false,
       items,
       images: imageUrls,
+      status: 'Pending',
     };
 
     const reportData2 = {

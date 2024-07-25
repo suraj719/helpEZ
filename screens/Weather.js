@@ -42,8 +42,8 @@ const Weather = () => {
 
       if (location) {
         const { latitude, longitude } = location.coords;
-        fetchWeather(latitude, longitude);
         fetchForecast(latitude, longitude);
+        fetchWeather(latitude, longitude);
       }
     })();
   }, []);
@@ -58,7 +58,9 @@ const Weather = () => {
       const client = new MistralClient(API_KEY_MISTRAL);
       const { name, main, weather: weatherDetails } = weatherResponse.data;
       const prompt = `Provide detailed insights and suggestions for the current weather in ${name}:
-      - Temperature: ${Math.round(main.temp - 273.15)}°C
+      - Temperature: ${
+        forecast?.current?.temperature2m || Math.round(main.temp - 273.15)
+      }°C
       - Humidity: ${main.humidity}%
       - Condition: ${weatherDetails[0].description}
       - Wind Speed: ${weatherResponse.data.wind.speed} m/s`;

@@ -287,8 +287,10 @@ const DonateForm = () => {
                     </View>
                 )}
 
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                    <Text style={styles.submitButtonText}>Submit</Text>
+                <TouchableOpacity  
+                className="bg-green-500 rounded-lg p-2 my-4"
+                onPress={handleSubmit}>
+                    <Text className="text-xl text-center">Submit</Text>
                 </TouchableOpacity>
 
                 {/* Warehouse Modal */}
@@ -428,17 +430,6 @@ const styles = StyleSheet.create({
     },
     timeButtonText: {
         marginLeft: 10,
-    },
-    submitButton: {
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    submitButtonText: {
-        fontSize: 18,
-        color: '#fff',
-        fontWeight: 'bold',
-        textAlign: 'center',
     },
     modalContainer: {
         flex: 1,
