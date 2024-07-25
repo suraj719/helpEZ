@@ -15,8 +15,21 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
+import { app } from "../utils/firebase";
+import {
+  addDoc,
+  collection,
+  doc,
+  getFirestore,
+  updateDoc,
+} from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Location from "expo-location";
 
-const RegisterDetails = () => {
+const RegisterDetails = ({ route }) => {
+  const db = getFirestore(app);
+  const { phoneNumber } = route.params;
+  const usersCollection = collection(db, "users");
   const navigation = useNavigation();
   const [dob, setDob] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -41,11 +54,53 @@ const RegisterDetails = () => {
     setGenderModalVisible(false);
   };
 
-  const handleSubmit = () => {
-    if (fullName && gender && bloodGroup && alternateContact) {
-      Alert.alert("Success", "Form Submitted Successfully");
+  const handleSubmit = async () => {
+    if (!fullName || !gender || !bloodGroup) {
+      Alert.alert("error", "Please fill all the details");
     } else {
-      Alert.alert("Error", "Please fill all fields");
+      const formattedDob = dob.toISOString().split("T")[0];
+      const createdAt = new Date().toLocaleString();
+      const userData = {
+        createdAt: createdAt,
+        phoneNumber: phoneNumber,
+        name: fullName,
+        gender: gender,
+        dob: formattedDob,
+        bloodGroup: bloodGroup,
+        alternateContact: alternateContact,
+        isVolunteer: false, // Include isVolunteer in user data
+        role: "",
+      };
+
+      // setLoading(true);
+      try {
+        // Add user to Firestore
+        const userDocRef = await addDoc(usersCollection, userData);
+
+        // Fetch current location
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          throw new Error("Location permission not granted");
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+
+        // Update user document with location data
+        await updateDoc(doc(db, "users", userDocRef.id), {
+          location: {
+            latitude: latitude,
+            longitude: longitude,
+          },
+        });
+
+        // Store phone number in AsyncStorage
+      } catch (err) {
+        console.log(err);
+      }
+      await AsyncStorage.setItem("phoneNumber", phoneNumber);
+      await AsyncStorage.setItem("name", fullName);
+      navigation.navigate("Dashboard");
     }
   };
 
