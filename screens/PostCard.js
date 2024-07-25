@@ -10,6 +10,7 @@ import {
   TextInput,
   Button
 } from 'react-native';
+import { Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, updateDoc, arrayUnion, arrayRemove,query,where, increment, serverTimestamp, getDoc,collection,getDocs } from 'firebase/firestore';
 import { firestore } from '../utils/firebase';
@@ -75,6 +76,42 @@ const PostCard = ({ postId, post }) => {
 
     fetchPost();
   }, [postId]);
+
+  const PostActionButton = ({ post }) => {
+    return (
+      <TouchableOpacity
+        style={styles.actionButton}
+        onPress={() => handleShare(post)} // Pass the post to the handleShare function
+      >
+        <Ionicons name="paper-plane-outline" size={24} color="#6B6B6B" />
+        <Text style={styles.actionText}>{post.shares || 0}</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const handleShare = async (post) => {
+    try {
+      const result = await Share.share({
+        message: `Check out this post: ${post.title}\n\n${post.content}`, // Customize the message as needed
+      });
+  
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Shared with an activity type
+          console.log('Shared with activity type:', result.activityType);
+        } else {
+          // Shared
+          console.log('Content shared');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // Dismissed
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      console.error('Error sharing content:', error.message);
+    }
+  };
+  
 
   const handleLike = async () => {
     try {
@@ -226,6 +263,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  actionText: {
+    marginLeft: 5,
   },
   avatar: {
     width: 40,

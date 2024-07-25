@@ -5,8 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
-  TouchableOpacity,
-  Text
+  ScrollView
 } from 'react-native';
 import Header from './Header';
 import CategoryFilter from './CategoryFilter';
@@ -45,8 +44,15 @@ const CommunityScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
-      <CategoryFilter onSelectCategory={setSelectedCategory} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.scrollView}
+      >
+        <View style={styles.categoryFilterContainer}>
+          <CategoryFilter onSelectCategory={setSelectedCategory} />
+        </View>
+      </ScrollView>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
@@ -68,6 +74,20 @@ const styles = StyleSheet.create({
   },
   postsList: {
     paddingHorizontal: 4,
+  },
+  scrollView: {
+    // Adjust as needed for your layout
+  },
+  categoryFilterContainer: {
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 100,
+    justifyContent: 'space-between',
+    width:'100%',
+  },
+  categoryItem: {
+    marginRight: 65, // Space between each category item
   },
 });
 
