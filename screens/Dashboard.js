@@ -9,13 +9,13 @@ import {
   ScrollView,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
 import {
   createDrawerNavigator,
   DrawerItemList,
 } from "@react-navigation/drawer";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTranslation } from 'react-i18next';  // Import useTranslation
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTranslation } from "react-i18next"; // Import useTranslation
 import Nearby from "./Nearby";
 import Weather from "./Weather";
 import Home from "./Home";
@@ -25,7 +25,7 @@ import Requests from "./Requests";
 import Family from "./Family";
 import MemberSignup from "./MemberSignup";
 import MedicineInfoScreen from "./MedicineInfoScreen"; // Import MedicineInfoScreen
-import ResourcesTrackingScreen from "./ResourcesTrackingScreen"; 
+import ResourcesTrackingScreen from "./ResourcesTrackingScreen";
 import ProfileScreen from "./ProfileScreen";
 import Analytics from "./DashBoardAnalytics";
 import CommunityScreen from "./CommunityScreen";
@@ -34,7 +34,8 @@ import Donate from "./Donate"; // Import Donate
 
 const Drawer = createDrawerNavigator();
 
-const CustomDrawerContent = (props) => { // Initialize useTranslation hook
+const CustomDrawerContent = (props) => {
+  // Initialize useTranslation hook
   const [userName, setUserName] = useState("");
   const [userPhoneNumber, setUserPhoneNumber] = useState("");
   const { t } = useTranslation();
@@ -43,8 +44,8 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
     const fetchUserData = async () => {
       const name = await AsyncStorage.getItem("name");
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
-      setUserName(name || t('guest'));
-      setUserPhoneNumber(phoneNumber || t('unknown'));
+      setUserName(name || t("guest"));
+      setUserPhoneNumber(phoneNumber || t("unknown"));
     };
 
     fetchUserData();
@@ -52,28 +53,37 @@ const CustomDrawerContent = (props) => { // Initialize useTranslation hook
   const navigation = useNavigation();
 
   const handleProfileNavigation = () => {
-    navigation.navigate('ProfileScreen'); // Ensure 'ProfileScreen' is the name of your profile screen in the navigator
+    navigation.navigate("ProfileScreen"); // Ensure 'ProfileScreen' is the name of your profile screen in the navigator
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-    <View style={styles.drawerContent}>
-      <View style={styles.drawerHeader}>
-        <Image source={require("../assets/drawer.png")} style={styles.logo} />
-        <Text style={styles.appName}>HelpEZ</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <View style={styles.drawerContent}>
+        <View style={styles.drawerHeader}>
+          <Image source={require("../assets/drawer.png")} style={styles.logo} />
+          <Text style={styles.appName}>HelpEZ</Text>
+        </View>
+        <ScrollView style={styles.scrollView}>
+          <DrawerItemList {...props} />
+        </ScrollView>
+        <View style={styles.spacer} />
+        <TouchableOpacity
+          onPress={handleProfileNavigation}
+          style={styles.userInfo}
+        >
+          <Image
+            source={require("../assets/avatar.png")}
+            style={styles.avatar}
+          />
+          <View>
+            <Text style={styles.userName}>{userName}</Text>
+            <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
+          </View>
+        </TouchableOpacity>
       </View>
-      <ScrollView style={styles.scrollView}>
-        <DrawerItemList {...props} />
-      </ScrollView>
-      <View style={styles.spacer} />
-      <TouchableOpacity onPress={handleProfileNavigation} style={styles.userInfo}>
-      <Image source={require("../assets/avatar.png")} style={styles.avatar} />
-      <View>
-        <Text style={styles.userName}>{userName}</Text>
-        <Text style={styles.userPhoneNumber}>{userPhoneNumber}</Text>
-      </View>
-    </TouchableOpacity>
-    </View>
     </ScrollView>
   );
 };
@@ -82,6 +92,7 @@ const Dashboard = () => {
   const { t } = useTranslation();  // Initialize useTranslation hook
   return (
     <SafeAreaView style={styles.safeArea}>
+    
       <Drawer.Navigator
         drawerContent={(props) => <CustomDrawerContent {...props} />}
         screenOptions={{
@@ -99,7 +110,7 @@ const Dashboard = () => {
         }}
       >
         <Drawer.Screen
-          name={t('Home')}
+          name={t("Home")}
           component={Home}
           options={{
             drawerIcon: ({ color }) => (
@@ -108,7 +119,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('Nearby')}
+          name={t("Nearby")}
           component={Nearby}
           options={{
             drawerIcon: ({ color }) => (
@@ -117,7 +128,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('Weather')}
+          name={t("Weather")}
           component={Weather}
           options={{
             drawerIcon: ({ color }) => (
@@ -126,7 +137,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('Family')}
+          name={t("Family")}
           component={Family}
           options={{
             drawerIcon: ({ color }) => (
@@ -135,7 +146,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('Incidents')}
+          name={t("Incidents")}
           component={Incidents}
           options={{
             drawerIcon: ({ color }) => (
@@ -144,7 +155,7 @@ const Dashboard = () => {
           }}
         />
         <Drawer.Screen
-          name={t('Requests')}
+          name={t("Requests")}
           component={Requests}
           options={{
             drawerIcon: ({ color }) => (
@@ -152,8 +163,8 @@ const Dashboard = () => {
             ),
           }}
         />
-        <Drawer.Screen 
-          name={t('MemberSignup')} 
+        <Drawer.Screen
+          name={t("MemberSignup")}
           component={MemberSignup}
           options={{
             drawerIcon: ({ color }) => (
@@ -161,16 +172,7 @@ const Dashboard = () => {
             ),
           }}
         />
-        <Drawer.Screen
-          name="Resources Tracking"
-          component={ResourcesTrackingScreen}
-          options={{
-            drawerIcon: ({ color }) => (
-              <Icon name="earth" size={22} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
+        {/* <Drawer.Screen
           name={t('MedicineInfo')}
           component={MedicineInfoScreen}
           options={{
@@ -178,7 +180,16 @@ const Dashboard = () => {
               <Icon name="pill" size={22} color={color} />
             ),
           }}
-        />
+        /> */}
+        {/* <Drawer.Screen
+          name={t('Logout')}
+          component={Logout}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="logout" size={22} color={color} />
+            ),
+          }}
+        /> */}
         <Drawer.Screen
   name={t('Community')}
   component={CommunityScreen}
@@ -189,7 +200,7 @@ const Dashboard = () => {
   }}
 />
         <Drawer.Screen
-          name={t('Analytics')}
+          name={t("Analytics")}
           component={Analytics}
           options={{
             drawerIcon: ({ color }) => (
@@ -197,8 +208,17 @@ const Dashboard = () => {
             ),
           }}
         />
+        <Drawer.Screen
+          name={t("Logout")}
+          component={Logout}
+          options={{
+            drawerIcon: ({ color }) => (
+              <Icon name="logout" size={22} color={color} />
+            ),
+          }}
+        />
 
-         {/* <Drawer.Screen
+        {/* <Drawer.Screen
           name={t('Profile')}
           component={ProfileScreen}
           options={{
@@ -216,15 +236,6 @@ const Dashboard = () => {
             ),
           }}
         />
-        <Drawer.Screen
-          name={t('Logout')}
-          component={Logout}
-          options={{
-            drawerIcon: ({ color }) => (
-              <Icon name="logout" size={22} color={color} />
-            ),
-          }}
-        />
       </Drawer.Navigator>
     </SafeAreaView>
   );
@@ -236,7 +247,7 @@ const styles = StyleSheet.create({
   },
   drawerContent: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   drawerHeader: {
     flexDirection: "row",
@@ -262,13 +273,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     paddingBottom: 18,
-    backgroundColor: '#e6e6e6',
+    backgroundColor: "#e6e6e6",
     borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderTopColor: "#ccc",
   },
   avatar: {
     width: 50,
@@ -285,7 +296,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "gray",
   },
-  
 });
 
 export default Dashboard;
