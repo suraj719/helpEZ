@@ -293,7 +293,7 @@ Example: "Requesting transportation to a medical facility."
       category,
       requestTitle,
       contact: await AsyncStorage.getItem("phoneNumber"),
-      description,
+      requestDescription: description,
       neededBy: formattedDate,
       sendAlert: false,
       items,
