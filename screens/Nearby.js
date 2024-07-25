@@ -104,11 +104,11 @@ export default function Nearby() {
       setRandomMarkers([]);
     } else {
       const randomLocations = [
-        { latitude: 11.0168, longitude: 76.9558, title: 'Emergency Stay 1' },
-        { latitude: 11.0200, longitude: 76.9660, title: 'Emergency Stay 2' },
-        { latitude: 11.0100, longitude: 76.9500, title: 'Emergency Stay 3' },
-        { latitude: 11.0250, longitude: 76.9700, title: 'Emergency Stay 4' },
-        { latitude: 11.0120, longitude: 76.9580, title: 'Emergency Stay 5' },
+        { latitude: 11.0168, longitude: 76.9558, title: 'Communnity Shelter 1' },
+        { latitude: 11.0200, longitude: 76.9660, title: 'Communnity Shelter 2' },
+        { latitude: 11.0100, longitude: 76.9500, title: 'Communnity Shelter 3' },
+        { latitude: 11.0250, longitude: 76.9700, title: 'Communnity Shelter 4' },
+        { latitude: 11.0120, longitude: 76.9580, title: 'Communnity Shelter 5' },
       ];
   
       setRandomMarkers(randomLocations);
@@ -302,7 +302,7 @@ export default function Nearby() {
       
       )}
       <View style={[styles.getCurrentLocationButtonContainer, styles.bottomRight]}>
-        <TouchableOpacity style={styles.circleButton} onPress={getCurrentLocation}>
+        <TouchableOpacity style={styles.circleButton} onPress={getCurrentLocation} activeOpacity={0.8}>
           <Ionicons name="locate" size={24} color="white" />
         </TouchableOpacity>
       </View>
@@ -310,6 +310,7 @@ export default function Nearby() {
   <TouchableOpacity
     style={[styles.rectangleButton, selectedButton === 'hospitals' && styles.selectedButton]}
     onPress={() => handleButtonPress('hospitals')}
+    activeOpacity={0.8}
   >
     <Ionicons name="medkit" size={24} color="white" style={styles.icon} />
     <Text style={styles.buttonText}>{t('Hospitals')}</Text>
@@ -317,12 +318,14 @@ export default function Nearby() {
   <TouchableOpacity
     style={[styles.rectangleButton, selectedButton === 'medicals' && styles.selectedButton]}
     onPress={() => handleButtonPress('medicals')}
+    activeOpacity={0.8}
   >
     <Ionicons name="business" size={24} color="white" style={styles.icon} />
     <Text style={styles.buttonText}>{t('Medicals')}</Text>
   </TouchableOpacity>
   <TouchableOpacity
     style={[styles.rectangleButton, selectedButton === 'food' && styles.selectedButton]}
+    activeOpacity={0.8}
     onPress={() => handleButtonPress('food')}
   >
     <Ionicons name="restaurant" size={24} color="white" style={styles.icon} />
@@ -350,9 +353,6 @@ export default function Nearby() {
     <Text style={styles.buttonText}>{t('Volunteers')}</Text>
   </TouchableOpacity>
 </ScrollView>
-
-
-
     </View>
   );
 }
